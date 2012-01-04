@@ -1,4 +1,4 @@
-Metadata-Version: 1.0
+Metadata-Version: 1.1
 Name: lxml
 Version: 2.3.2
 Summary: Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API.
