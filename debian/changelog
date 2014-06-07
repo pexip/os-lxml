@@ -1,8 +1,18 @@
-lxml (2.3.2-1pexip1) pexip; urgency=low
+lxml (2.3.2-1ubuntu0.2pexip1) pexip; urgency=low
 
   * Prepare Pexip packaging
 
- -- John-Mark Bell <jmb@pexip.com>  Tue, 24 Dec 2013 23:36:19 +0000
+ -- John-Mark Bell <jmb@pexip.com>  Sat, 07 Jun 2014 15:21:41 +0100
+
+lxml (2.3.2-1ubuntu0.2) precise-security; urgency=medium
+
+  * SECURITY UPDATE: XSS via control characters
+    - adjust filter in src/lxml/html/clean.py, add test to
+      src/lxml/html/tests/test_clean.txt.
+    - e86b294f1f81b899a59925123560ff924a72f1cc
+    - CVE-2014-3146
+
+ -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Tue, 20 May 2014 09:27:34 -0400
 
 lxml (2.3.2-1) unstable; urgency=low
 
