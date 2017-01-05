@@ -61,12 +61,11 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module etree</h1><p class="nomargin-top"></p>
-The <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">lxml.etree</tt> module implements the extended ElementTree API
-for XML.
+The <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">lxml.etree</tt> module implements the extended ElementTree API for XML.
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        2.3.6
+        3.7.0
       </p>
 </div><!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
@@ -318,7 +317,7 @@ Iterates over the text content of a subtree.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.etree.HTMLParser-class.html" class="summary-name">HTMLParser</a><br />
-      HTMLParser(self, encoding=None, remove_blank_text=False,                    remove_comments=False, remove_pis=False, strip_cdata=True,                    no_network=True, target=None, XMLSchema schema=None,                    recover=True, compact=True)
+      HTMLParser(self, encoding=None, remove_blank_text=False,                    remove_comments=False, remove_pis=False, strip_cdata=True,                    no_network=True, target=None, schema: XMLSchema =None,                    recover=True, compact=True, collect_ids=True)
     </td>
   </tr>
 <tr class="private">
@@ -551,7 +550,7 @@ XInclude processor.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.etree.XMLParser-class.html" class="summary-name">XMLParser</a><br />
-      XMLParser(self, encoding=None, attribute_defaults=False, dtd_validation=False, load_dtd=False, no_network=True, ns_clean=False, recover=False, XMLSchema schema=None, remove_blank_text=False, resolve_entities=True, remove_comments=False, remove_pis=False, strip_cdata=True, collect_ids=True, target=None, compact=True)
+      XMLParser(self, encoding=None, attribute_defaults=False, dtd_validation=False, load_dtd=False, no_network=True, ns_clean=False, recover=False, schema: XMLSchema =None, remove_blank_text=False, resolve_entities=True, remove_comments=False, remove_pis=False, strip_cdata=True, collect_ids=True, target=None, compact=True)
     </td>
   </tr>
 <tr class="private">
@@ -933,6 +932,14 @@ A dictionary-like proxy class that mapps ID attributes to elements.
         <a href="lxml.etree._XSLTResultTree-class.html" class="summary-name" onclick="show_private();">_XSLTResultTree</a>
     </td>
   </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="lxml.etree.htmlfile-class.html" class="summary-name" onclick="show_private();">htmlfile</a><br />
+      htmlfile(self, output_file, encoding=None, compression=None, close=False, buffered=True)
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -1268,7 +1275,9 @@ values.</td>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="cleanup_namespaces"></a><span class="summary-sig-name">cleanup_namespaces</span>(<span class="summary-sig-arg">tree_or_element</span>)</span><br />
+          <td><span class="summary-sig"><a href="lxml.etree-module.html#cleanup_namespaces" class="summary-sig-name">cleanup_namespaces</a>(<span class="summary-sig-arg">tree_or_element</span>,
+        <span class="summary-sig-arg">top_nsmap</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">keep_ns_prefixes</span>=<span class="summary-sig-default">None</span>)</span><br />
       Remove all namespace declarations from a subtree that are not used
 by any of the elements or attributes in that tree.</td>
           <td align="right" valign="top">
@@ -1668,14 +1677,14 @@ standard Python logging package.</td>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="LIBXML_COMPILED_VERSION"></a><span class="summary-name">LIBXML_COMPILED_VERSION</span> = <code title="(2, 9, 1)"><code class="variable-group">(</code>2<code class="variable-op">, </code>9<code class="variable-op">, </code>1<code class="variable-group">)</code></code>
+        <a name="LIBXML_COMPILED_VERSION"></a><span class="summary-name">LIBXML_COMPILED_VERSION</span> = <code title="(2, 9, 3)"><code class="variable-group">(</code>2<code class="variable-op">, </code>9<code class="variable-op">, </code>3<code class="variable-group">)</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="LIBXML_VERSION"></a><span class="summary-name">LIBXML_VERSION</span> = <code title="(2, 9, 1)"><code class="variable-group">(</code>2<code class="variable-op">, </code>9<code class="variable-op">, </code>1<code class="variable-group">)</code></code>
+        <a name="LIBXML_VERSION"></a><span class="summary-name">LIBXML_VERSION</span> = <code title="(2, 9, 3)"><code class="variable-group">(</code>2<code class="variable-op">, </code>9<code class="variable-op">, </code>3<code class="variable-group">)</code></code>
     </td>
   </tr>
 <tr>
@@ -1696,7 +1705,7 @@ standard Python logging package.</td>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="LXML_VERSION"></a><span class="summary-name">LXML_VERSION</span> = <code title="(2, 3, 6, 0)"><code class="variable-group">(</code>2<code class="variable-op">, </code>3<code class="variable-op">, </code>6<code class="variable-op">, </code>0<code class="variable-group">)</code></code>
+        <a name="LXML_VERSION"></a><span class="summary-name">LXML_VERSION</span> = <code title="(3, 7, 0, 0)"><code class="variable-group">(</code>3<code class="variable-op">, </code>7<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">)</code></code>
     </td>
   </tr>
 <tr class="private">
@@ -1712,13 +1721,13 @@ standard Python logging package.</td>
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.etree-module.html#__pyx_capi__" class="summary-name" onclick="show_private();">__pyx_capi__</a> = <code title="{'appendChild': &lt;capsule object &quot;void (struct LxmlElement *, struct Lx\
-mlElement *)&quot; at 0x2ac9b08d8f60&gt;,
+mlElement *)&quot; at 0x7f51d71d9960&gt;,
  'appendChildToElement': &lt;capsule object &quot;int (struct LxmlElement *, s\
-truct LxmlElement *)&quot; at 0x2ac9b08d8f90&gt;,
+truct LxmlElement *)&quot; at 0x7f51d71d9990&gt;,
  'attributeValue': &lt;capsule object &quot;PyObject *(xmlNode *, xmlAttr *)&quot; \
-at 0x2ac9b08d8c30&gt;,
+at 0x7f51d71d9630&gt;,
  'attributeValueFromNsName': &lt;capsule object &quot;PyObject *(xmlNode *, co\
-nst xmlChar *, const xmlChar *)&quot; at 0x2ac9b08d8c60&gt;,
+nst xmlChar *, const xmlChar *)&quot; at 0x7f51d71d9660&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">appendChild</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;void (struct L<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -1726,7 +1735,7 @@ nst xmlChar *, const xmlChar *)&quot; at 0x2ac9b08d8c60&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="lxml.etree-module.html#__test__" class="summary-name" onclick="show_private();">__test__</a> = <code title="{u'XML (line 3047)': u'''XML(text, parser=None, base_url=None)
+        <a href="lxml.etree-module.html#__test__" class="summary-name" onclick="show_private();">__test__</a> = <code title="{u'XML (line 3167)': u'''XML(text, parser=None, base_url=None)
 
     Parses an XML document or fragment from a string constant.
     Returns the root node (or the result returned by a parser target).
@@ -1734,14 +1743,14 @@ nst xmlChar *, const xmlChar *)&quot; at 0x2ac9b08d8c60&gt;,
     like in
 
        &gt;&gt;&gt; root = XML(&quot;&lt;root&gt;&lt;test/&gt;&lt;/root&gt;&quot;)
-..."><code class="variable-group">{</code><code class="variable-quote">u'</code><code class="variable-string">XML (line 3047)</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">u'</code><code class="variable-string">XML(text, parser=None, base_</code><code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">u'</code><code class="variable-string">XML (line 3167)</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">u'</code><code class="variable-string">XML(text, parser=None, base_</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="memory_debugger"></a><span class="summary-name">memory_debugger</span> = <code title="&lt;lxml.etree._MemDebug object at 0x2ac9ac5c58a0&gt;">&lt;lxml.etree._MemDebug object at 0x2ac9ac5c58a0&gt;</code>
+        <a name="memory_debugger"></a><span class="summary-name">memory_debugger</span> = <code title="&lt;lxml.etree._MemDebug object&gt;">&lt;lxml.etree._MemDebug object&gt;</code>
     </td>
   </tr>
 </table>
@@ -1954,6 +1963,34 @@ and XPath variables provided as keyword arguments.</p>
 can be disabled with the 'regexp' boolean keyword (defaults to
 True).  Smart strings will be returned for string results unless
 you pass <tt class="rst-docutils literal">smart_strings=False</tt>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="cleanup_namespaces"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">cleanup_namespaces</span>(<span class="sig-arg">tree_or_element</span>,
+        <span class="sig-arg">top_nsmap</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">keep_ns_prefixes</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Remove all namespace declarations from a subtree that are not used
+by any of the elements or attributes in that tree.</p>
+<p>If a 'top_nsmap' is provided, it must be a mapping from prefixes
+to namespace URIs.  These namespaces will be declared on the top
+element of the subtree before running the cleanup, which allows
+moving namespace declarations to the top of the tree.</p>
+<p>If a 'keep_ns_prefixes' is provided, it must be a list of prefixes.
+These prefixes will not be removed as part of the cleanup.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -2395,13 +2432,13 @@ function will only set the global error log of the current thread.</p>
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">appendChild</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;void (struct LxmlElement *, struct Lx<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-mlElement *)&quot; at 0x2ac9b08d8f60&gt;<code class="variable-op">,</code>
+mlElement *)&quot; at 0x7f51d71d9960&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">appendChildToElement</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;int (struct LxmlElement *, s<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-truct LxmlElement *)&quot; at 0x2ac9b08d8f90&gt;<code class="variable-op">,</code>
+truct LxmlElement *)&quot; at 0x7f51d71d9990&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">attributeValue</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;PyObject *(xmlNode *, xmlAttr *)&quot; <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-at 0x2ac9b08d8c30&gt;<code class="variable-op">,</code>
+at 0x7f51d71d9630&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">attributeValueFromNsName</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;PyObject *(xmlNode *, co<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-nst xmlChar *, const xmlChar *)&quot; at 0x2ac9b08d8c60&gt;<code class="variable-op">,</code>
+nst xmlChar *, const xmlChar *)&quot; at 0x7f51d71d9660&gt;<code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -2420,7 +2457,7 @@ nst xmlChar *, const xmlChar *)&quot; at 0x2ac9b08d8c60&gt;<code class="variable
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">u'</code><code class="variable-string">XML (line 3047)</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">u'''</code><code class="variable-string">XML(text, parser=None, base_url=None)</code>
+<code class="variable-group">{</code><code class="variable-quote">u'</code><code class="variable-string">XML (line 3167)</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">u'''</code><code class="variable-string">XML(text, parser=None, base_url=None)</code>
 <code class="variable-string"></code>
 <code class="variable-string">    Parses an XML document or fragment from a string constant.</code>
 <code class="variable-string">    Returns the root node (or the result returned by a parser target).</code>
@@ -2466,7 +2503,8 @@ nst xmlChar *, const xmlChar *)&quot; at 0x2ac9b08d8c60&gt;<code class="variable
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Sep 10 19:04:27 2014
+    Generated by Epydoc 3.0.1
+    on Fri Dec 23 19:00:53 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

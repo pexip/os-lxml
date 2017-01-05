@@ -1,7 +1,11 @@
 # Parser target context (ET target interface)
 
 cdef object inspect_getargspec
-from inspect import getargspec as inspect_getargspec
+try:
+    from inspect import getargspec as inspect_getargspec
+except ImportError:
+    from inspect import getfullargspec as inspect_getargspec
+
 
 class _TargetParserResult(Exception):
     # Admittedly, this is somewhat ugly, but it's the easiest way
@@ -9,6 +13,7 @@ class _TargetParserResult(Exception):
     # machinery towards the API level functions
     def __init__(self, result):
         self.result = result
+
 
 @cython.final
 @cython.internal
@@ -131,15 +136,15 @@ cdef class _TargetParserContext(_SaxParserContext):
             if not self._c_ctxt.wellFormed and not recover:
                 _raiseParseError(self._c_ctxt, filename, self._error_log)
         except:
-            if python.IS_PYTHON3:
-                self._python_target.close()
-                raise
-            else:
+            if python.IS_PYTHON2:
                 exc = sys.exc_info()
                 # Python 2 can't chain exceptions
                 try: self._python_target.close()
                 except: pass
                 raise exc[0], exc[1], exc[2]
+            else:
+                self._python_target.close()
+                raise
         return self._python_target.close()
 
     cdef xmlDoc* _handleParseResultDoc(self, _BaseParser parser,
@@ -155,14 +160,14 @@ cdef class _TargetParserContext(_SaxParserContext):
             if not self._c_ctxt.wellFormed and not recover:
                 _raiseParseError(self._c_ctxt, filename, self._error_log)
         except:
-            if python.IS_PYTHON3:
-                self._python_target.close()
-                raise
-            else:
+            if python.IS_PYTHON2:
                 exc = sys.exc_info()
                 # Python 2 can't chain exceptions
                 try: self._python_target.close()
                 except: pass
                 raise exc[0], exc[1], exc[2]
+            else:
+                self._python_target.close()
+                raise
         parse_result = self._python_target.close()
         raise _TargetParserResult(parse_result)

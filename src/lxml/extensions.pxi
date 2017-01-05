@@ -392,6 +392,8 @@ cdef tuple LIBXML2_XPATH_ERROR_MESSAGES = (
     b"Char out of XML range",
     b"Invalid or incomplete context",
     b"Stack usage error",
+    b"Forbidden variable\n",
+    b"?? Unknown error ??\n",
 )
 
 cdef void _forwardXPathError(void* c_ctxt, xmlerror.xmlError* c_error) with gil:
@@ -731,6 +733,14 @@ cdef class _ElementUnicodeResult(unicode):
     def getparent(self):
         return self._parent
 
+cdef object _PyElementUnicodeResult
+if python.IS_PYPY:
+    class _PyElementUnicodeResult(unicode):
+        # we need to use a Python class here, or PyPy will crash on creation
+        # https://bitbucket.org/pypy/pypy/issues/2021/pypy3-pytype_ready-crashes-for-extension
+        def getparent(self):
+            return self._parent
+
 class _ElementStringResult(bytes):
     # we need to use a Python class here, bytes cannot be C-subclassed
     # in Pyrex/Cython
@@ -749,6 +759,14 @@ cdef object _elementStringResultFactory(string_value, _Element parent,
 
     if type(string_value) is bytes:
         result = _ElementStringResult(string_value)
+        result._parent = parent
+        result.is_attribute = is_attribute
+        result.is_tail = is_tail
+        result.is_text = is_text
+        result.attrname = attrname
+        return result
+    elif python.IS_PYPY:
+        result = _PyElementUnicodeResult(string_value)
         result._parent = parent
         result.is_attribute = is_attribute
         result.is_tail = is_tail

@@ -1,5 +1,7 @@
-u"""The ``lxml.etree`` module implements the extended ElementTree API
-for XML.
+# cython: binding=True
+
+"""
+The ``lxml.etree`` module implements the extended ElementTree API for XML.
 """
 
 from __future__ import absolute_import
@@ -80,6 +82,12 @@ try:
 except (ImportError, AttributeError):
     from StringIO import StringIO, StringIO as BytesIO
 
+cdef object OrderedDict = None
+try:
+    from collections import OrderedDict
+except ImportError:
+    pass
+
 cdef object _elementpath
 from lxml import _elementpath
 
@@ -158,7 +166,7 @@ _initThreadLogging()
 xmlparser.xmlInitParser()
 
 # filename encoding
-cdef bytes _FILENAME_ENCODING = (sys.getfilesystemencoding() or sys.getdefaultencoding() or 'ascii').encode(u"UTF-8")
+cdef bytes _FILENAME_ENCODING = (sys.getfilesystemencoding() or sys.getdefaultencoding() or 'ascii').encode("UTF-8")
 cdef char* _C_FILENAME_ENCODING = _cstr(_FILENAME_ENCODING)
 
 # set up some default namespace prefixes
@@ -262,7 +270,7 @@ try:
     _LIBXML_VERSION_INT = int(
         re.match(u'[0-9]+', (<unsigned char*>tree.xmlParserVersion).decode("ascii")).group(0))
 except Exception:
-    print u"Unknown libxml2 version: %s" % (<unsigned char*>tree.xmlParserVersion).decode("ascii")
+    print u"Unknown libxml2 version: %s" % (<unsigned char*>tree.xmlParserVersion).decode("latin1")
     _LIBXML_VERSION_INT = 0
 
 LIBXML_VERSION = __unpackIntVersion(_LIBXML_VERSION_INT)
@@ -316,12 +324,9 @@ cdef class _ExceptionContext:
             raise type, value, traceback
 
 
-# forward declarations
-cdef public class _Document [ type LxmlDocumentType, object LxmlDocument ]
-cdef public class _Element [ type LxmlElementType, object LxmlElement ]
-cdef class _BaseParser
-cdef class QName
+# type of a function that steps from node to node
 ctypedef public xmlNode* (*_node_to_node_function)(xmlNode*)
+
 
 ################################################################################
 # Include submodules
@@ -346,7 +351,7 @@ cdef public class _Document [ type LxmlDocumentType, object LxmlDocument ]:
     cdef bytes _prefix_tail
     cdef xmlDoc* _c_doc
     cdef _BaseParser _parser
-    
+
     def __dealloc__(self):
         # if there are no more references to the document, it is safe
         # to clean the whole thing up, as all nodes have a reference to
@@ -506,6 +511,10 @@ cdef _Document _documentFactory(xmlDoc* c_doc, _BaseParser parser):
     return result
 
 
+cdef object _find_invalid_public_id_characters = re.compile(
+    ur"[^\x20\x0D\x0Aa-zA-Z0-9'()+,./:=?;!*#@$_%-]+").search
+
+
 cdef class DocInfo:
     u"Document information provided by parser and DTD."
     cdef _Document _doc
@@ -522,17 +531,88 @@ cdef class DocInfo:
             root_name, public_id, system_url = self._doc.getdoctype()
             return root_name
 
+    @cython.final
+    cdef tree.xmlDtd* _get_c_dtd(self):
+        u"""Return the DTD. Create it if it does not yet exist."""
+        cdef xmlDoc* c_doc = self._doc._c_doc
+        cdef xmlNode* c_root_node
+        cdef const_xmlChar* c_name
+
+        if c_doc.intSubset:
+            return c_doc.intSubset
+
+        c_root_node = tree.xmlDocGetRootElement(c_doc)
+        c_name = c_root_node.name if c_root_node else NULL
+        return  tree.xmlCreateIntSubset(c_doc, c_name, NULL, NULL)
+
+    def clear(self):
+        u"""Removes DOCTYPE and internal subset from the document."""
+        cdef xmlDoc* c_doc = self._doc._c_doc
+        cdef tree.xmlNode* c_dtd = <xmlNode*>c_doc.intSubset
+        if c_dtd is NULL:
+            return
+        tree.xmlUnlinkNode(c_dtd)
+        tree.xmlFreeNode(c_dtd)
+
     property public_id:
-        u"Returns the public ID of the DOCTYPE."
+        u"""Public ID of the DOCTYPE.
+
+        Mutable.  May be set to a valid string or None.  If a DTD does not
+        exist, setting this variable (even to None) will create one.
+        """
         def __get__(self):
             root_name, public_id, system_url = self._doc.getdoctype()
             return public_id
 
+        def __set__(self, value):
+            cdef xmlChar* c_value = NULL
+            if value is not None:
+                match = _find_invalid_public_id_characters(value)
+                if match:
+                    raise ValueError('Invalid character(s) %r in public_id.' % match.group(0))
+                value = _utf8(value)
+                c_value = tree.xmlStrdup(_xcstr(value))
+                if not c_value:
+                    raise MemoryError()
+
+            c_dtd = self._get_c_dtd()
+            if not c_dtd:
+                tree.xmlFree(c_value)
+                raise MemoryError()
+            if c_dtd.ExternalID:
+                tree.xmlFree(<void*>c_dtd.ExternalID)
+            c_dtd.ExternalID = c_value
+
     property system_url:
-        u"Returns the system ID of the DOCTYPE."
+        u"""System ID of the DOCTYPE.
+
+        Mutable.  May be set to a valid string or None.  If a DTD does not
+        exist, setting this variable (even to None) will create one.
+        """
         def __get__(self):
             root_name, public_id, system_url = self._doc.getdoctype()
             return system_url
+
+        def __set__(self, value):
+            cdef xmlChar* c_value = NULL
+            if value is not None:
+                bvalue = _utf8(value)
+                # sys_url may be any valid unicode string that can be
+                # enclosed in single quotes or quotes.
+                if b"'" in bvalue and b'"' in bvalue:
+                    raise ValueError(
+                        'System URL may not contain both single (\') and double quotes (").')
+                c_value = tree.xmlStrdup(_xcstr(bvalue))
+                if not c_value:
+                    raise MemoryError()
+
+            c_dtd = self._get_c_dtd()
+            if not c_dtd:
+                tree.xmlFree(c_value)
+                raise MemoryError()
+            if c_dtd.SystemID:
+                tree.xmlFree(<void*>c_dtd.SystemID)
+            c_dtd.SystemID = c_value
 
     property xml_version:
         u"Returns the XML version as declared by the document."
@@ -577,16 +657,25 @@ cdef class DocInfo:
         u"Returns a DOCTYPE declaration string for the document."
         def __get__(self):
             root_name, public_id, system_url = self._doc.getdoctype()
+            if system_url:
+                # If '"' in system_url, we must escape it with single
+                # quotes, otherwise escape with double quotes. If url
+                # contains both a single quote and a double quote, XML
+                # standard is being violated.
+                if '"' in system_url:
+                    quoted_system_url = u"'%s'" % system_url
+                else:
+                    quoted_system_url = u'"%s"' % system_url
             if public_id:
                 if system_url:
-                    return u'<!DOCTYPE %s PUBLIC "%s" "%s">' % (
-                        root_name, public_id, system_url)
+                    return u'<!DOCTYPE %s PUBLIC "%s" %s>' % (
+                        root_name, public_id, quoted_system_url)
                 else:
                     return u'<!DOCTYPE %s PUBLIC "%s">' % (
                         root_name, public_id)
             elif system_url:
-                return u'<!DOCTYPE %s SYSTEM "%s">' % (
-                    root_name, system_url)
+                return u'<!DOCTYPE %s SYSTEM %s>' % (
+                    root_name, quoted_system_url)
             elif self._doc.hasdoctype():
                 return u'<!DOCTYPE %s>' % root_name
             else:
@@ -706,7 +795,7 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
     def __deepcopy__(self, memo):
         u"__deepcopy__(self, memo)"
         return self.__copy__()
-        
+
     def __copy__(self):
         u"__copy__(self)"
         cdef xmlDoc* c_doc
@@ -892,7 +981,7 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
         moveNodeToDocument(self._doc, c_source_doc, c_new_node)
         # fix namespace declarations
         moveNodeToDocument(self._doc, c_old_node.doc, c_old_node)
-        
+
     # PROPERTIES
     property tag:
         u"""Element tag
@@ -903,7 +992,7 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
             _assertValidNode(self)
             self._tag = _namespacedName(self._c_node)
             return self._tag
-    
+
         def __set__(self, value):
             cdef _BaseParser parser
             _assertValidNode(self)
@@ -928,7 +1017,7 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
             return _Attrib.__new__(_Attrib, self)
 
     property text:
-        u"""Text before the first subelement. This is either a string or 
+        u"""Text before the first subelement. This is either a string or
         the value None, if there was no text.
         """
         def __get__(self):
@@ -953,7 +1042,7 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
         def __get__(self):
             _assertValidNode(self)
             return _collectText(self._c_node.next)
-           
+
         def __set__(self, value):
             _assertValidNode(self)
             _setTailText(self._c_node, value)
@@ -1050,7 +1139,7 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
     # ACCESSORS
     def __repr__(self):
         u"__repr__(self)"
-        return u"<Element %s at 0x%x>" % (self.tag, id(self))
+        return "<Element %s at 0x%x>" % (strrepr(self.tag), id(self))
 
     def __getitem__(self, x):
         u"""Returns the subelement at the given position or the requested
@@ -1088,7 +1177,7 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
             if c_node is NULL:
                 raise IndexError, u"list index out of range"
             return _elementFactory(self._doc, c_node)
-            
+
     def __len__(self):
         u"""__len__(self)
 
@@ -1497,11 +1586,26 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
                                           smart_strings=smart_strings)
         return evaluator(_path, **_variables)
 
+    def cssselect(self, expr, *, translator='xml'):
+        """
+        Run the CSS expression on this element and its children,
+        returning a list of the results.
+
+        Equivalent to lxml.cssselect.CSSSelect(expr)(self) -- note
+        that pre-compiling the expression can provide a substantial
+        speedup.
+        """
+        # Do the import here to make the dependency optional.
+        from lxml.cssselect import CSSSelector
+        return CSSSelector(expr, translator=translator)(self)
+
 
 cdef extern from "etree_defs.h":
     # macro call to 't->tp_new()' for fast instantiation
     cdef object NEW_ELEMENT "PY_NEW" (object t)
 
+
+@cython.linetrace(False)
 cdef _Element _elementFactory(_Document doc, xmlNode* c_node):
     cdef _Element result
     result = getProxy(c_node)
@@ -1586,7 +1690,7 @@ cdef class __ContentOnlyElement(_Element):
     def keys(self):
         u"keys(self)"
         return []
-    
+
     def items(self):
         u"items(self)"
         return []
@@ -1601,8 +1705,8 @@ cdef class _Comment(__ContentOnlyElement):
             return Comment
 
     def __repr__(self):
-        return u"<!--%s-->" % self.text
-    
+        return "<!--%s-->" % strrepr(self.text)
+
 cdef class _ProcessingInstruction(__ContentOnlyElement):
     property tag:
         def __get__(self):
@@ -1623,9 +1727,10 @@ cdef class _ProcessingInstruction(__ContentOnlyElement):
     def __repr__(self):
         text = self.text
         if text:
-            return u"<?%s %s?>" % (self.target, text)
+            return "<?%s %s?>" % (strrepr(self.target),
+                                  strrepr(text))
         else:
-            return u"<?%s?>" % self.target
+            return "<?%s?>" % strrepr(self.target)
 
     def get(self, key, default=None):
         u"""get(self, key, default=None)
@@ -1679,7 +1784,7 @@ cdef class _Entity(__ContentOnlyElement):
             return u'&%s;' % funicode(self._c_node.name)
 
     def __repr__(self):
-        return u"&%s;" % self.name
+        return "&%s;" % strrepr(self.name)
 
 
 cdef class QName:
@@ -1816,12 +1921,6 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
             assert root is not None
             _assertValidNode(root)
             _copyNonElementSiblings(self._context_node._c_node, root._c_node)
-            doc = root._doc
-            c_doc = self._context_node._doc._c_doc
-            if c_doc.intSubset is not NULL and doc._c_doc.intSubset is NULL:
-                doc._c_doc.intSubset = _copyDtd(c_doc.intSubset)
-            if c_doc.extSubset is not NULL and not doc._c_doc.extSubset is NULL:
-                doc._c_doc.extSubset = _copyDtd(c_doc.extSubset)
             return _elementTreeFactory(None, root)
         elif self._doc is not None:
             _assertValidDoc(self._doc)
@@ -1834,13 +1933,9 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
             # so what ...
             return self
 
-    # not in ElementTree, read-only
+    # not in ElementTree
     property docinfo:
-        u"""Information about the document provided by parser and DTD.  This
-        value is only defined for ElementTree objects based on the root node
-        of a parsed document (e.g.  those returned by the parse functions),
-        not for trees that were built manually.
-        """
+        u"""Information about the document provided by parser and DTD."""
         def __get__(self):
             self._assertHasRoot()
             return DocInfo(self._context_node._doc)
@@ -2069,7 +2164,9 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
         u"""iter(self, tag=None, *tags)
 
         Creates an iterator for the root element.  The iterator loops over
-        all elements in this tree, in document order.
+        all elements in this tree, in document order.  Note that siblings
+        of the root element (comments or processing instructions) are not
+        returned by the iterator.
 
         Can be restricted to find only elements with a specific tag,
         see `_Element.iter`.
@@ -2158,7 +2255,7 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
         ``namespaces`` is an optional dictionary with prefix to namespace URI
         mappings, used by XPath.  ``extensions`` defines additional extension
         functions.
-        
+
         Returns a list (nodeset), or bool, float or string.
 
         In case of a list result, return Element for element nodes,
@@ -2385,7 +2482,7 @@ cdef class _Attrib:
     def __iter__(self):
         _assertValidNode(self._element)
         return iter(_collectAttributes(self._element._c_node, 1))
-    
+
     def iterkeys(self):
         _assertValidNode(self._element)
         return iter(_collectAttributes(self._element._c_node, 1))
@@ -2580,7 +2677,7 @@ cdef class _MultiTagMatcher:
         if self._cached_tags:
             for i in xrange(count):
                 cpython.ref.Py_XDECREF(self._cached_tags[i].href)
-            cpython.mem.PyMem_Free(self._cached_tags)
+            python.lxml_free(self._cached_tags)
             self._cached_tags = NULL
 
     cdef initTagMatch(self, tags):
@@ -2641,7 +2738,7 @@ cdef class _MultiTagMatcher:
             self._cached_size = dict_size
             return 0
         if not self._cached_tags:
-            self._cached_tags = <qname*>cpython.mem.PyMem_Malloc(len(self._py_tags) * sizeof(qname))
+            self._cached_tags = <qname*>python.lxml_malloc(len(self._py_tags), sizeof(qname))
             if not self._cached_tags:
                 self._cached_doc = None
                 raise MemoryError()
@@ -2901,6 +2998,7 @@ def Element(_tag, attrib=None, nsmap=None, **_extra):
     return _makeElement(_tag, NULL, None, None, None, None,
                         attrib, nsmap, _extra)
 
+
 def Comment(text=None):
     u"""Comment(text=None)
 
@@ -2910,15 +3008,20 @@ def Comment(text=None):
     cdef _Document doc
     cdef xmlNode*  c_node
     cdef xmlDoc*   c_doc
+
     if text is None:
         text = b''
     else:
         text = _utf8(text)
+        if b'--' in text or text.endswith(b'-'):
+            raise ValueError("Comment may not contain '--' or end with '-'")
+
     c_doc = _newXMLDoc()
     doc = _documentFactory(c_doc, None)
     c_node = _createComment(c_doc, _xcstr(text))
     tree.xmlAddChild(<xmlNode*>c_doc, c_node)
     return _elementFactory(doc, c_node)
+
 
 def ProcessingInstruction(target, text=None):
     u"""ProcessingInstruction(target, text=None)
@@ -2929,11 +3032,19 @@ def ProcessingInstruction(target, text=None):
     cdef _Document doc
     cdef xmlNode*  c_node
     cdef xmlDoc*   c_doc
+
     target = _utf8(target)
+    _tagValidOrRaise(target)
+    if target.lower() == b'xml':
+        raise ValueError("Invalid PI name '%s'" % target)
+
     if text is None:
         text = b''
     else:
         text = _utf8(text)
+        if b'?>' in text:
+            raise ValueError("PI text must not contain '?>'")
+
     c_doc = _newXMLDoc()
     doc = _documentFactory(c_doc, None)
     c_node = _createPI(c_doc, _xcstr(target), _xcstr(text))
@@ -2941,6 +3052,7 @@ def ProcessingInstruction(target, text=None):
     return _elementFactory(doc, c_node)
 
 PI = ProcessingInstruction
+
 
 cdef class CDATA:
     u"""CDATA(data)
@@ -2958,7 +3070,11 @@ cdef class CDATA:
     """
     cdef bytes _utf8_data
     def __cinit__(self, data):
-        self._utf8_data = _utf8(data)
+        _utf8_data = _utf8(data)
+        if b']]>' in _utf8_data:
+            raise ValueError("']]>' not allowed inside CDATA")
+        self._utf8_data = _utf8_data
+
 
 def Entity(name):
     u"""Entity(name)
@@ -2985,6 +3101,7 @@ def Entity(name):
     tree.xmlAddChild(<xmlNode*>c_doc, c_node)
     return _elementFactory(doc, c_node)
 
+
 def SubElement(_Element _parent not None, _tag,
                attrib=None, nsmap=None, **_extra):
     u"""SubElement(_parent, _tag, attrib=None, nsmap=None, **_extra)
@@ -2993,6 +3110,7 @@ def SubElement(_Element _parent not None, _tag,
     appends it to an existing element.
     """
     return _makeSubElement(_parent, _tag, None, None, attrib, nsmap, _extra)
+
 
 def ElementTree(_Element element=None, *, file=None, _BaseParser parser=None):
     u"""ElementTree(element=None, file=None, parser=None)
@@ -3019,6 +3137,7 @@ def ElementTree(_Element element=None, *, file=None, _BaseParser parser=None):
 
     return _elementTreeFactory(doc, element)
 
+
 def HTML(text, _BaseParser parser=None, *, base_url=None):
     u"""HTML(text, parser=None, base_url=None)
 
@@ -3043,6 +3162,7 @@ def HTML(text, _BaseParser parser=None, *, base_url=None):
         return doc.getroot()
     except _TargetParserResult as result_container:
         return result_container.result
+
 
 def XML(text, _BaseParser parser=None, *, base_url=None):
     u"""XML(text, parser=None, base_url=None)
@@ -3074,6 +3194,7 @@ def XML(text, _BaseParser parser=None, *, base_url=None):
     except _TargetParserResult as result_container:
         return result_container.result
 
+
 def fromstring(text, _BaseParser parser=None, *, base_url=None):
     u"""fromstring(text, parser=None, base_url=None)
 
@@ -3093,6 +3214,7 @@ def fromstring(text, _BaseParser parser=None, *, base_url=None):
         return doc.getroot()
     except _TargetParserResult as result_container:
         return result_container.result
+
 
 def fromstringlist(strings, _BaseParser parser=None):
     u"""fromstringlist(strings, parser=None)
@@ -3114,12 +3236,14 @@ def fromstringlist(strings, _BaseParser parser=None):
         feed(data)
     return parser.close()
 
+
 def iselement(element):
     u"""iselement(element)
 
     Checks if an object appears to be a valid element object.
     """
     return isinstance(element, _Element) and (<_Element>element)._c_node is not NULL
+
 
 def dump(_Element elem not None, *, bint pretty_print=True, with_tail=True):
     u"""dump(elem, pretty_print=True, with_tail=True)
@@ -3128,12 +3252,13 @@ def dump(_Element elem not None, *, bint pretty_print=True, with_tail=True):
     should be used for debugging only.
     """
     xml = tostring(elem, pretty_print=pretty_print, with_tail=with_tail,
-                   encoding=u'unicode' if python.IS_PYTHON3 else None)
+                   encoding=None if python.IS_PYTHON2 else 'unicode')
     if not pretty_print:
         xml += '\n'
     sys.stdout.write(xml)
 
-def tostring(element_or_tree, *, encoding=None, method=u"xml",
+
+def tostring(element_or_tree, *, encoding=None, method="xml",
              xml_declaration=None, bint pretty_print=False, bint with_tail=True,
              standalone=None, doctype=None,
              bint exclusive=False, bint with_comments=True, inclusive_ns_prefixes=None):
@@ -3190,7 +3315,7 @@ def tostring(element_or_tree, *, encoding=None, method=u"xml",
         return _tostringC14N(element_or_tree, exclusive, with_comments, inclusive_ns_prefixes)
     if not with_comments:
         raise ValueError("Can only discard comments in C14N serialisation")
-    if encoding is _unicode or (encoding is not None and encoding.upper() == 'UNICODE'):
+    if encoding is _unicode or (encoding is not None and encoding.lower() == 'unicode'):
         if xml_declaration:
             raise ValueError, \
                 u"Serialisation to unicode must not request an XML declaration"
@@ -3225,6 +3350,7 @@ def tostring(element_or_tree, *, encoding=None, method=u"xml",
         raise TypeError, u"Type '%s' cannot be serialized." % \
             python._fqtypename(element_or_tree).decode('utf8')
 
+
 def tostringlist(element_or_tree, *args, **kwargs):
     u"""tostringlist(element_or_tree, *args, **kwargs)
 
@@ -3235,6 +3361,7 @@ def tostringlist(element_or_tree, *args, **kwargs):
     single string wrapped in a list.
     """
     return [tostring(element_or_tree, *args, **kwargs)]
+
 
 def tounicode(element_or_tree, *, method=u"xml", bint pretty_print=False,
               bint with_tail=True, doctype=None):
@@ -3269,6 +3396,7 @@ def tounicode(element_or_tree, *, method=u"xml", bint pretty_print=False,
     else:
         raise TypeError, u"Type '%s' cannot be serialized." % \
             type(element_or_tree)
+
 
 def parse(source, _BaseParser parser=None, *, base_url=None):
     u"""parse(source, parser=None, base_url=None)
@@ -3380,7 +3508,7 @@ cdef class _Validator:
 
     cpdef _clear_error_log(self):
         self._error_log.clear()
-        
+
     property error_log:
         u"The log of validation errors and warnings."
         def __get__(self):

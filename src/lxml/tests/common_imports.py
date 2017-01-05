@@ -15,7 +15,7 @@ try:
 except:
     from urllib.request import pathname2url
 
-from lxml import etree
+from lxml import etree, html
 
 def make_version_tuple(version_string):
     l = []
@@ -30,6 +30,7 @@ IS_PYPY = (getattr(sys, 'implementation', None) == 'pypy' or
            getattr(sys, 'pypy_version_info', None) is not None)
 
 IS_PYTHON3 = sys.version_info[0] >= 3
+IS_PYTHON2 = sys.version_info[0] < 3
 
 try:
     from xml.etree import ElementTree # Python 2.5+
@@ -119,6 +120,7 @@ from io import StringIO
 if sys.version_info[0] >= 3:
     # Python 3
     from builtins import str as unicode
+    _chr = chr
     def _str(s, encoding="UTF-8"):
         return s
     def _bytes(s, encoding="UTF-8"):
@@ -142,9 +144,15 @@ if sys.version_info[0] >= 3:
                 doctests, {}, os.path.basename(filename), filename, 0))
 else:
     # Python 2
+    unichr_escape = re.compile(r'\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8}')
+
     from __builtin__ import unicode
+    _chr = unichr
     def _str(s, encoding="UTF-8"):
-        return unicode(s, encoding=encoding)
+        s = unicode(s, encoding=encoding)
+        return unichr_escape.sub(lambda x:
+                                     x.group(0).decode('unicode-escape'),
+                                 s)
     def _bytes(s, encoding="UTF-8"):
         return s
     from io import BytesIO

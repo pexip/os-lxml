@@ -55,8 +55,8 @@ cdef class _LogEntry:
     cdef readonly int level
     cdef readonly int line
     cdef readonly int column
-    cdef object _message
-    cdef object _filename
+    cdef basestring _message
+    cdef basestring _filename
     cdef char* _c_message
     cdef xmlChar* _c_filename
 
@@ -73,7 +73,9 @@ cdef class _LogEntry:
         self.column   = error.int2
         self._c_message = NULL
         self._c_filename = NULL
-        if error.message is NULL or error.message[0] in b'\n\0':
+        if (error.message is NULL or
+                error.message[0] == b'\0' or
+                error.message[0] == b'\n' and error.message[1] == b'\0'):
             self._message = u"unknown error"
         else:
             self._message = None
@@ -229,12 +231,13 @@ cdef class _BaseErrorLog:
             message = default_message
         line = self._first_error.line
         column = self._first_error.column
+        filename = self._first_error.filename
         if line > 0:
             if column > 0:
                 message = u"%s, line %d, column %d" % (message, line, column)
             else:
                 message = u"%s, line %d" % (message, line)
-        return exctype(message, code, line, column)
+        return exctype(message, code, line, column, filename)
 
     @cython.final
     cdef _buildExceptionMessage(self, default_message):
@@ -369,6 +372,7 @@ cdef class _ListErrorLog(_BaseErrorLog):
         """
         return self.filter_from_level(ErrorLevels.WARNING)
 
+
 @cython.final
 @cython.internal
 cdef class _ErrorLogContext:
@@ -379,6 +383,9 @@ cdef class _ErrorLogContext:
     """
     cdef xmlerror.xmlStructuredErrorFunc old_error_func
     cdef void* old_error_context
+    cdef xmlerror.xmlGenericErrorFunc old_xslt_error_func
+    cdef void* old_xslt_error_context
+
 
 cdef class _ErrorLog(_ListErrorLog):
     cdef list _logContexts
@@ -404,14 +411,20 @@ cdef class _ErrorLog(_ListErrorLog):
         cdef _ErrorLogContext context = _ErrorLogContext.__new__(_ErrorLogContext)
         context.old_error_func = xmlerror.xmlStructuredError
         context.old_error_context = xmlerror.xmlStructuredErrorContext
+        context.old_xslt_error_func = xslt.xsltGenericError
+        context.old_xslt_error_context = xslt.xsltGenericErrorContext
         self._logContexts.append(context)
         xmlerror.xmlSetStructuredErrorFunc(
             <void*>self, <xmlerror.xmlStructuredErrorFunc>_receiveError)
+        xslt.xsltSetGenericErrorFunc(
+    	    <void*>self, <xmlerror.xmlGenericErrorFunc>_receiveXSLTError)
         return 0
 
     @cython.final
     cdef int disconnect(self) except -1:
         cdef _ErrorLogContext context = self._logContexts.pop()
+        xslt.xsltSetGenericErrorFunc(
+            context.old_xslt_error_context, context.old_xslt_error_func)
         xmlerror.xmlSetStructuredErrorFunc(
             context.old_error_context, context.old_error_func)
         return 0
@@ -633,10 +646,10 @@ cdef void _receiveXSLTError(void* c_log_handler, char* msg, ...) nogil:
                 if c_pos == msg + 1:
                     c_text = c_str  # msg == "%s..."
                 elif c_name_pos[0] == b'e':
-                    if cstring_h.strncmp(c_name_pos, 'element %s', 10):
+                    if cstring_h.strncmp(c_name_pos, 'element %s', 10) == 0:
                         c_element = c_str
                 elif c_name_pos[0] == b'f':
-                    if cstring_h.strncmp(c_name_pos, 'file %s', 7):
+                    if cstring_h.strncmp(c_name_pos, 'file %s', 7) == 0:
                         if cstring_h.strncmp('string://__STRING__XSLT',
                                              c_str, 23) == 0:
                             c_str = '<xslt>'
@@ -644,7 +657,7 @@ cdef void _receiveXSLTError(void* c_log_handler, char* msg, ...) nogil:
             elif c_pos[0] == b'd':  # "%d"
                 format_count += 1
                 c_int = cvarargs.va_int(args)
-                if cstring_h.strncmp(c_name_pos, 'line %d', 7):
+                if cstring_h.strncmp(c_name_pos, 'line %d', 7) == 0:
                     c_error.line = c_int
             elif c_pos[0] != b'%':  # "%%" == "%"
                 format_count += 1

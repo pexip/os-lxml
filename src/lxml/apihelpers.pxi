@@ -2,11 +2,6 @@
 
 from lxml.includes cimport uri
 
-cdef object OrderedDict = None
-try:
-    from collections import OrderedDict
-except ImportError:
-    pass
 
 cdef void displayNode(xmlNode* c_node, indent):
     # to help with debugging
@@ -69,7 +64,7 @@ cdef _Element _rootNodeOrRaise(object input):
             python._fqtypename(input).decode('utf8')
     if (node is None or not node._c_node or
             node._c_node.type != tree.XML_ELEMENT_NODE):
-        raise ValueError, u"Input object has no element: %s" % \
+        raise ValueError, u"Input object is not an XML element: %s" % \
             python._fqtypename(input).decode('utf8')
     _assertValidNode(node)
     return node
@@ -124,7 +119,7 @@ cdef _Element _makeElement(tag, xmlDoc* c_doc, _Document doc,
         if tail is not None:
             _setTailText(c_node, tail)
         # add namespaces to node if necessary
-        _initNodeNamespaces(c_node, doc, ns_utf, nsmap)
+        _setNodeNamespaces(c_node, doc, ns_utf, nsmap)
         _initNodeAttributes(c_node, doc, attrib, extra_attrs)
         return _elementFactory(doc, c_node)
     except:
@@ -163,7 +158,7 @@ cdef int _initNewElement(_Element element, bint is_html, name_utf, ns_utf,
     tree.xmlDocSetRootElement(c_doc, c_node)
     doc = _documentFactory(c_doc, parser)
     # add namespaces to node if necessary
-    _initNodeNamespaces(c_node, doc, ns_utf, nsmap)
+    _setNodeNamespaces(c_node, doc, ns_utf, nsmap)
     _initNodeAttributes(c_node, doc, attrib, extra_attrs)
     _registerProxy(element, doc, c_node)
     element._init()
@@ -199,7 +194,7 @@ cdef _Element _makeSubElement(_Element parent, tag, text, tail,
             _setTailText(c_node, tail)
 
         # add namespaces to node if necessary
-        _initNodeNamespaces(c_node, parent._doc, ns_utf, nsmap)
+        _setNodeNamespaces(c_node, parent._doc, ns_utf, nsmap)
         _initNodeAttributes(c_node, parent._doc, attrib, extra_attrs)
         return _elementFactory(parent._doc, c_node)
     except:
@@ -207,56 +202,88 @@ cdef _Element _makeSubElement(_Element parent, tag, text, tail,
         _removeNode(parent._doc, c_node)
         raise
 
-cdef int _initNodeNamespaces(xmlNode* c_node, _Document doc,
-                             object node_ns_utf, object nsmap) except -1:
-    u"""Lookup current namespace prefixes, then set namespace structure for
-    node and register new ns-prefix mappings.
 
-    This only works for a newly created node!
+cdef int _setNodeNamespaces(xmlNode* c_node, _Document doc,
+                            object node_ns_utf, object nsmap) except -1:
+    u"""Lookup current namespace prefixes, then set namespace structure for
+    node (if 'node_ns_utf' was provided) and register new ns-prefix mappings.
+
+    'node_ns_utf' should only be passed for a newly created node.
     """
     cdef xmlNs* c_ns
     cdef list nsdefs
-    if not nsmap:
-        if node_ns_utf is not None:
-            _uriValidOrRaise(node_ns_utf)
-            doc._setNodeNs(c_node, _xcstr(node_ns_utf))
-        return 0
 
-    nsdefs = list(nsmap.items())
-    if None in nsmap and len(nsdefs) > 1:
-        # Move the default namespace to the end.  This makes sure libxml2
-        # prefers a prefix if the ns is defined redundantly on the same
-        # element.  That way, users can work around a problem themselves
-        # where default namespace attributes on non-default namespaced
-        # elements serialise without prefix (i.e. into the non-default
-        # namespace).
-        item = (None, nsmap[None])
-        nsdefs.remove(item)
-        nsdefs.append(item)
-
-    for prefix, href in nsdefs:
-        href_utf = _utf8(href)
-        _uriValidOrRaise(href_utf)
-        c_href = _xcstr(href_utf)
-        if prefix is not None:
-            prefix_utf = _utf8(prefix)
-            _prefixValidOrRaise(prefix_utf)
-            c_prefix = _xcstr(prefix_utf)
-        else:
-            c_prefix = <const_xmlChar*>NULL
-        # add namespace with prefix if it is not already known
-        c_ns = tree.xmlSearchNs(doc._c_doc, c_node, c_prefix)
-        if c_ns is NULL or \
-                c_ns.href is NULL or \
-                tree.xmlStrcmp(c_ns.href, c_href) != 0:
-            c_ns = tree.xmlNewNs(c_node, c_href, c_prefix)
-        if href_utf == node_ns_utf:
-            tree.xmlSetNs(c_node, c_ns)
-            node_ns_utf = None
+    if nsmap:
+        for prefix, href in _iter_nsmap(nsmap):
+            href_utf = _utf8(href)
+            _uriValidOrRaise(href_utf)
+            c_href = _xcstr(href_utf)
+            if prefix is not None:
+                prefix_utf = _utf8(prefix)
+                _prefixValidOrRaise(prefix_utf)
+                c_prefix = _xcstr(prefix_utf)
+            else:
+                c_prefix = <const_xmlChar*>NULL
+            # add namespace with prefix if it is not already known
+            c_ns = tree.xmlSearchNs(doc._c_doc, c_node, c_prefix)
+            if c_ns is NULL or \
+                    c_ns.href is NULL or \
+                    tree.xmlStrcmp(c_ns.href, c_href) != 0:
+                c_ns = tree.xmlNewNs(c_node, c_href, c_prefix)
+            if href_utf == node_ns_utf:
+                tree.xmlSetNs(c_node, c_ns)
+                node_ns_utf = None
 
     if node_ns_utf is not None:
+        _uriValidOrRaise(node_ns_utf)
         doc._setNodeNs(c_node, _xcstr(node_ns_utf))
     return 0
+
+
+cdef _iter_nsmap(nsmap):
+    """
+    Create a reproducibly ordered iterable from an nsmap mapping.
+    Tries to preserve an existing order and sorts if it assumes no order.
+
+    The difference to _iter_attrib() is that None doesn't sort with strings
+    in Py3.x.
+    """
+    if len(nsmap) <= 1:
+        return nsmap.items()
+    # nsmap will usually be a plain unordered dict => avoid type checking overhead
+    if OrderedDict is not None and type(nsmap) is not dict and isinstance(nsmap, OrderedDict):
+        return nsmap.items()  # keep existing order
+    if None not in nsmap:
+        return sorted(nsmap.items())
+
+    # Move the default namespace to the end.  This makes sure libxml2
+    # prefers a prefix if the ns is defined redundantly on the same
+    # element.  That way, users can work around a problem themselves
+    # where default namespace attributes on non-default namespaced
+    # elements serialise without prefix (i.e. into the non-default
+    # namespace).
+    default_ns = nsmap[None]
+    nsdefs = [(k, v) for k, v in nsmap.items() if k is not None]
+    nsdefs.sort()
+    nsdefs.append((None, default_ns))
+    return nsdefs
+
+
+cdef _iter_attrib(attrib):
+    """
+    Create a reproducibly ordered iterable from an attrib mapping.
+    Tries to preserve an existing order and sorts if it assumes no order.
+    """
+    # attrib will usually be a plain unordered dict
+    if type(attrib) is dict:
+        return sorted(attrib.items())
+    elif isinstance(attrib, _Attrib) or (
+            OrderedDict is not None and isinstance(attrib, OrderedDict)):
+        return attrib.items()
+    else:
+        # assume it's an unordered mapping of some kind
+        return sorted(attrib.items())
+
 
 cdef _initNodeAttributes(xmlNode* c_node, _Document doc, attrib, dict extra):
     u"""Initialise the attributes of an element node.
@@ -274,17 +301,9 @@ cdef _initNodeAttributes(xmlNode* c_node, _Document doc, attrib, dict extra):
         for name, value in sorted(extra.items()):
             _addAttributeToNode(c_node, doc, is_html, name, value, seen)
     if attrib:
-        # attrib will usually be a plain unordered dict
-        if type(attrib) is dict:
-            attrib = sorted(attrib.items())
-        elif isinstance(attrib, _Attrib) or (
-                OrderedDict is not None and isinstance(attrib, OrderedDict)):
-            attrib = attrib.items()
-        else:
-            # assume it's an unordered mapping of some kind
-            attrib = sorted(attrib.items())
-        for name, value in attrib:
+        for name, value in _iter_attrib(attrib):
             _addAttributeToNode(c_node, doc, is_html, name, value, seen)
+
 
 cdef int _addAttributeToNode(xmlNode* c_node, _Document doc, bint is_html,
                              name, value, set seen_tags) except -1:
@@ -304,51 +323,18 @@ cdef int _addAttributeToNode(xmlNode* c_node, _Document doc, bint is_html,
                           _xcstr(name_utf), _xcstr(value_utf))
     return 0
 
+
 ctypedef struct _ns_node_ref:
     xmlNs* ns
     xmlNode* node
 
-cdef int _removeUnusedNamespaceDeclarations(xmlNode* c_element) except -1:
-    u"""Remove any namespace declarations from a subtree that are not used by
-    any of its elements (or attributes).
-    """
-    cdef _ns_node_ref* c_ns_list
-    cdef _ns_node_ref* c_nsref_ptr
-    cdef xmlNs* c_nsdef
-    cdef xmlNode* c_node
-    cdef size_t c_ns_list_size
-    cdef size_t c_ns_list_len
-    cdef size_t i
 
-    c_ns_list = NULL
-    c_ns_list_size = 0
-    c_ns_list_len  = 0
+cdef int _collectNsDefs(xmlNode* c_element, _ns_node_ref **_c_ns_list,
+                        size_t *_c_ns_list_len, size_t *_c_ns_list_size) except -1:
+    c_ns_list = _c_ns_list[0]
+    cdef size_t c_ns_list_len = _c_ns_list_len[0]
+    cdef size_t c_ns_list_size = _c_ns_list_size[0]
 
-    if c_element.parent is not NULL and \
-            c_element.parent.type == tree.XML_DOCUMENT_NODE:
-        # include the document node
-        c_nsdef = c_element.parent.nsDef
-        while c_nsdef is not NULL:
-            if c_ns_list_len >= c_ns_list_size:
-                if c_ns_list is NULL:
-                    c_ns_list_size = 20
-                else:
-                    c_ns_list_size *= 2
-                c_nsref_ptr = <_ns_node_ref*> stdlib.realloc(
-                    c_ns_list, c_ns_list_size * sizeof(_ns_node_ref))
-                if c_nsref_ptr is NULL:
-                    if c_ns_list is not NULL:
-                        stdlib.free(c_ns_list)
-                    raise MemoryError()
-                c_ns_list = c_nsref_ptr
-
-            c_ns_list[c_ns_list_len].ns   = c_nsdef
-            c_ns_list[c_ns_list_len].node = c_element.parent
-            c_ns_list_len += 1
-            c_nsdef = c_nsdef.next
-
-    tree.BEGIN_FOR_EACH_ELEMENT_FROM(c_element, c_element, 1)
-    # collect all new namespace declarations into the ns list
     c_nsdef = c_element.nsDef
     while c_nsdef is not NULL:
         if c_ns_list_len >= c_ns_list_size:
@@ -356,31 +342,56 @@ cdef int _removeUnusedNamespaceDeclarations(xmlNode* c_element) except -1:
                 c_ns_list_size = 20
             else:
                 c_ns_list_size *= 2
-            c_nsref_ptr = <_ns_node_ref*> stdlib.realloc(
-                c_ns_list, c_ns_list_size * sizeof(_ns_node_ref))
+            c_nsref_ptr = <_ns_node_ref*> python.lxml_realloc(
+                c_ns_list, c_ns_list_size, sizeof(_ns_node_ref))
             if c_nsref_ptr is NULL:
                 if c_ns_list is not NULL:
-                    stdlib.free(c_ns_list)
+                    python.lxml_free(c_ns_list)
+                    _c_ns_list[0] = NULL
                 raise MemoryError()
             c_ns_list = c_nsref_ptr
 
-        c_ns_list[c_ns_list_len].ns   = c_nsdef
-        c_ns_list[c_ns_list_len].node = c_element
+        c_ns_list[c_ns_list_len] = _ns_node_ref(c_nsdef, c_element)
         c_ns_list_len += 1
         c_nsdef = c_nsdef.next
 
+    _c_ns_list_size[0] = c_ns_list_size
+    _c_ns_list_len[0] = c_ns_list_len
+    _c_ns_list[0] = c_ns_list
+
+
+cdef int _removeUnusedNamespaceDeclarations(xmlNode* c_element, set prefixes_to_keep) except -1:
+    u"""Remove any namespace declarations from a subtree that are not used by
+    any of its elements (or attributes).
+
+    If a 'prefixes_to_keep' is provided, it must be a set of prefixes.
+    Any corresponding namespace mappings will not be removed as part of the cleanup.
+    """
+    cdef xmlNode* c_node
+    cdef _ns_node_ref* c_ns_list = NULL
+    cdef size_t c_ns_list_size = 0
+    cdef size_t c_ns_list_len = 0
+    cdef size_t i
+
+    if c_element.parent and c_element.parent.type == tree.XML_DOCUMENT_NODE:
+        # include declarations on the document node
+        _collectNsDefs(c_element.parent, &c_ns_list, &c_ns_list_len, &c_ns_list_size)
+
+    tree.BEGIN_FOR_EACH_ELEMENT_FROM(c_element, c_element, 1)
+    # collect all new namespace declarations into the ns list
+    if c_element.nsDef:
+        _collectNsDefs(c_element, &c_ns_list, &c_ns_list_len, &c_ns_list_size)
+
     # remove all namespace declarations from the list that are referenced
-    if c_element.type == tree.XML_ELEMENT_NODE:
+    if c_ns_list_len and c_element.type == tree.XML_ELEMENT_NODE:
         c_node = c_element
-        while c_node is not NULL:
-            if c_node.ns is not NULL:
+        while c_node and c_ns_list_len:
+            if c_node.ns:
                 for i in range(c_ns_list_len):
                     if c_node.ns is c_ns_list[i].ns:
                         c_ns_list_len -= 1
-                        c_ns_list[i].ns   = c_ns_list[c_ns_list_len].ns
-                        c_ns_list[i].node = c_ns_list[c_ns_list_len].node
-                        c_ns_list[c_ns_list_len].ns   = NULL
-                        c_ns_list[c_ns_list_len].node = NULL
+                        c_ns_list[i] = c_ns_list[c_ns_list_len]
+                        #c_ns_list[c_ns_list_len] = _ns_node_ref(NULL, NULL)
                         break
             if c_node is c_element:
                 # continue with attributes
@@ -392,8 +403,13 @@ cdef int _removeUnusedNamespaceDeclarations(xmlNode* c_element) except -1:
     if c_ns_list is NULL:
         return 0
 
-    # free all namespace declarations that remained in the list
+    # free all namespace declarations that remained in the list,
+    # except for those we should keep explicitly
+    cdef xmlNs* c_nsdef
     for i in range(c_ns_list_len):
+        if prefixes_to_keep is not None:
+            if c_ns_list[i].ns.prefix and c_ns_list[i].ns.prefix in prefixes_to_keep:
+                continue
         c_node = c_ns_list[i].node
         c_nsdef = c_node.nsDef
         if c_nsdef is c_ns_list[i].ns:
@@ -405,7 +421,7 @@ cdef int _removeUnusedNamespaceDeclarations(xmlNode* c_element) except -1:
         tree.xmlFreeNs(c_ns_list[i].ns)
     
     if c_ns_list is not NULL:
-        stdlib.free(c_ns_list)
+        python.lxml_free(c_ns_list)
     return 0
 
 cdef xmlNs* _searchNsByHref(xmlNode* c_node, const_xmlChar* c_href, bint is_attribute):
@@ -545,14 +561,18 @@ cdef inline object _getAttributeValue(_Element element, key, default):
 cdef int _setAttributeValue(_Element element, key, value) except -1:
     cdef xmlNs* c_ns
     ns, tag = _getNsTag(key)
-    if not element._doc._parser._for_html:
+    is_html = element._doc._parser._for_html
+    if not is_html:
         _attributeValidOrRaise(tag)
     c_tag = _xcstr(tag)
-    if isinstance(value, QName):
-        value = _resolveQNameText(element, value)
+    if value is None and is_html:
+        c_value = NULL
     else:
-        value = _utf8(value)
-    c_value = _xcstr(value)
+        if isinstance(value, QName):
+            value = _resolveQNameText(element, value)
+        else:
+            value = _utf8(value)
+        c_value = _xcstr(value)
     if ns is None:
         c_ns = NULL
     else:
@@ -673,24 +693,26 @@ cdef void _removeText(xmlNode* c_node):
         tree.xmlFreeNode(c_node)
         c_node = c_next
 
-cdef int _setNodeText(xmlNode* c_node, value) except -1:
+cdef xmlNode* _createTextNode(xmlDoc* doc, value) except NULL:
     cdef xmlNode* c_text_node
+    if isinstance(value, CDATA):
+        c_text_node = tree.xmlNewCDataBlock(
+            doc, _xcstr((<CDATA>value)._utf8_data),
+            python.PyBytes_GET_SIZE((<CDATA>value)._utf8_data))
+    else:
+        text = _utf8(value)
+        c_text_node = tree.xmlNewDocText(doc, _xcstr(text))
+    if not c_text_node:
+        raise MemoryError()
+    return c_text_node
+
+cdef int _setNodeText(xmlNode* c_node, value) except -1:
     # remove all text nodes at the start first
     _removeText(c_node.children)
     if value is None:
         return 0
     # now add new text node with value at start
-    if python._isString(value):
-        text = _utf8(value)
-        c_text_node = tree.xmlNewDocText(c_node.doc, _xcstr(text))
-    elif isinstance(value, CDATA):
-        c_text_node = tree.xmlNewCDataBlock(
-            c_node.doc, _xcstr((<CDATA>value)._utf8_data),
-            python.PyBytes_GET_SIZE((<CDATA>value)._utf8_data))
-    else:
-        # this will raise the right error
-       _utf8(value)
-       return -1
+    c_text_node = _createTextNode(c_node.doc, value)
     if c_node.children is NULL:
         tree.xmlAddChild(c_node, c_text_node)
     else:
@@ -698,14 +720,12 @@ cdef int _setNodeText(xmlNode* c_node, value) except -1:
     return 0
 
 cdef int _setTailText(xmlNode* c_node, value) except -1:
-    cdef xmlNode* c_text_node
     # remove all text nodes at the start first
     _removeText(c_node.next)
     if value is None:
         return 0
-    text = _utf8(value)
-    c_text_node = tree.xmlNewDocText(c_node.doc, _xcstr(text))
-    # XXX what if we're the top element?
+    # now append new text node with value
+    c_text_node = _createTextNode(c_node.doc, value)
     tree.xmlAddNextSibling(c_node, c_text_node)
     return 0
 
@@ -1069,13 +1089,21 @@ cdef int _copyNonElementSiblings(xmlNode* c_node, xmlNode* c_target) except -1:
     cdef xmlNode* c_copy
     cdef xmlNode* c_sibling = c_node
     while c_sibling.prev != NULL and \
-            (c_sibling.prev.type == tree.XML_PI_NODE or \
-                 c_sibling.prev.type == tree.XML_COMMENT_NODE):
+            (c_sibling.prev.type == tree.XML_PI_NODE or
+             c_sibling.prev.type == tree.XML_COMMENT_NODE or
+             c_sibling.prev.type == tree.XML_DTD_NODE):
         c_sibling = c_sibling.prev
     while c_sibling != c_node:
-        c_copy = tree.xmlDocCopyNode(c_sibling, c_target.doc, 1)
-        if c_copy is NULL:
-            raise MemoryError()
+        if c_sibling.type == tree.XML_DTD_NODE:
+            c_copy = <xmlNode*>_copyDtd(<tree.xmlDtd*>c_sibling)
+            if c_sibling == <xmlNode*>c_node.doc.intSubset:
+                c_target.doc.intSubset = <tree.xmlDtd*>c_copy
+            else: # c_sibling == c_node.doc.extSubset
+                c_target.doc.extSubset = <tree.xmlDtd*>c_copy
+        else:
+            c_copy = tree.xmlDocCopyNode(c_sibling, c_target.doc, 1)
+            if c_copy is NULL:
+                raise MemoryError()
         tree.xmlAddPrevSibling(c_target, c_copy)
         c_sibling = c_sibling.next
     while c_sibling.next != NULL and \
@@ -1221,7 +1249,7 @@ cdef int _replaceSlice(_Element parent, xmlNode* c_node,
 
             # stop at the end of the slice
             if slicelength > 0:
-                slicelength = slicelength - 1
+                slicelength -= 1
                 for i in range(step):
                     c_node = next_element(c_node)
                 if c_node is NULL:
@@ -1326,24 +1354,46 @@ cdef inline int isutf8(const_xmlChar* s):
         c = s[0]
     return 0
 
-cdef int check_string_utf8(bytes pystring):
-    u"""Check if a string looks like valid UTF-8 XML content.  Returns 0
-    for ASCII, 1 for UTF-8 and -1 in the case of errors, such as NULL
-    bytes or ASCII control characters.
-    """
+cdef int _is_valid_xml_ascii(bytes pystring):
+    """Check if a string is XML ascii content."""
+    cdef signed char ch
+    # When ch is a *signed* char, non-ascii characters are negative integers
+    # and xmlIsChar_ch does not accept them.
+    for ch in pystring:
+        if not tree.xmlIsChar_ch(ch):
+            return 0
+    return 1
+
+cdef bint _is_valid_xml_utf8(bytes pystring):
+    u"""Check if a string is like valid UTF-8 XML content."""
     cdef const_xmlChar* s = _xcstr(pystring)
     cdef const_xmlChar* c_end = s + len(pystring)
-    cdef bint is_non_ascii = 0
-    while s < c_end:
+    cdef unsigned long next3 = 0
+    if s < c_end - 2:
+        next3 = (s[0] << 8) | (s[1])
+
+    while s < c_end - 2:
+        next3 = 0x00ffffff & ((next3 << 8) | s[2])
         if s[0] & 0x80:
-            # skip over multi byte sequences
-            while s < c_end and s[0] & 0x80:
-                s += 1
-            is_non_ascii = 1
-        if  s < c_end and not tree.xmlIsChar_ch(s[0]):
-            return -1 # invalid!
+            # 0xefbfbe and 0xefbfbf are utf-8 encodings of
+            # forbidden characters \ufffe and \uffff
+            if next3 == 0x00efbfbe or next3 == 0x00efbfbf:
+                return 0
+            # 0xeda080 and 0xedbfbf are utf-8 encodings of
+            # \ud800 and \udfff. Anything between them (inclusive)
+            # is forbidden, because they are surrogate blocks in utf-16.
+            if 0x00eda080 <= next3 <= 0x00edbfbf:
+                return 0
+        elif not tree.xmlIsChar_ch(s[0]):
+            return 0  # invalid ascii char
         s += 1
-    return is_non_ascii
+
+    while s < c_end:
+        if not s[0] & 0x80 and not tree.xmlIsChar_ch(s[0]):
+            return 0  # invalid ascii char
+        s += 1
+
+    return 1
 
 cdef inline object funicodeOrNone(const_xmlChar* s):
     return funicode(s) if s is not NULL else None
@@ -1376,26 +1426,35 @@ cdef bytes _utf8(object s):
     Reject all bytes/unicode input that contains non-XML characters.
     Reject all bytes input that contains non-ASCII characters.
     """
-    cdef int invalid
+    cdef int valid
     cdef bytes utf8_string
-    if not python.IS_PYTHON3 and type(s) is bytes:
+    if python.IS_PYTHON2 and type(s) is bytes:
         utf8_string = <bytes>s
-        invalid = check_string_utf8(utf8_string)
+        valid = _is_valid_xml_ascii(utf8_string)
     elif isinstance(s, unicode):
         utf8_string = (<unicode>s).encode('utf8')
-        invalid = check_string_utf8(utf8_string) == -1 # non-XML?
+        valid = _is_valid_xml_utf8(utf8_string)
     elif isinstance(s, (bytes, bytearray)):
         utf8_string = bytes(s)
-        invalid = check_string_utf8(utf8_string)
+        valid = _is_valid_xml_ascii(utf8_string)
     else:
         raise TypeError("Argument must be bytes or unicode, got '%.200s'" % type(s).__name__)
-    if invalid:
+    if not valid:
         raise ValueError(
             "All strings must be XML compatible: Unicode or ASCII, no NULL bytes or control characters")
     return utf8_string
 
+
 cdef bytes _utf8orNone(object s):
     return _utf8(s) if s is not None else None
+
+
+cdef strrepr(s):
+    """Build a representation of strings which we can use in __repr__
+    methods, e.g. _Element.__repr__().
+    """
+    return s.encode('unicode-escape') if python.IS_PYTHON2 else s
+
 
 cdef bint _isFilePath(const_xmlChar* c_path):
     u"simple heuristic to see if a path is a filename"
@@ -1466,7 +1525,7 @@ cdef object _encodeFilenameUTF8(object filename):
     if filename is None:
         return None
     elif isinstance(filename, bytes):
-        if not check_string_utf8(<bytes>filename):
+        if not isutf8(<bytes>filename):
             # plain ASCII!
             return filename
         c_filename = _cstr(<bytes>filename)
@@ -1530,13 +1589,13 @@ cdef tuple __getNsTag(tag, bint empty_ns):
     return ns, tag
 
 cdef inline int _pyXmlNameIsValid(name_utf8):
-    return _xmlNameIsValid(_xcstr(name_utf8))
+    return _xmlNameIsValid(_xcstr(name_utf8)) and b':' not in name_utf8
 
 cdef inline int _pyHtmlNameIsValid(name_utf8):
     return _htmlNameIsValid(_xcstr(name_utf8))
 
 cdef inline int _xmlNameIsValid(const_xmlChar* c_name):
-    return tree.xmlValidateNCName(c_name, 0) == 0
+    return tree.xmlValidateNameValue(c_name)
 
 cdef int _htmlNameIsValid(const_xmlChar* c_name):
     if c_name is NULL or c_name[0] == c'\0':
@@ -1604,11 +1663,11 @@ cdef inline object _namespacedName(xmlNode* c_node):
 cdef object _namespacedNameFromNsName(const_xmlChar* href, const_xmlChar* name):
     if href is NULL:
         return funicode(name)
-    elif python.LXML_UNICODE_STRINGS and not python.IS_PYPY:
+    elif not python.IS_PYPY and (python.LXML_UNICODE_STRINGS or isutf8(name) or isutf8(href)):
         return python.PyUnicode_FromFormat("{%s}%s", href, name)
     else:
         s = python.PyBytes_FromFormat("{%s}%s", href, name)
-        if python.LXML_UNICODE_STRINGS or isutf8(_xcstr(s)):
+        if python.IS_PYPY and (python.LXML_UNICODE_STRINGS or isutf8(_xcstr(s))):
             return (<bytes>s).decode('utf8')
         else:
             return s

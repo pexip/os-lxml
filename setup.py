@@ -27,9 +27,9 @@ STATIC_CFLAGS = []
 STATIC_BINARIES = []
 
 # create lxml-version.h file
-svn_version = versioninfo.svn_version()
-versioninfo.create_version_h(svn_version)
-print("Building lxml version %s." % svn_version)
+versioninfo.create_version_h()
+lxml_version = versioninfo.version()
+print("Building lxml version %s." % lxml_version)
 
 OPTION_RUN_TESTS = setupinfo.has_option('run-tests')
 
@@ -173,14 +173,16 @@ def setup_extra_options():
 
 setup(
     name = "lxml",
-    version = versioninfo.version(),
+    version = lxml_version,
     author="lxml dev team",
     author_email="lxml-dev@lxml.de",
     maintainer="lxml dev team",
     maintainer_email="lxml-dev@lxml.de",
     url="http://lxml.de/",
-    download_url="http://pypi.python.org/packages/source/l/lxml/lxml-%s.tar.gz" % versioninfo.version(),
-    bugtrack_url="https://bugs.launchpad.net/lxml",
+    # Commented out because this causes distutils to emit warnings
+    # `Unknown distribution option: 'bugtrack_url'`
+    # which distract folks from real causes of problems when troubleshooting
+    # bugtrack_url="https://bugs.launchpad.net/lxml",
 
     description="Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API.",
 
@@ -220,6 +222,7 @@ an appropriate version of Cython installed.
     'Programming Language :: Python :: 3.2',
     'Programming Language :: Python :: 3.3',
     'Programming Language :: Python :: 3.4',
+    'Programming Language :: Python :: 3.5',
     'Programming Language :: C',
     'Operating System :: OS Independent',
     'Topic :: Text Processing :: Markup :: HTML',

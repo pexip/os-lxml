@@ -4,7 +4,11 @@
 Tests for thread usage in lxml.etree.
 """
 
-import unittest, threading, sys, os.path
+import re
+import sys
+import os.path
+import unittest
+import threading
 
 this_dir = os.path.dirname(__file__)
 if this_dir not in sys.path:
@@ -17,6 +21,7 @@ try:
 except ImportError:
     from queue import Queue # Py3
 
+
 class ThreadingTestCase(HelperTestCase):
     """Threading tests"""
     etree = etree
@@ -25,6 +30,40 @@ class ThreadingTestCase(HelperTestCase):
         thread = threading.Thread(target=func)
         thread.start()
         thread.join()
+
+    def _run_threads(self, count, func, main_func=None):
+        sync = threading.Event()
+        lock = threading.Lock()
+        counter = dict(started=0, finished=0, failed=0)
+
+        def sync_start(func):
+            with lock:
+                started = counter['started'] + 1
+                counter['started'] = started
+            if started < count + (main_func is not None):
+                sync.wait(4)  # wait until the other threads have started up
+                assert sync.is_set()
+            sync.set()  # all waiting => go!
+            try:
+                func()
+            except:
+                with lock:
+                    counter['failed'] += 1
+                raise
+            else:
+                with lock:
+                    counter['finished'] += 1
+
+        threads = [threading.Thread(target=sync_start, args=(func,)) for _ in range(count)]
+        for thread in threads:
+            thread.start()
+        if main_func is not None:
+            sync_start(main_func)
+        for thread in threads:
+            thread.join()
+
+        self.assertEqual(0, counter['failed'])
+        self.assertEqual(counter['finished'], counter['started'])
 
     def test_subtree_copy_thread(self):
         tostring = self.etree.tostring
@@ -238,6 +277,35 @@ class ThreadingTestCase(HelperTestCase):
             _bytes('<ns0:root xmlns:ns0="myns" att="someval"/>'),
             tostring(result))
 
+    def test_concurrent_attribute_names_in_dicts(self):
+        SubElement = self.etree.SubElement
+        names = list('abcdefghijklmnop')
+        runs_per_name = range(50)
+        result_matches = re.compile(
+            br'<thread_root>'
+            br'(?:<[a-p]{5} thread_attr_[a-p]="value" thread_attr2_[a-p]="value2"\s?/>)+'
+            br'</thread_root>').match
+
+        def testrun():
+            for _ in range(3):
+                root = self.etree.Element('thread_root')
+                for name in names:
+                    tag_name = name * 5
+                    new = []
+                    for _ in runs_per_name:
+                        el = SubElement(root, tag_name, {'thread_attr_' + name: 'value'})
+                        new.append(el)
+                    for el in new:
+                        el.set('thread_attr2_' + name, 'value2')
+                s = etree.tostring(root)
+                self.assertTrue(result_matches(s))
+
+        # first, run only in sub-threads
+        self._run_threads(10, testrun)
+
+        # then, additionally include the main thread (and its parent dict)
+        self._run_threads(10, testrun, main_func=testrun)
+
     def test_concurrent_proxies(self):
         XML = self.etree.XML
         root = XML(_bytes('<root><a>A</a><b xmlns="test">B</b><c/></root>'))
@@ -246,12 +314,7 @@ class ThreadingTestCase(HelperTestCase):
             for i in range(10000):
                 el = root[i%child_count]
                 del el
-        threads = [ threading.Thread(target=testrun)
-                    for _ in range(10) ]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+        self._run_threads(10, testrun)
 
     def test_concurrent_class_lookup(self):
         XML = self.etree.XML
@@ -279,19 +342,14 @@ class ThreadingTestCase(HelperTestCase):
             for i in range(1000):
                 el = root[i%child_count]
                 del el
-        threads = [ threading.Thread(target=testrun)
-                    for _ in range(10) ]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+        self._run_threads(10, testrun)
 
 
 class ThreadPipelineTestCase(HelperTestCase):
     """Threading tests based on a thread worker pipeline.
     """
     etree = etree
-    item_count = 20
+    item_count = 40
 
     class Worker(threading.Thread):
         def __init__(self, in_queue, in_count, **kwargs):
@@ -300,46 +358,79 @@ class ThreadPipelineTestCase(HelperTestCase):
             self.in_count = in_count
             self.out_queue = Queue(in_count)
             self.__dict__.update(kwargs)
+
         def run(self):
             get, put = self.in_queue.get, self.out_queue.put
             handle = self.handle
             for _ in range(self.in_count):
                 put(handle(get()))
 
+        def handle(self, data):
+            raise NotImplementedError()
+
     class ParseWorker(Worker):
-        XML = etree.XML
-        def handle(self, xml):
-            return self.XML(xml)
+        def handle(self, xml, _fromstring=etree.fromstring):
+            return _fromstring(xml)
+
     class RotateWorker(Worker):
         def handle(self, element):
             first = element[0]
             element[:] = element[1:]
             element.append(first)
             return element
+
     class ReverseWorker(Worker):
         def handle(self, element):
             element[:] = element[::-1]
             return element
+
     class ParseAndExtendWorker(Worker):
-        XML = etree.XML
-        def handle(self, element):
-            element.extend(self.XML(self.xml))
+        def handle(self, element, _fromstring=etree.fromstring):
+            element.extend(_fromstring(self.xml))
             return element
+
+    class ParseAndInjectWorker(Worker):
+        def handle(self, element, _fromstring=etree.fromstring):
+            root = _fromstring(self.xml)
+            root.extend(element)
+            return root
+
+    class Validate(Worker):
+        def handle(self, element):
+            element.getroottree().docinfo.internalDTD.assertValid(element)
+            return element
+
     class SerialiseWorker(Worker):
         def handle(self, element):
             return etree.tostring(element)
 
-    xml = _bytes('''\
-<xsl:stylesheet
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    version="1.0">
-  <xsl:output method="xml" />
-  <xsl:template match="/">
-     <div id="test">
-       <xsl:apply-templates/>
-     </div>
-  </xsl:template>
-</xsl:stylesheet>''')
+    xml = (b'''\
+<!DOCTYPE threadtest [
+    <!ELEMENT threadtest (thread-tag1,thread-tag2)+>
+    <!ATTLIST threadtest
+        version    CDATA  "1.0"
+    >
+    <!ELEMENT thread-tag1 EMPTY>
+    <!ELEMENT thread-tag2 (div)>
+    <!ELEMENT div (threaded)>
+    <!ATTLIST div
+        huhu  CDATA  #IMPLIED
+    >
+    <!ELEMENT threaded EMPTY>
+    <!ATTLIST threaded
+        host  CDATA  #REQUIRED
+    >
+]>
+<threadtest version="123">
+''' + (b'''
+  <thread-tag1 />
+  <thread-tag2>
+    <div huhu="true">
+       <threaded host="here" />
+    </div>
+  </thread-tag2>
+''') * 20 + b'''
+</threadtest>''')
 
     def _build_pipeline(self, item_count, *classes, **kwargs):
         in_queue = Queue(item_count)
@@ -353,6 +444,8 @@ class ThreadPipelineTestCase(HelperTestCase):
 
     def test_thread_pipeline_thread_parse(self):
         item_count = self.item_count
+        xml = self.xml.replace(b'thread', b'THREAD')  # use fresh tag names
+
         # build and start the pipeline
         in_queue, start, last = self._build_pipeline(
             item_count,
@@ -360,22 +453,24 @@ class ThreadPipelineTestCase(HelperTestCase):
             self.RotateWorker,
             self.ReverseWorker,
             self.ParseAndExtendWorker,
+            self.Validate,
+            self.ParseAndInjectWorker,
             self.SerialiseWorker,
-            xml = self.xml)
+            xml=xml)
 
         # fill the queue
         put = start.in_queue.put
         for _ in range(item_count):
-            put(self.xml)
+            put(xml)
 
         # start the first thread and thus everything
         start.start()
         # make sure the last thread has terminated
-        last.join(60) # time out after 60 seconds
+        last.join(60)  # time out after 60 seconds
         self.assertEqual(item_count, last.out_queue.qsize())
         # read the results
         get = last.out_queue.get
-        results = [ get() for _ in range(item_count) ]
+        results = [get() for _ in range(item_count)]
 
         comparison = results[0]
         for i, result in enumerate(results[1:]):
@@ -383,6 +478,7 @@ class ThreadPipelineTestCase(HelperTestCase):
 
     def test_thread_pipeline_global_parse(self):
         item_count = self.item_count
+        xml = self.xml.replace(b'thread', b'GLOBAL')  # use fresh tag names
         XML = self.etree.XML
         # build and start the pipeline
         in_queue, start, last = self._build_pipeline(
@@ -390,22 +486,23 @@ class ThreadPipelineTestCase(HelperTestCase):
             self.RotateWorker,
             self.ReverseWorker,
             self.ParseAndExtendWorker,
+            self.Validate,
             self.SerialiseWorker,
-            xml = self.xml)
+            xml=xml)
 
         # fill the queue
         put = start.in_queue.put
         for _ in range(item_count):
-            put(XML(self.xml))
+            put(XML(xml))
 
         # start the first thread and thus everything
         start.start()
         # make sure the last thread has terminated
-        last.join(60) # time out after 90 seconds
+        last.join(60)  # time out after 90 seconds
         self.assertEqual(item_count, last.out_queue.qsize())
         # read the results
         get = last.out_queue.get
-        results = [ get() for _ in range(item_count) ]
+        results = [get() for _ in range(item_count)]
 
         comparison = results[0]
         for i, result in enumerate(results[1:]):
