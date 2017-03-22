@@ -17,32 +17,23 @@ from lxml.html import fromstring, tostring, XHTML_NAMESPACE
 from lxml.html import xhtml_to_html, _transform_result
 
 try:
-    set
+    unichr
 except NameError:
     # Python 3
-    from sets import Set as set
-
-try:
-    unichr = __builtins__['unichr']
-except (NameError, KeyError):
-    # Python 3
     unichr = chr
-
 try:
-    unicode = __builtins__['unicode']
-except (NameError, KeyError):
+    unicode
+except NameError:
     # Python 3
     unicode = str
-
 try:
-    bytes = __builtins__['bytes']
-except (NameError, KeyError):
+    bytes
+except NameError:
     # Python < 2.6
     bytes = str
-
 try:
-    basestring = __builtins__['basestring']
-except (NameError, KeyError):
+    basestring
+except NameError:
     basestring = (str, bytes)
 
 
@@ -107,7 +98,8 @@ class Cleaner(object):
         Removes any ``<script>`` tags.
 
     ``javascript``:
-        Removes any Javascript, like an ``onclick`` attribute.
+        Removes any Javascript, like an ``onclick`` attribute. Also removes stylesheets
+        as they could contain Javascript.
 
     ``comments``:
         Removes any comments.
@@ -155,8 +147,11 @@ class Cleaner(object):
 
     ``safe_attrs_only``:
         If true, only include 'safe' attributes (specifically the list
-        from `feedparser
-        <http://feedparser.org/docs/html-sanitization.html>`_).
+        from the feedparser HTML sanitisation web site).
+
+    ``safe_attrs``:
+        A set of attribute names to override the default list of attributes
+        considered 'safe' (when safe_attrs_only=True).
 
     ``add_nofollow``:
         If true, then any <a> tags will have ``rel="nofollow"`` added to them.
@@ -172,6 +167,8 @@ class Cleaner(object):
 
         Note that this parameter might not work as intended if you do not
         make the links absolute before doing the cleaning.
+
+        Note that you may also need to set ``whitelist_tags``.
 
     ``whitelist_tags``:
         A set of tags that can be included with ``host_whitelist``.
@@ -200,6 +197,7 @@ class Cleaner(object):
     kill_tags = None
     remove_unknown_tags = True
     safe_attrs_only = True
+    safe_attrs = defs.safe_attrs
     add_nofollow = False
     host_whitelist = ()
     whitelist_tags = set(['iframe', 'embed'])
@@ -258,14 +256,15 @@ class Cleaner(object):
         if self.scripts:
             kill_tags.add('script')
         if self.safe_attrs_only:
-            safe_attrs = set(defs.safe_attrs)
+            safe_attrs = set(self.safe_attrs)
             for el in doc.iter():
                 attrib = el.attrib
                 for aname in attrib.keys():
                     if aname not in safe_attrs:
                         del attrib[aname]
         if self.javascript:
-            if not self.safe_attrs_only:
+            if not (self.safe_attrs_only and
+                    self.safe_attrs == defs.safe_attrs):
                 # safe_attrs handles events attributes itself
                 for el in doc.iter():
                     attrib = el.attrib
@@ -280,7 +279,7 @@ class Cleaner(object):
                 for el in _find_styled_elements(doc):
                     old = el.get('style')
                     new = _css_javascript_re.sub('', old)
-                    new = _css_import_re.sub('', old)
+                    new = _css_import_re.sub('', new)
                     if self._has_sneaky_javascript(new):
                         # Something tricky is going on...
                         del el.attrib['style']
@@ -317,7 +316,8 @@ class Cleaner(object):
             for el in list(doc.iter('link')):
                 if 'stylesheet' in el.get('rel', '').lower():
                     # Note this kills alternate stylesheets as well
-                    el.drop_tree()
+                    if not self.allow_element(el):
+                        el.drop_tree()
         if self.meta:
             kill_tags.add('meta')
         if self.page_structure:
@@ -379,7 +379,6 @@ class Cleaner(object):
         for el in _remove:
             el.drop_tag()
 
-        allow_tags = self.allow_tags
         if self.remove_unknown_tags:
             if allow_tags:
                 raise ValueError(
@@ -400,7 +399,15 @@ class Cleaner(object):
         if self.add_nofollow:
             for el in _find_external_links(doc):
                 if not self.allow_follow(el):
-                    el.set('rel', 'nofollow')
+                    rel = el.get('rel')
+                    if rel:
+                        if ('nofollow' in rel
+                                and ' nofollow ' in (' %s ' % rel)):
+                            continue
+                        rel = '%s nofollow' % rel
+                    else:
+                        rel = 'nofollow'
+                    el.set('rel', rel)
 
     def allow_follow(self, anchor):
         """

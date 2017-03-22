@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.3
+#!/usr/bin/env python
 #
 # SchoolTool - common information systems platform for school administration
 # Copyright (c) 2003 Shuttleworth Foundation
@@ -457,8 +457,8 @@ def main(argv):
     """Main program."""
 
     # Environment
-    if sys.version_info < (2, 3):
-        stderr('%s: need Python 2.3 or later' % argv[0])
+    if sys.version_info < (2, 6):
+        stderr('%s: need Python 2.6 or later' % argv[0])
         stderr('your python is %s' % sys.version)
         return 1
 
@@ -561,6 +561,7 @@ def main(argv):
 
     # Finding and importing
     test_files = get_test_files(cfg)
+
     if cfg.list_tests or cfg.run_tests:
         test_cases = get_test_cases(test_files, cfg, tracer=tracer)
     if cfg.list_hooks or cfg.run_tests:
