@@ -13,7 +13,7 @@ Build-Conflicts: cython
 X-Python-Version: all
 Standards-Version: 3.9.5
 Homepage: http://lxml.de/
-XS-Pexip-Upstream: http://ftp.debian.org/debian/ jessie
+XS-Pexip-Upstream: http://ftp.debian.org/debian/ stretch
 
 Package: python-lxml
 Architecture: any
