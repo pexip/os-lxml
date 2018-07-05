@@ -109,6 +109,16 @@ class _XmlFileTestCaseBase(HelperTestCase):
                     pass
         self.assertXml('<test xmlns="nsURI"><toast></toast></test>')
 
+    def test_nested_default_namespace_and_other(self):
+        with etree.xmlfile(self._file) as xf:
+            with xf.element('{nsURI}test', nsmap={None: 'nsURI', 'p': 'ns2'}):
+                with xf.element('{nsURI}toast'):
+                    pass
+                with xf.element('{ns2}toast'):
+                    pass
+        self.assertXml(
+            '<test xmlns="nsURI" xmlns:p="ns2"><toast></toast><p:toast></p:toast></test>')
+
     def test_pi(self):
         with etree.xmlfile(self._file) as xf:
             xf.write(etree.ProcessingInstruction('pypi'))
@@ -128,6 +138,18 @@ class _XmlFileTestCaseBase(HelperTestCase):
             with xf.element('test', attrib={'k': 'v'}):
                 pass
         self.assertXml('<test k="v"></test>')
+
+    def test_attribute_extra(self):
+        with etree.xmlfile(self._file) as xf:
+            with xf.element('test', attrib={'k': 'v'}, n='N'):
+                pass
+        self.assertXml('<test k="v" n="N"></test>')
+
+    def test_attribute_extra_duplicate(self):
+        with etree.xmlfile(self._file) as xf:
+            with xf.element('test', attrib={'k': 'v'}, k='V'):
+                pass
+        self.assertXml('<test k="V"></test>')
 
     def test_escaping(self):
         with etree.xmlfile(self._file) as xf:
@@ -335,12 +357,96 @@ class SimpleFileLikeXmlFileTestCase(_XmlFileTestCaseBase):
         self._file = None  # prevent closing in tearDown()
 
 
+class HtmlFileTestCase(_XmlFileTestCaseBase):
+    def setUp(self):
+        self._file = BytesIO()
+
+    def test_void_elements(self):
+        # http://www.w3.org/TR/html5/syntax.html#elements-0
+        void_elements = set([
+            "area", "base", "br", "col", "embed", "hr", "img",
+            "input", "keygen", "link", "meta", "param",
+            "source", "track", "wbr"
+        ])
+
+        # FIXME: These don't get serialized as void elements.
+        void_elements.difference_update([
+            'area', 'embed', 'keygen', 'source', 'track', 'wbr'
+        ])
+
+        for tag in sorted(void_elements):
+            with etree.htmlfile(self._file) as xf:
+                xf.write(etree.Element(tag))
+            self.assertXml('<%s>' % tag)
+            self._file = BytesIO()
+
+    def test_xml_mode_write_inside_html(self):
+        elt = etree.Element("foo", attrib={'selected': 'bar'})
+
+        with etree.htmlfile(self._file) as xf:
+            with xf.element("root"):
+                xf.write(elt)  # 1
+
+                assert elt.text is None
+                xf.write(elt, method='xml')  # 2
+
+                elt.text = ""
+                xf.write(elt, method='xml')  # 3
+
+        self.assertXml(
+            '<root>'
+                '<foo selected></foo>'  # 1
+                '<foo selected="bar"/>'  # 2
+                '<foo selected="bar"></foo>'  # 3
+            '</root>')
+        self._file = BytesIO()
+
+    def test_xml_mode_element_inside_html(self):
+        # The htmlfile already outputs in xml mode for .element calls. This
+        # test actually illustrates a bug
+
+        with etree.htmlfile(self._file) as xf:
+            with xf.element("root"):
+                with xf.element('foo', attrib={'selected': 'bar'}):
+                    pass
+
+        self.assertXml(
+            '<root>'
+              # '<foo selected></foo>'  # FIXME: this is the correct output
+                                        # in html mode
+              '<foo selected="bar"></foo>'
+            '</root>')
+        self._file = BytesIO()
+
+    def test_write_declaration(self):
+        with etree.htmlfile(self._file) as xf:
+            try:
+                xf.write_declaration()
+            except etree.LxmlSyntaxError:
+                self.assertTrue(True)
+            else:
+                self.assertTrue(False)
+            xf.write(etree.Element('html'))
+
+    def test_write_namespaced_element(self):
+        with etree.htmlfile(self._file) as xf:
+            xf.write(etree.Element('{some_ns}some_tag'))
+        self.assertXml('<ns0:some_tag xmlns:ns0="some_ns"></ns0:some_tag>')
+
+    def test_open_namespaced_element(self):
+        with etree.htmlfile(self._file) as xf:
+            with xf.element("{some_ns}some_tag"):
+                pass
+        self.assertXml('<ns0:some_tag xmlns:ns0="some_ns"></ns0:some_tag>')
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTests([unittest.makeSuite(BytesIOXmlFileTestCase),
                     unittest.makeSuite(TempXmlFileTestCase),
                     unittest.makeSuite(TempPathXmlFileTestCase),
                     unittest.makeSuite(SimpleFileLikeXmlFileTestCase),
+                    unittest.makeSuite(HtmlFileTestCase),
                     ])
     return suite
 

@@ -201,12 +201,16 @@ not take advantage of lxml's enhanced feature set.
   a secure HTTP proxy
 * `lwebstring <http://pypi.python.org/pypi/lwebstring>`_,
   an XML template engine
+* `openpyxl <https://openpyxl.readthedocs.io/>`_,
+  a library to read/write MS Excel 2007 files
 * `OpenXMLlib <http://permalink.gmane.org/gmane.comp.python.lxml.devel/3250>`_,
   a library for handling OpenXML document meta data
 * `PsychoPy <http://www.psychopy.org/>`_,
   psychology software in Python
 * `Pycoon <http://pypi.python.org/pypi/pycoon>`_,
   a WSGI web development framework based on XML pipelines
+* `pycsw <http://pycsw.org>`_,
+  an `OGC CSW <http://opengeospatial.org/standards/cat>`_ server implementation written in Python
 * `PyQuery <http://pypi.python.org/pypi/pyquery>`_,
   a query framework for XML/HTML, similar to jQuery for JavaScript
 * `python-docx <http://github.com/mikemaccana/python-docx>`_,
@@ -499,7 +503,7 @@ Besides enhancing the code, there are a lot of places where you can help the
 project and its user base.  You can
 
 * spread the word and write about lxml.  Many users (especially new Python
-  users) have not yet heared about lxml, although our user base is constantly
+  users) have not yet heard about lxml, although our user base is constantly
   growing.  If you write your own blog and feel like saying something about
   lxml, go ahead and do so.  If we think your contribution or criticism is
   valuable to other users, we may even put a link or a quote on the project
@@ -522,9 +526,9 @@ project and its user base.  You can
   top-ranked when searching the web for "Python and XML", so maybe you
   have an idea how to improve that.
 
-* help with the tutorial.  A tutorial is the most important stating point for
+* help with the tutorial.  A tutorial is the most important starting point for
   new users, so it is important for us to provide an easy to understand guide
-  into lxml.  As allo documentation, the tutorial is work in progress, so we
+  into lxml.  As all documentation, the tutorial is work in progress, so we
   appreciate every helping hand.
 
 * improve the docstrings.  lxml uses docstrings to support Python's integrated
@@ -862,7 +866,7 @@ lxml can add fresh whitespace to the XML tree to indent it.
 Note that the ``remove_blank_text`` option also uses a heuristic if it
 has no definite knowledge about the document's ignorable whitespace.
 It will keep blank text nodes that appear after non-blank text nodes
-at the same level.  This is to prevent document-style XML from loosing
+at the same level.  This is to prevent document-style XML from losing
 content.
 
 The HTMLParser has this structural knowledge built-in, which means that

@@ -1,10 +1,10 @@
 import sys, os, os.path
 from distutils.core import Extension
-from distutils.errors import DistutilsOptionError
-from versioninfo import get_base_dir, split_version
+from distutils.errors import CompileError, DistutilsOptionError
+from distutils.command.build_ext import build_ext as _build_ext
+from versioninfo import get_base_dir
 
 try:
-    from Cython.Distutils import build_ext as build_pyx
     import Cython.Compiler.Version
     CYTHON_INSTALLED = True
 except ImportError:
@@ -38,8 +38,15 @@ def env_var(name):
     else:
         return []
 
+
+def _prefer_reldirs(base_dir, dirs):
+    return [
+        os.path.relpath(path) if path.startswith(base_dir) else path
+        for path in dirs
+    ]
+
 def ext_modules(static_include_dirs, static_library_dirs,
-                static_cflags, static_binaries): 
+                static_cflags, static_binaries):
     global XML2_CONFIG, XSLT_CONFIG
     if OPTION_BUILD_LIBXML2XSLT:
         from buildlibxml import build_libxml2xslt, get_prebuilt_libxml2xslt
@@ -54,24 +61,24 @@ def ext_modules(static_include_dirs, static_library_dirs,
                 libiconv_version=OPTION_LIBICONV_VERSION,
                 libxml2_version=OPTION_LIBXML2_VERSION,
                 libxslt_version=OPTION_LIBXSLT_VERSION,
+                zlib_version=OPTION_ZLIB_VERSION,
                 multicore=OPTION_MULTICORE)
 
+    modules = EXT_MODULES
     if OPTION_WITHOUT_OBJECTIFY:
-        modules = [ entry for entry in EXT_MODULES
-                    if 'objectify' not in entry ]
-    else:
-        modules = EXT_MODULES
+        modules = [entry for entry in modules if 'objectify' not in entry]
 
-    c_files_exist = [ os.path.exists('%s%s.c' % (PACKAGE_PATH, module)) for module in modules ]
+    c_files_exist = [os.path.exists('%s%s.c' % (PACKAGE_PATH, module))
+                     for module in modules]
 
-    if CYTHON_INSTALLED and (OPTION_WITH_CYTHON or False in c_files_exist):
-        source_extension = ".pyx"
+    source_extension = ".pyx"
+    if CYTHON_INSTALLED and (OPTION_WITH_CYTHON or not all(c_files_exist)):
         print("Building with Cython %s." % Cython.Compiler.Version.version)
         # generate module cleanup code
         from Cython.Compiler import Options
         Options.generate_cleanup_code = 3
         Options.clear_to_none = False
-    elif not OPTION_WITHOUT_CYTHON and False in c_files_exist:
+    elif not OPTION_WITHOUT_CYTHON and not all(c_files_exist):
         for exists, module in zip(c_files_exist, modules):
             if not exists:
                 raise RuntimeError(
@@ -79,7 +86,7 @@ def ext_modules(static_include_dirs, static_library_dirs,
                     "is not available (pass --without-cython to ignore this error)." % (
                         PACKAGE_PATH, module))
     else:
-        if False in c_files_exist:
+        if not all(c_files_exist):
             for exists, module in zip(c_files_exist, modules):
                 if not exists:
                     print("WARNING: Trying to build without Cython, but pre-generated "
@@ -90,23 +97,23 @@ def ext_modules(static_include_dirs, static_library_dirs,
     lib_versions = get_library_versions()
     versions_ok = True
     if lib_versions[0]:
-        print("Using build configuration of libxml2 %s and libxslt %s" % 
+        print("Using build configuration of libxml2 %s and libxslt %s" %
               lib_versions)
         versions_ok = check_min_version(lib_versions[0], (2, 7, 0), 'libxml2')
     else:
-        print("Using build configuration of libxslt %s" % 
+        print("Using build configuration of libxslt %s" %
               lib_versions[1])
     versions_ok |= check_min_version(lib_versions[1], (1, 1, 23), 'libxslt')
     if not versions_ok:
         raise RuntimeError("Dependency missing")
 
-    _include_dirs = include_dirs(static_include_dirs)
-    _library_dirs = library_dirs(static_library_dirs)
+    base_dir = get_base_dir()
+    _include_dirs = _prefer_reldirs(
+        base_dir, include_dirs(static_include_dirs) + [INCLUDE_PACKAGE_PATH])
+    _library_dirs = _prefer_reldirs(base_dir, library_dirs(static_library_dirs))
     _cflags = cflags(static_cflags)
     _define_macros = define_macros()
     _libraries = libraries()
-
-    _include_dirs.append(os.path.join(get_base_dir(), INCLUDE_PACKAGE_PATH))
 
     if _library_dirs:
         message = "Building against libxml2/libxslt in "
@@ -126,6 +133,10 @@ def ext_modules(static_include_dirs, static_library_dirs,
     if CYTHON_INSTALLED and OPTION_SHOW_WARNINGS:
         from Cython.Compiler import Errors
         Errors.LEVEL = 0
+
+    cythonize_options = {}
+    if OPTION_WITH_COVERAGE:
+        cythonize_options['compiler_directives'] = {'linetrace': True}
 
     result = []
     for module in modules:
@@ -150,9 +161,10 @@ def ext_modules(static_include_dirs, static_library_dirs,
     if CYTHON_INSTALLED and source_extension == '.pyx':
         # build .c files right now and convert Extension() objects
         from Cython.Build import cythonize
-        result = cythonize(result)
+        result = cythonize(result, **cythonize_options)
 
     return result
+
 
 def find_dependencies(module):
     if not CYTHON_INSTALLED:
@@ -160,40 +172,82 @@ def find_dependencies(module):
     base_dir = get_base_dir()
     package_dir = os.path.join(base_dir, PACKAGE_PATH)
     includes_dir = os.path.join(base_dir, INCLUDE_PACKAGE_PATH)
-    pxd_files = [ os.path.join(includes_dir, filename)
-                  for filename in os.listdir(includes_dir)
-                  if filename.endswith('.pxd') ]
+
+    pxd_files = [
+        os.path.join(INCLUDE_PACKAGE_PATH, filename)
+        for filename in os.listdir(includes_dir)
+        if filename.endswith('.pxd')
+    ]
 
     if 'etree' in module:
-        pxi_files = [ os.path.join(PACKAGE_PATH, filename)
-                      for filename in os.listdir(package_dir)
-                      if filename.endswith('.pxi')
-                      and 'objectpath' not in filename ]
-        pxd_files = [ filename for filename in pxd_files
-                      if 'etreepublic' not in filename ]
+        pxi_files = [
+            os.path.join(PACKAGE_PATH, filename)
+            for filename in os.listdir(package_dir)
+            if filename.endswith('.pxi') and 'objectpath' not in filename
+        ]
+        pxd_files = [
+            filename for filename in pxd_files
+            if 'etreepublic' not in filename
+        ]
     elif 'objectify' in module:
-        pxi_files = [ os.path.join(PACKAGE_PATH, 'objectpath.pxi') ]
+        pxi_files = [os.path.join(PACKAGE_PATH, 'objectpath.pxi')]
     else:
         pxi_files = []
 
     return pxd_files + pxi_files
 
+
 def extra_setup_args():
-    result = {}
-    if CYTHON_INSTALLED:
-        result['cmdclass'] = {'build_ext': build_pyx}
+    class CheckLibxml2BuildExt(_build_ext):
+        """Subclass to check whether libxml2 is really available if the build fails"""
+        def run(self):
+            try:
+                _build_ext.run(self)  # old-style class in Py2
+            except CompileError as e:
+                print('Compile failed: %s' % e)
+                if not seems_to_have_libxml2():
+                    print_libxml_error()
+                raise
+    result = {'cmdclass': {'build_ext': CheckLibxml2BuildExt}}
     return result
 
+
+def seems_to_have_libxml2():
+    from distutils import ccompiler
+    compiler = ccompiler.new_compiler()
+    return compiler.has_function(
+        'xmlXPathInit',
+        include_dirs=include_dirs([]) + ['/usr/include/libxml2'],
+        includes=['libxml/xpath.h'],
+        library_dirs=library_dirs([]),
+        libraries=['xml2'])
+
+
+def print_libxml_error():
+    print('*********************************************************************************')
+    print('Could not find function xmlCheckVersion in library libxml2. Is libxml2 installed?')
+    if sys.platform in ('darwin',):
+        print('Perhaps try: xcode-select --install')
+    print('*********************************************************************************')
+
+
 def libraries():
+    standard_libs = []
+    if 'linux' in sys.platform:
+        standard_libs.append('rt')
+    if not OPTION_BUILD_LIBXML2XSLT:
+        standard_libs.append('z')
+    standard_libs.append('m')
+
     if sys.platform in ('win32',):
         libs = ['libxslt', 'libexslt', 'libxml2', 'iconv']
         if OPTION_STATIC:
             libs = ['%s_a' % lib for lib in libs]
         libs.extend(['zlib', 'WS2_32'])
     elif OPTION_STATIC:
-        libs = ['z', 'm']
+        libs = standard_libs
     else:
-        libs = ['xslt', 'exslt', 'xml2', 'z', 'm']
+        libs = ['xslt', 'exslt', 'xml2'] + standard_libs
     return libs
 
 def library_dirs(static_library_dirs):
@@ -260,6 +314,8 @@ def define_macros():
         macros.append(('CYTHON_REFNANNY', None))
     if OPTION_WITH_UNICODE_STRINGS:
         macros.append(('LXML_UNICODE_STRINGS', '1'))
+    if OPTION_WITH_COVERAGE:
+        macros.append(('CYTHON_TRACE_NOGIL', '1'))
     return macros
 
 _ERROR_PRINTED = False
@@ -298,7 +354,7 @@ def check_min_version(version, min_version, error_name):
     min_version = tuple(min_version)
     if version < min_version:
         print("Minimum required version of %s is %s, found %s" % (
-            error_name, '.'.join(version), '.'.join(min_version)))
+            error_name, '.'.join(map(str, version)), '.'.join(map(str, min_version))))
         return False
     return True
 
@@ -391,6 +447,7 @@ OPTION_WITHOUT_CYTHON = has_option('without-cython')
 OPTION_WITH_CYTHON = has_option('with-cython')
 OPTION_WITH_CYTHON_GDB = has_option('cython-gdb')
 OPTION_WITH_REFNANNY = has_option('with-refnanny')
+OPTION_WITH_COVERAGE = has_option('with-coverage')
 if OPTION_WITHOUT_CYTHON:
     CYTHON_INSTALLED = False
 OPTION_STATIC = staticbuild or has_option('static')
@@ -403,6 +460,7 @@ if OPTION_BUILD_LIBXML2XSLT:
 OPTION_LIBXML2_VERSION = option_value('libxml2-version')
 OPTION_LIBXSLT_VERSION = option_value('libxslt-version')
 OPTION_LIBICONV_VERSION = option_value('libiconv-version')
+OPTION_ZLIB_VERSION = option_value('zlib-version')
 OPTION_MULTICORE = option_value('multicore')
 OPTION_DOWNLOAD_DIR = option_value('download-dir')
 if OPTION_DOWNLOAD_DIR is None:

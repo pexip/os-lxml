@@ -15,6 +15,7 @@ if this_dir not in sys.path:
 
 from common_imports import HelperTestCase
 
+
 class ErrorTestCase(HelperTestCase):
     etree = etree
 
@@ -29,17 +30,43 @@ class ErrorTestCase(HelperTestCase):
     def test_element_cyclic_gc_none(self):
         # test if cyclic reference can crash etree
         Element = self.etree.Element
-        gc.collect()
 
-        count = sys.getrefcount(None)
+        # must disable tracing as it could change the refcounts
+        trace_func = sys.gettrace()
+        try:
+            sys.settrace(None)
+            gc.collect()
 
-        l = [Element('name'), Element('name')]
-        l.append(l)
+            count = sys.getrefcount(None)
 
-        del l
-        gc.collect()
+            l = [Element('name'), Element('name')]
+            l.append(l)
 
-        self.assertEqual(sys.getrefcount(None), count)
+            del l
+            gc.collect()
+
+            self.assertEqual(sys.getrefcount(None), count)
+        finally:
+            sys.settrace(trace_func)
+
+    def test_xmlsyntaxerror_has_info(self):
+        broken_xml_name = 'test_broken.xml'
+        broken_xml_path = os.path.join(this_dir, broken_xml_name)
+        fail_msg = 'test_broken.xml should raise an etree.XMLSyntaxError'
+        try:
+            etree.parse(broken_xml_path)
+        except etree.XMLSyntaxError as e:
+            # invariant
+            self.assertEqual(e.position, (e.lineno, e.offset + 1), 'position and lineno/offset out of sync')
+            # SyntaxError info derived from file & contents
+            self.assertTrue(e.filename.endswith(broken_xml_name), 'filename must be preserved')
+            self.assertEqual(e.lineno, 1)
+            self.assertEqual(e.offset, 10)
+        except Exception as e:
+            self.fail('{0}, not {1}'.format(fail_msg, type(e)))
+        else:
+            self.fail('test_broken.xml should raise an etree.XMLSyntaxError')
+
 
 def test_suite():
     suite = unittest.TestSuite()

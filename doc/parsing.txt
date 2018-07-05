@@ -196,10 +196,10 @@ warnings of the last parser run:
   >>> print(len(parser.error_log))
   0
 
-  >>> tree = etree.XML("<root>\n</b>", parser)
+  >>> tree = etree.XML("<root>\n</b>", parser)  # doctest: +ELLIPSIS
   Traceback (most recent call last):
     ...
-  lxml.etree.XMLSyntaxError: Opening and ending tag mismatch: root line 1 and b, line 2, column 5
+  lxml.etree.XMLSyntaxError: Opening and ending tag mismatch: root line 1 and b, line 2, column 5...
 
   >>> print(len(parser.error_log))
   1
@@ -305,7 +305,7 @@ Doctype information
 The use of the libxml2 parsers makes some additional information available at
 the API level.  Currently, ElementTree objects can access the DOCTYPE
 information provided by a parsed document, as well as the XML version and the
-original encoding:
+original encoding.  Since lxml 3.5, the doctype references are mutable.
 
 .. sourcecode:: pycon
 
@@ -328,6 +328,12 @@ original encoding:
   1.0
   >>> print(docinfo.encoding)
   ascii
+
+  >>> docinfo.system_url = None
+  >>> docinfo.public_id = None
+  >>> print(etree.tostring(tree))
+  <!DOCTYPE html>
+  <html><body/></html>
 
 
 The target parser interface
@@ -930,6 +936,8 @@ ElementTrees.  Here is an example for a tree parsed by ``iterparse()``:
 And now we can take the resulting in-memory tree and iterate over it
 using ``iterwalk()`` to get the exact same events without parsing the
 input again:
+
+.. sourcecode:: pycon
 
   >>> context = etree.iterwalk(
   ...             root, events=("start", "end"), tag="element")

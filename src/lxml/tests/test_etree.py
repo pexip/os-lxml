@@ -7,6 +7,8 @@ Tests that apply to the general ElementTree API should go into
 test_elementtree
 """
 
+from __future__ import absolute_import
+
 import os.path
 import unittest
 import copy
@@ -19,14 +21,10 @@ import textwrap
 import zlib
 import gzip
 
-this_dir = os.path.dirname(__file__)
-if this_dir not in sys.path:
-    sys.path.insert(0, this_dir) # needed for Py3
-
-from common_imports import etree, StringIO, BytesIO, HelperTestCase
-from common_imports import fileInTestDir, fileUrlInTestDir, read_file, path2url
-from common_imports import SillyFileLike, LargeFileLikeUnicode, doctest, make_doctest
-from common_imports import canonicalize, sorted, _str, _bytes
+from .common_imports import etree, StringIO, BytesIO, HelperTestCase
+from .common_imports import fileInTestDir, fileUrlInTestDir, read_file, path2url
+from .common_imports import SillyFileLike, LargeFileLikeUnicode, doctest, make_doctest
+from .common_imports import canonicalize, sorted, _str, _bytes
 
 print("")
 print("TESTED VERSION: %s" % etree.__version__)
@@ -43,6 +41,7 @@ try:
 except NameError:
     # Python 3
     _unicode = str
+
 
 class ETreeOnlyTestCase(HelperTestCase):
     """Tests only for etree, not ElementTree"""
@@ -67,6 +66,14 @@ class ETreeOnlyTestCase(HelperTestCase):
         else:
             # older C-API mechanism
             self.assertTrue(hasattr(self.etree, '_import_c_api'))
+
+    def test_include_paths(self):
+        import lxml
+        includes = lxml.get_include()
+        self.assertTrue(includes)
+        self.assertTrue(len(includes) >= 2)
+        self.assertTrue(os.path.join(os.path.dirname(lxml.__file__), 'includes') in includes,
+                        includes)
 
     def test_element_names(self):
         Element = self.etree.Element
@@ -232,6 +239,16 @@ class ETreeOnlyTestCase(HelperTestCase):
         root.set("attr", "TEST")
         self.assertEqual("TEST", root.get("attr"))
 
+    def test_attribute_set_nonstring(self):
+        # ElementTree accepts arbitrary attribute values
+        # lxml.etree allows only strings
+        Element = self.etree.Element
+
+        root = Element("root")
+        root.set("attr", "TEST")
+        self.assertEqual("TEST", root.get("attr"))
+        self.assertRaises(TypeError, root.set, "newattr", 5)
+
     def test_attrib_and_keywords(self):
         Element = self.etree.Element
 
@@ -269,11 +286,13 @@ class ETreeOnlyTestCase(HelperTestCase):
 
     def test_attribute_set_invalid(self):
         # ElementTree accepts arbitrary attribute values
-        # lxml.etree allows only strings
+        # lxml.etree allows only strings, or None for (html5) boolean attributes
         Element = self.etree.Element
         root = Element("root")
         self.assertRaises(TypeError, root.set, "newattr", 5)
+        self.assertRaises(TypeError, root.set, "newattr", object)
         self.assertRaises(TypeError, root.set, "newattr", None)
+        self.assertRaises(TypeError, root.set, "newattr")
 
     def test_strip_attributes(self):
         XML = self.etree.XML
@@ -566,15 +585,16 @@ class ETreeOnlyTestCase(HelperTestCase):
         self.assertEqual(_bytes("<test/>"),
                           tostring(root2))
 
-    def test_attribute_set(self):
-        # ElementTree accepts arbitrary attribute values
-        # lxml.etree allows only strings
-        Element = self.etree.Element
+    def test_deepcopy_pi_dtd(self):
+        XML = self.etree.XML
+        tostring = self.etree.tostring
+        xml = _bytes('<!-- comment --><!DOCTYPE test [\n<!ENTITY entity "tasty">\n]>\n<test/>')
+        root = XML(xml)
+        tree1 = self.etree.ElementTree(root)
+        self.assertEqual(xml, tostring(tree1))
 
-        root = Element("root")
-        root.set("attr", "TEST")
-        self.assertEqual("TEST", root.get("attr"))
-        self.assertRaises(TypeError, root.set, "newattr", 5)
+        tree2 = copy.deepcopy(tree1)
+        self.assertEqual(xml, tostring(tree2))
 
     def test_parse_remove_comments(self):
         fromstring = self.etree.fromstring
@@ -1284,7 +1304,10 @@ class ETreeOnlyTestCase(HelperTestCase):
 
         class MyResolver(self.etree.Resolver):
             def resolve(self, url, id, context):
-                assertEqual(url, fileUrlInTestDir(test_url))
+                expected = fileUrlInTestDir(test_url)
+                url = url.replace('file://', 'file:')  # depends on libxml2 version
+                expected = expected.replace('file://', 'file:')
+                assertEqual(url, expected)
                 return self.resolve_filename(
                     fileUrlInTestDir('test.dtd'), context)
 
@@ -1439,6 +1462,27 @@ class ETreeOnlyTestCase(HelperTestCase):
         self.assertEqual(_bytes('<root><![CDATA[test]]></root>'),
                           tostring(root))
 
+    def test_cdata_tail(self):
+        CDATA = self.etree.CDATA
+        Element = self.etree.Element
+        SubElement = self.etree.SubElement
+        tostring = self.etree.tostring
+
+        root = Element("root")
+        child = SubElement(root, 'child')
+        child.tail = CDATA('test')
+
+        self.assertEqual('test', child.tail)
+        self.assertEqual(_bytes('<root><child/><![CDATA[test]]></root>'),
+                         tostring(root))
+
+        root = Element("root")
+        root.tail = CDATA('test')
+
+        self.assertEqual('test', root.tail)
+        self.assertEqual(_bytes('<root/><![CDATA[test]]>'),
+                         tostring(root))
+
     def test_cdata_type(self):
         CDATA = self.etree.CDATA
         Element = self.etree.Element
@@ -1458,9 +1502,7 @@ class ETreeOnlyTestCase(HelperTestCase):
 
         root = Element("root")
         cdata = CDATA('test')
-        
-        self.assertRaises(TypeError,
-                          setattr, root, 'tail', cdata)
+
         self.assertRaises(TypeError,
                           root.set, 'attr', cdata)
         self.assertRaises(TypeError,
@@ -2399,6 +2441,17 @@ class ETreeOnlyTestCase(HelperTestCase):
             _bytes('<bar xmlns="http://ns.infrae.com/foo"></bar>'),
             self._writeElement(e))
 
+    def test_namespaces_default_and_other(self):
+        etree = self.etree
+
+        r = {None: 'http://ns.infrae.com/foo', 'p': 'http://test/'}
+        e = etree.Element('{http://ns.infrae.com/foo}bar', nsmap=r)
+        self.assertEqual(None, e.prefix)
+        self.assertEqual('{http://ns.infrae.com/foo}bar', e.tag)
+        self.assertEqual(
+            _bytes('<bar xmlns="http://ns.infrae.com/foo" xmlns:p="http://test/"></bar>'),
+            self._writeElement(e))
+
     def test_namespaces_default_and_attr(self):
         etree = self.etree
 
@@ -2568,13 +2621,108 @@ class ETreeOnlyTestCase(HelperTestCase):
             self.etree.tostring(two))
 
     def test_namespace_cleanup(self):
-        xml = _bytes('<foo xmlns="F" xmlns:x="x"><bar xmlns:ns="NS" xmlns:b="b" xmlns="B"><ns:baz/></bar></foo>')
+        xml = _bytes(
+            '<foo xmlns="F" xmlns:x="x">'
+            '<bar xmlns:ns="NS" xmlns:b="b" xmlns="B">'
+            '<ns:baz/>'
+            '</bar></foo>'
+        )
         root = self.etree.fromstring(xml)
-        self.assertEqual(xml,
-                          self.etree.tostring(root))
+        self.assertEqual(xml, self.etree.tostring(root))
         self.etree.cleanup_namespaces(root)
         self.assertEqual(
             _bytes('<foo xmlns="F"><bar xmlns:ns="NS" xmlns="B"><ns:baz/></bar></foo>'),
+            self.etree.tostring(root))
+
+    def test_namespace_cleanup_attributes(self):
+        xml = _bytes(
+            '<foo xmlns="F" xmlns:x="X" xmlns:a="A">'
+            '<bar xmlns:ns="NS" xmlns:b="b" xmlns="B">'
+            '<ns:baz a:test="attr"/>'
+            '</bar></foo>'
+        )
+        root = self.etree.fromstring(xml)
+        self.assertEqual(xml, self.etree.tostring(root))
+        self.etree.cleanup_namespaces(root)
+        self.assertEqual(
+            _bytes('<foo xmlns="F" xmlns:a="A">'
+                   '<bar xmlns:ns="NS" xmlns="B">'
+                   '<ns:baz a:test="attr"/>'
+                   '</bar></foo>'),
+            self.etree.tostring(root))
+
+    def test_namespace_cleanup_many(self):
+        xml = ('<n12:foo ' +
+               ' '.join('xmlns:n{n}="NS{n}"'.format(n=i) for i in range(100)) +
+               '><n68:a/></n12:foo>').encode('utf8')
+        root = self.etree.fromstring(xml)
+        self.assertEqual(xml, self.etree.tostring(root))
+        self.etree.cleanup_namespaces(root)
+        self.assertEqual(
+            b'<n12:foo xmlns:n12="NS12" xmlns:n68="NS68"><n68:a/></n12:foo>',
+            self.etree.tostring(root))
+
+    def test_namespace_cleanup_deep(self):
+        xml = ('<root>' +
+               ''.join('<a xmlns:n{n}="NS{n}">'.format(n=i) for i in range(100)) +
+               '<n64:x/>' + '</a>'*100 + '</root>').encode('utf8')
+        root = self.etree.fromstring(xml)
+        self.assertEqual(xml, self.etree.tostring(root))
+        self.etree.cleanup_namespaces(root)
+        self.assertEqual(
+            b'<root>' + b'<a>'*64 + b'<a xmlns:n64="NS64">' + b'<a>'*35 +
+            b'<n64:x/>' + b'</a>'*100 + b'</root>',
+            self.etree.tostring(root))
+
+    def test_namespace_cleanup_deep_to_top(self):
+        xml = ('<root>' +
+               ''.join('<a xmlns:n{n}="NS{n}">'.format(n=i) for i in range(100)) +
+               '<n64:x xmlns:a="A" a:attr="X"/>' +
+               '</a>'*100 +
+               '</root>').encode('utf8')
+        root = self.etree.fromstring(xml)
+        self.assertEqual(xml, self.etree.tostring(root))
+        self.etree.cleanup_namespaces(root, top_nsmap={'n64': 'NS64'})
+        self.assertEqual(
+            b'<root xmlns:n64="NS64">' + b'<a>'*100 +
+            b'<n64:x xmlns:a="A" a:attr="X"/>' + b'</a>'*100 + b'</root>',
+            self.etree.tostring(root))
+
+    def test_namespace_cleanup_keep_prefixes(self):
+        xml = ('<root xmlns:n64="NS64" xmlns:foo="FOO" xmlns:unused1="UNUSED" xmlns:no="NO">'
+               '<a xmlns:unused2="UNUSED"><n64:x xmlns:a="A" a:attr="X"/></a>'
+               '<foo>foo:bar</foo>'
+               '</root>').encode('utf8')
+        root = self.etree.fromstring(xml)
+        self.assertEqual(xml, self.etree.tostring(root))
+        self.etree.cleanup_namespaces(root, keep_ns_prefixes=['foo'])
+        self.assertEqual(
+            b'<root xmlns:n64="NS64" xmlns:foo="FOO">'
+            b'<a><n64:x xmlns:a="A" a:attr="X"/></a>'
+            b'<foo>foo:bar</foo>'
+            b'</root>',
+            self.etree.tostring(root))
+
+    def test_namespace_cleanup_keep_prefixes_top(self):
+        xml = ('<root xmlns:n64="NS64" xmlns:unused1="UNUSED" xmlns:no="NO">'
+               '<sub xmlns:foo="FOO">'
+               '<a xmlns:unused2="UNUSED"><n64:x xmlns:a="A" a:attr="X"/></a>'
+               '<foo>foo:bar</foo>'
+               '</sub>'
+               '</root>').encode('utf8')
+        root = self.etree.fromstring(xml)
+        self.assertEqual(xml, self.etree.tostring(root))
+        self.etree.cleanup_namespaces(
+            root,
+            top_nsmap={'foo': 'FOO', 'unused1': 'UNUSED'},
+            keep_ns_prefixes=['foo'])
+        self.assertEqual(
+            b'<root xmlns:n64="NS64" xmlns:foo="FOO">'
+            b'<sub>'
+            b'<a><n64:x xmlns:a="A" a:attr="X"/></a>'
+            b'<foo>foo:bar</foo>'
+            b'</sub>'
+            b'</root>',
             self.etree.tostring(root))
 
     def test_element_nsmap(self):
@@ -2887,17 +3035,15 @@ class ETreeOnlyTestCase(HelperTestCase):
         self.assertEqual(len(root.findall(".//xx:*", namespaces=nsmap)), 1)
         self.assertEqual(len(root.findall(".//b", namespaces=nsmap)), 2)
 
-    def test_findall_different_nsmaps(self):
+    def test_findall_empty_prefix(self):
         XML = self.etree.XML
         root = XML(_bytes('<a xmlns:x="X" xmlns:y="Y"><x:b><c/></x:b><b/><c><x:b/><b/></c><y:b/></a>'))
         nsmap = {'xx': 'X'}
         self.assertEqual(len(root.findall(".//xx:b", namespaces=nsmap)), 2)
-        self.assertEqual(len(root.findall(".//xx:*", namespaces=nsmap)), 2)
-        self.assertEqual(len(root.findall(".//b", namespaces=nsmap)), 2)
-        nsmap = {'xx': 'Y'}
-        self.assertEqual(len(root.findall(".//xx:b", namespaces=nsmap)), 1)
-        self.assertEqual(len(root.findall(".//xx:*", namespaces=nsmap)), 1)
-        self.assertEqual(len(root.findall(".//b", namespaces=nsmap)), 2)
+        nsmap = {'xx': 'X', None: 'Y'}
+        self.assertRaises(ValueError, root.findall, ".//xx:b", namespaces=nsmap)
+        nsmap = {'xx': 'X', '': 'Y'}
+        self.assertRaises(ValueError, root.findall, ".//xx:b", namespaces=nsmap)
 
     def test_findall_syntax_error(self):
         XML = self.etree.XML
@@ -4359,6 +4505,13 @@ def test_suite():
     suite.addTests([unittest.makeSuite(ETreeWriteTestCase)])
     suite.addTests([unittest.makeSuite(ETreeErrorLogTest)])
     suite.addTests([unittest.makeSuite(XMLPullParserTest)])
+
+    # add original doctests from ElementTree selftest modules
+    from . import selftest, selftest2
+    suite.addTests(doctest.DocTestSuite(selftest))
+    suite.addTests(doctest.DocTestSuite(selftest2))
+
+    # add doctests
     suite.addTests(doctest.DocTestSuite(etree))
     suite.addTests(
         [make_doctest('../../../doc/tutorial.txt')])

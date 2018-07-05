@@ -554,7 +554,7 @@ cdef class XSLT:
                 c_doc, params, context, transform_ctxt)
             if params is not NULL:
                 # deallocate space for parameters
-                python.PyMem_Free(params)
+                python.lxml_free(params)
 
             if transform_ctxt.state != xslt.XSLT_STATE_OK:
                 if c_result is not NULL:
@@ -648,8 +648,9 @@ cdef _convert_xslt_parameters(xslt.xsltTransformContext* transform_ctxt,
     # allocate space for parameters
     # * 2 as we want an entry for both key and value,
     # and + 1 as array is NULL terminated
-    params = <const_char**>python.PyMem_Malloc(
-        sizeof(const_char*) * (parameter_count * 2 + 1))
+    params = <const_char**>python.lxml_malloc(parameter_count * 2 + 1, sizeof(const_char*))
+    if not params:
+        raise MemoryError()
     try:
         i = 0
         for key, value in parameters.iteritems():
@@ -668,7 +669,7 @@ cdef _convert_xslt_parameters(xslt.xsltTransformContext* transform_ctxt,
                 params[i] = <const_char*>tree.xmlDictLookup(c_dict, _xcstr(v), len(v))
                 i += 1
     except:
-        python.PyMem_Free(params)
+        python.lxml_free(params)
         raise
     params[i] = NULL
     params_ptr[0] = params
@@ -727,12 +728,12 @@ cdef class _XSLTResultTree(_ElementTree):
     def __str__(self):
         cdef xmlChar* s = NULL
         cdef int l = 0
-        if python.IS_PYTHON3:
+        if not python.IS_PYTHON2:
             return self.__unicode__()
         self._saveToStringAndSize(&s, &l)
         if s is NULL:
             return ''
-        # we must not use 'funicode' here as this is not always UTF-8
+        # we must not use 'funicode()' here as this is not always UTF-8
         try:
             result = <bytes>s[:l]
         finally:

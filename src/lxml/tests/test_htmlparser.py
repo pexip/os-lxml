@@ -11,13 +11,14 @@ this_dir = os.path.dirname(__file__)
 if this_dir not in sys.path:
     sys.path.insert(0, this_dir) # needed for Py3
 
-from common_imports import etree, StringIO, BytesIO, fileInTestDir, _bytes, _str
+from common_imports import etree, html, StringIO, BytesIO, fileInTestDir, _bytes, _str
 from common_imports import SillyFileLike, HelperTestCase, write_to_file, next
 
 try:
     unicode
 except NameError:
     unicode = str
+
 
 class HtmlParserTestCase(HelperTestCase):
     """HTML parser test cases
@@ -64,6 +65,22 @@ class HtmlParserTestCase(HelperTestCase):
         self.assertEqual(1, len(p_text))
         self.assertEqual(_bytes('\\U00026007').decode('unicode_escape'),
                          p_text)
+
+    def test_html_ids(self):
+        parser = self.etree.HTMLParser(recover=False)
+        fromstring = self.etree.fromstring
+        html = fromstring('''
+            <html><body id="bodyID"><p id="pID"></p></body></html>
+        ''', parser=parser)
+        self.assertEqual(len(html.xpath('//p[@id="pID"]')), 1)
+
+    def test_html_ids_no_collect_ids(self):
+        parser = self.etree.HTMLParser(recover=False, collect_ids=False)
+        fromstring = self.etree.fromstring
+        html = fromstring('''
+            <html><body id="bodyID"><p id="pID"></p></body></html>
+        ''', parser=parser)
+        self.assertEqual(len(html.xpath('//p[@id="pID"]')), 1)
 
     def test_module_HTML_pretty_print(self):
         element = self.etree.HTML(self.html_str)
@@ -177,6 +194,14 @@ class HtmlParserTestCase(HelperTestCase):
         f = BytesIO(self.broken_html_str)
         self.assertRaises(self.etree.XMLSyntaxError,
                           parse, f, parser)
+
+    def test_module_parse_html_default_doctype(self):
+        parser = self.etree.HTMLParser(default_doctype=False)
+        d = html.fromstring('<!DOCTYPE html><h1>S</h1></html>', parser=parser)
+        self.assertEqual(d.getroottree().docinfo.doctype, '<!DOCTYPE html>')
+
+        d = html.fromstring('<html><h1>S</h1></html>', parser=parser)
+        self.assertEqual(d.getroottree().docinfo.doctype, '')
 
     def test_parse_encoding_8bit_explicit(self):
         text = _str('Søk på nettet')
@@ -506,11 +531,119 @@ class HtmlParserTestCase(HelperTestCase):
             ("start", "html"), ("start", "body"),
             ("end", "body"), ("end", "html")], events)
 
+    def test_html_parser_target_exceptions(self):
+        events = []
+        class Target(object):
+            def start(self, tag, attrib):
+                events.append(("start", tag))
+                raise ValueError("START")
+            def end(self, tag):
+                events.append(("end", tag))
+                raise TypeError("END")
+            def close(self):
+                return "DONE"
+
+        parser = self.etree.HTMLParser(target=Target())
+        try:
+            parser.feed('<html><body>')
+            parser.feed('</body></html>')
+        except ValueError as exc:
+            assert "START" in str(exc)
+        except TypeError as exc:
+            assert "END" in str(exc)
+            self.assertTrue(False, "wrong exception raised")
+        else:
+            self.assertTrue(False, "no exception raised")
+
+        self.assertTrue(("start", "html") in events, events)
+        self.assertTrue(("end", "html") not in events, events)
+
+    def test_html_fromstring_target_exceptions(self):
+        events = []
+        class Target(object):
+            def start(self, tag, attrib):
+                events.append(("start", tag))
+                raise ValueError("START")
+            def end(self, tag):
+                events.append(("end", tag))
+                raise TypeError("END")
+            def close(self):
+                return "DONE"
+
+        parser = self.etree.HTMLParser(target=Target())
+        try:
+            self.etree.fromstring('<html><body></body></html>', parser)
+        except ValueError as exc:
+            assert "START" in str(exc), str(exc)
+        except TypeError as exc:
+            assert "END" in str(exc), str(exc)
+            self.assertTrue(False, "wrong exception raised")
+        else:
+            self.assertTrue(False, "no exception raised")
+
+        self.assertTrue(("start", "html") in events, events)
+        self.assertTrue(("end", "html") not in events, events)
+
+    def test_set_decl_html(self):
+        doc = html.Element('html').getroottree()
+        doc.docinfo.public_id = "-//W3C//DTD XHTML 1.0 Strict//EN"
+        doc.docinfo.system_url = \
+            "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"
+        self.assertEqual(doc.docinfo.doctype,
+                         '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">')
+        self.assertEqual(self.etree.tostring(doc),
+                         _bytes('''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"></html>'''))
+
+    def test_html5_doctype(self):
+        # document type declaration with neither public if nor system url
+        doc = html.Element('html').getroottree()
+        doc.docinfo.public_id = None
+        doc.docinfo.system_url = None
+        self.assertEqual(doc.docinfo.doctype,
+                         '<!DOCTYPE html>')
+        self.assertTrue(doc.docinfo.public_id is None)
+        self.assertEqual(self.etree.tostring(doc),
+                         _bytes('<!DOCTYPE html>\n<html/>'))
+
+    def test_ietf_decl(self):
+        # legacy declaration with public id, no system url
+        doc = html.Element('html').getroottree()
+        doc.docinfo.public_id = '-//IETF//DTD HTML//EN'
+        doc.docinfo.system_url = None
+        self.assertEqual(doc.docinfo.doctype,
+                         '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML//EN">')
+        self.assertEqual(self.etree.tostring(doc),
+                         _bytes('<!DOCTYPE html PUBLIC "-//IETF//DTD HTML//EN">\n<html/>'))
+
+    def test_boolean_attribute(self):
+        # ability to serialize boolean attribute by setting value to None
+        form = html.Element('form')
+        form.set('novalidate', None)
+        self.assertEqual(html.tostring(form),
+                         _bytes('<form novalidate></form>'))
+        form.set('custom')
+        self.assertEqual(html.tostring(form),
+                         _bytes('<form novalidate custom></form>'))
+
+    def test_boolean_attribute_round_trip(self):
+        # ability to pass boolean attributes unmodified
+        fragment = '<tag attribute></tag>'
+        self.assertEqual(html.tostring(html.fragment_fromstring(fragment)),
+                         _bytes(fragment))
+
+    def test_boolean_attribute_xml_adds_empty_string(self):
+        # html serialized as xml converts boolean attributes to empty strings
+        fragment = '<tag attribute></tag>'
+        self.assertEqual(self.etree.tostring(html.fragment_fromstring(fragment)),
+                         _bytes('<tag attribute=""/>'))
+
 
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTests([unittest.makeSuite(HtmlParserTestCase)])
     return suite
+
 
 if __name__ == '__main__':
     print('to test use test.py %s' % __file__)
