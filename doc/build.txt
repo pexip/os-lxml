@@ -23,7 +23,7 @@ Cython
 
 .. _pip: http://pypi.python.org/pypi/pip
 .. _Cython: http://cython.org
-.. _wheel: http://wheel.readthedocs.org/en/latest/
+.. _wheel: https://wheel.readthedocs.io/en/latest/
 
 The lxml.etree and lxml.objectify modules are written in Cython_.
 Since we distribute the Cython-generated .c files with lxml releases,
@@ -58,7 +58,7 @@ The lxml package is developed in a repository on Github_ using
 Mercurial_ and the `hg-git`_ plugin.  You can retrieve the current
 developer version using::
 
-  hg clone git://github.com/lxml/lxml.git lxml
+  hg clone git+ssh://git@github.com/lxml/lxml.git lxml
 
 This will create a directory ``lxml`` and download the source into it,
 including the complete development history.  Don't be afraid, the
@@ -321,7 +321,7 @@ Building Debian packages from SVN sources
   increase the debian version number so apt/dpkg won't get confused
 * run ``dpkg-buildpackage -rfakeroot -us -uc`` to build the package
 
-In case ``dpkg-buildpackage`` tells you that some dependecies are missing, you
+In case ``dpkg-buildpackage`` tells you that some dependencies are missing, you
 can either install them manually or run ``apt-get build-dep lxml``.
 
 That will give you .deb packages in the parent directory which can be

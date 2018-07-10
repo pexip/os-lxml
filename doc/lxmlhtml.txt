@@ -63,7 +63,7 @@ There are several functions available to parse HTML:
 ``fragment_fromstring(string, create_parent=False)``:
     Returns an HTML fragment from a string.  The fragment must contain
     just a single element, unless ``create_parent`` is given;
-    e.g,. ``fragment_fromstring(string, create_parent='div')`` will
+    e.g., ``fragment_fromstring(string, create_parent='div')`` will
     wrap the element in a ``<div>``.
 
 ``fragments_fromstring(string)``:
@@ -144,6 +144,18 @@ also include some extra methods:
     The base URL for this element, if one was saved from the parsing.
     This attribute is not settable.  Is None when no base URL was
     saved.
+
+``.classes``:
+    Returns a set-like object that allows accessing and modifying the
+    names in the 'class' attribute of the element.  (New in lxml 3.5).
+
+``.set(key, value=None)``:
+    Sets an HTML attribute.  If no value is given, or if the value is
+    ``None``, it creates a boolean attribute like ``<form novalidate></form>``
+    or ``<div custom-attribute></div>``.  In XML, attributes must
+    have at least the empty string as their value like ``<form
+    novalidate=""></form>``, but HTML boolean attributes can also be
+    just present or absent from an element without having a value.
 
 Running HTML doctests
 =====================

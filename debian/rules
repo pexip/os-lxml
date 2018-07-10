@@ -61,7 +61,7 @@ install: build install-prereq $(PYVERS:%=install-python%) $(PYVERS:%=dbg-install
 install-prereq:
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	dh_prep
 
 install-python%:
 	mkdir -p debian/python-lxml/usr/bin

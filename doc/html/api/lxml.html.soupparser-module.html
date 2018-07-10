@@ -64,6 +64,31 @@
 <h1 class="epydoc">Module soupparser</h1><p class="nomargin-top"><span class="codelink"><a href="lxml.html.soupparser-pysrc.html">source&nbsp;code</a></span></p>
 External interface to the BeautifulSoup HTML parser.
 
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="lxml.html.soupparser._PseudoTag-class.html" class="summary-name" onclick="show_private();">_PseudoTag</a>
+    </td>
+  </tr>
+</table>
 <!-- ==================== FUNCTIONS ==================== -->
 <a name="section-Functions"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -165,6 +190,24 @@ BeautifulSoup parser.</td>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="_parse_doctype_declaration"></a><span class="summary-sig-name">_parse_doctype_declaration</span>(<span class="summary-sig-arg">...</span>)</span><br />
+      match(string[, pos[, endpos]]) --&gt; match object or None.
+Matches zero or more characters at the beginning of the string</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="lxml.html.soupparser-pysrc.html#_parse_doctype_declaration">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="_convert_tree"></a><span class="summary-sig-name">_convert_tree</span>(<span class="summary-sig-arg">beautiful_soup_tree</span>,
         <span class="summary-sig-arg">makeelement</span>)</span></td>
           <td align="right" valign="top">
@@ -182,29 +225,9 @@ BeautifulSoup parser.</td>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="_convert_children"></a><span class="summary-sig-name">_convert_children</span>(<span class="summary-sig-arg">parent</span>,
-        <span class="summary-sig-arg">beautiful_soup_tree</span>,
-        <span class="summary-sig-arg">makeelement</span>)</span></td>
+          <td><span class="summary-sig"><a name="_init_node_converters"></a><span class="summary-sig-name">_init_node_converters</span>(<span class="summary-sig-arg">makeelement</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="lxml.html.soupparser-pysrc.html#_convert_children">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="_append_text"></a><span class="summary-sig-name">_append_text</span>(<span class="summary-sig-arg">parent</span>,
-        <span class="summary-sig-arg">element</span>,
-        <span class="summary-sig-arg">text</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="lxml.html.soupparser-pysrc.html#_append_text">source&nbsp;code</a></span>
+            <span class="codelink"><a href="lxml.html.soupparser-pysrc.html#_init_node_converters">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -224,6 +247,23 @@ Return the string obtained by replacing the leftmost non-overlapping
 occurrences of pattern in string by the replacement repl.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="lxml.html.soupparser-pysrc.html#handle_entities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">character</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="unichr"></a><span class="summary-sig-name">unichr</span>(<span class="summary-sig-arg">i</span>)</span><br />
+      Return a string of one character with ordinal i; 0 &lt;= i &lt; 256.</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -269,8 +309,7 @@ occurrences of pattern in string by the replacement repl.</td>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="lxml.html.soupparser-module.html#__doc__" class="summary-name" onclick="show_private();">__doc__</a> = <code title="&quot;&quot;&quot;External interface to the BeautifulSoup HTML parser.
-&quot;&quot;&quot;">&quot;&quot;&quot;External interface to the BeautifulSoup HTML pars<code class="variable-ellipsis">...</code></code>
+        <a href="lxml.html.soupparser-module.html#_DECLARATION_OR_DOCTYPE" class="summary-name" onclick="show_private();">_DECLARATION_OR_DOCTYPE</a> = <code title="(&lt;class 'bs4.element.Declaration'&gt;, &lt;class 'bs4.element.Doctype'&gt;)"><code class="variable-group">(</code>&lt;class 'bs4.element.Declaration'&gt;<code class="variable-op">, </code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
@@ -398,20 +437,19 @@ keyword.</p>
   </td>
 </tr>
 </table>
-<a name="__doc__"></a>
+<a name="_DECLARATION_OR_DOCTYPE"></a>
 <div class="private">
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
-  <h3 class="epydoc">__doc__</h3>
+  <h3 class="epydoc">_DECLARATION_OR_DOCTYPE</h3>
   
   <dl class="fields">
   </dl>
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-&quot;&quot;&quot;External interface to the BeautifulSoup HTML parser.
-&quot;&quot;&quot;
+<code class="variable-group">(</code>&lt;class 'bs4.element.Declaration'&gt;<code class="variable-op">, </code>&lt;class 'bs4.element.Doctype'&gt;<code class="variable-group">)</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -449,7 +487,8 @@ keyword.</p>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Sep 10 19:04:27 2014
+    Generated by Epydoc 3.0.1
+    on Fri Dec 23 19:00:53 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

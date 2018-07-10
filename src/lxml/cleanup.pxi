@@ -1,14 +1,34 @@
 # functions for tree cleanup and removing elements from subtrees
 
-def cleanup_namespaces(tree_or_element):
-    u"""cleanup_namespaces(tree_or_element)
+def cleanup_namespaces(tree_or_element, top_nsmap=None, keep_ns_prefixes=None):
+    u"""cleanup_namespaces(tree_or_element, top_nsmap=None, keep_ns_prefixes=None)
 
     Remove all namespace declarations from a subtree that are not used
     by any of the elements or attributes in that tree.
+
+    If a 'top_nsmap' is provided, it must be a mapping from prefixes
+    to namespace URIs.  These namespaces will be declared on the top
+    element of the subtree before running the cleanup, which allows
+    moving namespace declarations to the top of the tree.
+
+    If a 'keep_ns_prefixes' is provided, it must be a list of prefixes.
+    These prefixes will not be removed as part of the cleanup.
     """
-    cdef _Element element
     element = _rootNodeOrRaise(tree_or_element)
-    _removeUnusedNamespaceDeclarations(element._c_node)
+    c_element = element._c_node
+
+    if top_nsmap:
+        doc = element._doc
+        # declare namespaces from nsmap, then apply them to the subtree
+        _setNodeNamespaces(c_element, doc, None, top_nsmap)
+        moveNodeToDocument(doc, c_element.doc, c_element)
+
+    keep_ns_prefixes = (
+        set([_utf8(prefix) for prefix in keep_ns_prefixes])
+        if keep_ns_prefixes else None)
+
+    _removeUnusedNamespaceDeclarations(c_element, keep_ns_prefixes)
+
 
 def strip_attributes(tree_or_element, *attribute_names):
     u"""strip_attributes(tree_or_element, *attribute_names)
@@ -26,8 +46,6 @@ def strip_attributes(tree_or_element, *attribute_names):
                          '{http://other/ns}*')
     """
     cdef _MultiTagMatcher matcher
-    cdef _Element element
-
     element = _rootNodeOrRaise(tree_or_element)
     if not attribute_names:
         return
@@ -37,6 +55,7 @@ def strip_attributes(tree_or_element, *attribute_names):
     if matcher.rejectsAllAttributes():
         return
     _strip_attributes(element._c_node, matcher)
+
 
 cdef _strip_attributes(xmlNode* c_node, _MultiTagMatcher matcher):
     cdef xmlAttr* c_attr
@@ -50,6 +69,7 @@ cdef _strip_attributes(xmlNode* c_node, _MultiTagMatcher matcher):
                 tree.xmlRemoveProp(c_attr)
             c_attr = c_next_attr
     tree.END_FOR_EACH_ELEMENT_FROM(c_node)
+
 
 def strip_elements(tree_or_element, *tag_names, bint with_tail=True):
     u"""strip_elements(tree_or_element, *tag_names, with_tail=True)
@@ -77,13 +97,6 @@ def strip_elements(tree_or_element, *tag_names, bint with_tail=True):
             )
     """
     cdef _MultiTagMatcher matcher
-    cdef _Element element
-    cdef _Document doc
-    cdef list ns_tags
-    cdef qname* c_ns_tags
-    cdef Py_ssize_t c_tag_count
-    cdef bint strip_comments = 0, strip_pis = 0, strip_entities = 0
-
     doc = _documentOrRaise(tree_or_element)
     element = _rootNodeOrRaise(tree_or_element)
     if not tag_names:
@@ -154,13 +167,6 @@ def strip_tags(tree_or_element, *tag_names):
             )
     """
     cdef _MultiTagMatcher matcher
-    cdef _Element element
-    cdef _Document doc
-    cdef list ns_tags
-    cdef bint strip_comments = 0, strip_pis = 0, strip_entities = 0
-    cdef char** c_ns_tags
-    cdef Py_ssize_t c_tag_count
-
     doc = _documentOrRaise(tree_or_element)
     element = _rootNodeOrRaise(tree_or_element)
     if not tag_names:
@@ -182,7 +188,6 @@ def strip_tags(tree_or_element, *tag_names):
 cdef _strip_tags(_Document doc, xmlNode* c_node, _MultiTagMatcher matcher):
     cdef xmlNode* c_child
     cdef xmlNode* c_next
-    cdef Py_ssize_t i
 
     tree.BEGIN_FOR_EACH_ELEMENT_FROM(c_node, c_node, 1)
     if c_node.type == tree.XML_ELEMENT_NODE:

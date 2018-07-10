@@ -1,13 +1,14 @@
 import os, re, sys, subprocess
 import tarfile
 from distutils import log, sysconfig, version
+from contextlib import closing
 
 try:
-    from urlparse import urlsplit, urljoin
-    from urllib import urlretrieve
+    from urlparse import urlsplit, urljoin, unquote
+    from urllib import urlretrieve, urlopen
 except ImportError:
-    from urllib.parse import urlsplit, urljoin
-    from urllib.request import urlretrieve
+    from urllib.parse import urlsplit, urljoin, unquote
+    from urllib.request import urlretrieve, urlopen
 
 multi_make_options = []
 try:
@@ -24,19 +25,32 @@ except:
 # use pre-built libraries on Windows
 
 def download_and_extract_zlatkovic_binaries(destdir):
-    url = 'ftp://ftp.zlatkovic.com/pub/libxml/'
-    libs = dict(
-        libxml2  = None,
-        libxslt  = None,
-        zlib     = None,
-        iconv    = None,
-    )
-    for fn in ftp_listdir(url):
-        for libname in libs:
-            if fn.startswith(libname):
-                assert libs[libname] is None, 'duplicate listings?'
-                assert fn.endswith('.win32.zip')
-                libs[libname] = fn
+    if sys.version_info < (3, 5):
+        url = 'ftp://ftp.zlatkovic.com/pub/libxml/'
+        libs = dict(
+            libxml2  = None,
+            libxslt  = None,
+            zlib     = None,
+            iconv    = None,
+        )
+        for fn in ftp_listdir(url):
+            for libname in libs:
+                if fn.startswith(libname):
+                    assert libs[libname] is None, 'duplicate listings?'
+                    assert fn.endswith('.win32.zip')
+                    libs[libname] = fn
+    else:
+        if sys.maxsize > 2147483647:
+            arch = "win64"
+        else:
+            arch = "win32"
+        url = "https://github.com/mhils/libxml2-win-binaries/releases/download/lxml/"
+        libs = dict(
+            libxml2  = "libxml2-latest.{}.zip".format(arch),
+            libxslt  = "libxslt-latest.{}.zip".format(arch),
+            zlib     = "zlib-latest.{}.zip".format(arch),
+            iconv    = "iconv-latest.{}.zip".format(arch),
+        )
 
     if not os.path.exists(destdir): os.makedirs(destdir)
     for libname, libfn in libs.items():
@@ -81,6 +95,7 @@ def unpack_zipfile(zipfn, destdir):
     assert os.path.exists(extracted_dir), 'missing: %s' % extracted_dir
     return extracted_dir
 
+
 def get_prebuilt_libxml2xslt(download_dir, static_include_dirs, static_library_dirs):
     assert sys.platform.startswith('win')
     libs = download_and_extract_zlatkovic_binaries(download_dir)
@@ -97,16 +112,61 @@ def get_prebuilt_libxml2xslt(download_dir, static_include_dirs, static_library_d
 
 LIBXML2_LOCATION = 'ftp://xmlsoft.org/libxml2/'
 LIBICONV_LOCATION = 'ftp://ftp.gnu.org/pub/gnu/libiconv/'
+ZLIB_LOCATION = 'http://zlib.net/'
 match_libfile_version = re.compile('^[^-]*-([.0-9-]+)[.].*').match
 
+
+def _find_content_encoding(response, default='iso8859-1'):
+    from email.message import Message
+    content_type = response.headers.get('Content-Type')
+    if content_type:
+        msg = Message()
+        msg.add_header('Content-Type', content_type)
+        charset = msg.get_content_charset(default)
+    else:
+        charset = default
+    return charset
+
+
 def ftp_listdir(url):
-    import ftplib, posixpath
-    scheme, netloc, path, qs, fragment = urlsplit(url)
-    assert scheme.lower() == 'ftp'
-    server = ftplib.FTP(netloc)
-    server.login()
-    files = [posixpath.basename(fn) for fn in server.nlst(path)]
+    assert url.lower().startswith('ftp://')
+    with closing(urlopen(url)) as res:
+        charset = _find_content_encoding(res)
+        content_type = res.headers.get('Content-Type')
+        data = res.read()
+
+    data = data.decode(charset)
+    if content_type and content_type.startswith('text/html'):
+        files = parse_html_ftplist(data)
+    else:
+        files = parse_text_ftplist(data)
     return files
+
+
+def http_listfiles(url, re_pattern):
+    with closing(urlopen(url)) as res:
+        charset = _find_content_encoding(res)
+        data = res.read()
+    files = re.findall(re_pattern, data.decode(charset))
+    return files
+
+
+def parse_text_ftplist(s):
+    for line in s.splitlines():
+        if not line.startswith('d'):
+            # -rw-r--r--   1 ftp      ftp           476 Sep  1  2011 md5sum.txt
+            # Last (9th) element is 'md5sum.txt' in the above example, but there
+            # may be variations, so we discard only the first 8 entries.
+            yield line.split(None, 8)[-1]
+
+
+def parse_html_ftplist(s):
+    re_href = re.compile(r'<a\s+(?:[^>]*?\s+)?href=["\'](.*?)[;\?"\']', re.I|re.M)
+    links = set(re_href.findall(s))
+    for link in links:
+        if not link.endswith('/'):
+            yield unquote(link)
+
 
 def tryint(s):
     try:
@@ -114,19 +174,22 @@ def tryint(s):
     except ValueError:
         return s
 
+
 def download_libxml2(dest_dir, version=None):
     """Downloads libxml2, returning the filename where the library was downloaded"""
-    version_re = re.compile(r'^LATEST_LIBXML2_IS_(.*)$')
+    version_re = re.compile(r'LATEST_LIBXML2_IS_([0-9.]+[0-9])')
     filename = 'libxml2-%s.tar.gz'
     return download_library(dest_dir, LIBXML2_LOCATION, 'libxml2',
                             version_re, filename, version=version)
 
+
 def download_libxslt(dest_dir, version=None):
     """Downloads libxslt, returning the filename where the library was downloaded"""
-    version_re = re.compile(r'^LATEST_LIBXSLT_IS_(.*)$')
+    version_re = re.compile(r'LATEST_LIBXSLT_IS_([0-9.]+[0-9])')
     filename = 'libxslt-%s.tar.gz'
     return download_library(dest_dir, LIBXML2_LOCATION, 'libxslt',
                             version_re, filename, version=version)
+
 
 def download_libiconv(dest_dir, version=None):
     """Downloads libiconv, returning the filename where the library was downloaded"""
@@ -135,11 +198,22 @@ def download_libiconv(dest_dir, version=None):
     return download_library(dest_dir, LIBICONV_LOCATION, 'libiconv',
                             version_re, filename, version=version)
 
-def download_library(dest_dir, location, name, version_re, filename,
-                     version=None):
+
+def download_zlib(dest_dir, version):
+    """Downloads zlib, returning the filename where the library was downloaded"""
+    version_re = re.compile(r'zlib-([0-9.]+[0-9]).tar.gz')
+    filename = 'zlib-%s.tar.gz'
+    return download_library(dest_dir, ZLIB_LOCATION, 'zlib',
+                            version_re, filename, version=version)
+
+
+def download_library(dest_dir, location, name, version_re, filename, version=None):
     if version is None:
         try:
-            fns = ftp_listdir(location)
+            if location.startswith('ftp://'):
+                fns = ftp_listdir(location)
+            else:
+                fns = http_listfiles(location, filename.replace('%s', '(?:[0-9.]+[0-9])'))
             versions = []
             for fn in fns:
                 match = version_re.search(fn)
@@ -182,54 +256,6 @@ def download_library(dest_dir, location, name, version_re, filename,
         urlretrieve(full_url, dest_filename)
     return dest_filename
 
-## Backported method of tarfile.TarFile.extractall (doesn't exist in 2.4):
-def _extractall(self, path=".", members=None):
-    """Extract all members from the archive to the current working
-       directory and set owner, modification time and permissions on
-       directories afterwards. `path' specifies a different directory
-       to extract to. `members' is optional and must be a subset of the
-       list returned by getmembers().
-    """
-    import copy
-    is_ignored_file = re.compile(
-        r'''[\\/]((test|results?)[\\/]
-                  |doc[\\/].*(Log|[.](out|imp|err|ent|gif|tif|pdf))$
-                  |tests[\\/](.*[\\/])?(?!Makefile)[^\\/]*$
-                  |python[\\/].*[.]py$
-                 )
-        ''', re.X).search
-
-    directories = []
-
-    if members is None:
-        members = self
-
-    for tarinfo in members:
-        if is_ignored_file(tarinfo.name):
-            continue
-        if tarinfo.isdir():
-            # Extract directories with a safe mode.
-            directories.append((tarinfo.name, tarinfo))
-            tarinfo = copy.copy(tarinfo)
-            tarinfo.mode = 448 # 0700
-        self.extract(tarinfo, path)
-
-    # Reverse sort directories.
-    directories.sort()
-    directories.reverse()
-
-    # Set correct owner, mtime and filemode on directories.
-    for name, tarinfo in directories:
-        dirpath = os.path.join(path, name)
-        try:
-            self.chown(tarinfo, dirpath)
-            self.utime(tarinfo, dirpath)
-            self.chmod(tarinfo, dirpath)
-        except tarfile.ExtractError:
-            if self.errorlevel > 1:
-                raise
-            else:
-                self._dbg(1, "tarfile: %s" % sys.exc_info()[1])
 
 def unpack_tarball(tar_filename, dest):
     print('Unpacking %s into %s' % (os.path.basename(tar_filename), dest))
@@ -242,9 +268,10 @@ def unpack_tarball(tar_filename, dest):
         else:
             if base_dir != base_name:
                 print('Unexpected path in %s: %s' % (tar_filename, base_name))
-    _extractall(tar, dest)
+    tar.extractall(dest)
     tar.close()
     return os.path.join(dest, base_dir)
+
 
 def call_subprocess(cmd, **kw):
     try:
@@ -267,9 +294,11 @@ def call_subprocess(cmd, **kw):
     if returncode:
         raise Exception('Command "%s" returned code %s' % (cmd_desc, returncode))
 
+
 def safe_mkdir(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
+
 
 def cmmi(configure_cmd, build_dir, multicore=None, **call_setup):
     print('Starting build in %s' % build_dir)
@@ -286,6 +315,7 @@ def cmmi(configure_cmd, build_dir, multicore=None, **call_setup):
     call_subprocess(
         ['make'] + make_jobs + ['install'],
         cwd=build_dir, **call_setup)
+
 
 def configure_darwin_env(env_setup):
     import platform
@@ -307,27 +337,30 @@ def configure_darwin_env(env_setup):
             arch_string = "-arch ppc "
         if minor_version < 6:
             env_default = {
-                'CFLAGS' : arch_string + "-arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -O2",
-                'LDFLAGS' : arch_string + "-arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk",
-                'MACOSX_DEPLOYMENT_TARGET' : "10.3"
+                'CFLAGS': arch_string + "-arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -O2",
+                'LDFLAGS': arch_string + "-arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk",
+                'MACOSX_DEPLOYMENT_TARGET': "10.3"
             }
         else:
             env_default = {
-                'CFLAGS' : arch_string + "-arch i386 -arch x86_64 -O2",
-                'LDFLAGS' : arch_string + "-arch i386 -arch x86_64",
-                'MACOSX_DEPLOYMENT_TARGET' : "10.6"
+                'CFLAGS': arch_string + "-arch i386 -arch x86_64 -O2",
+                'LDFLAGS': arch_string + "-arch i386 -arch x86_64",
+                'MACOSX_DEPLOYMENT_TARGET': "10.6"
             }
         env = os.environ.copy()
         env_default.update(env)
         env_setup['env'] = env_default
 
+
 def build_libxml2xslt(download_dir, build_dir,
                       static_include_dirs, static_library_dirs,
                       static_cflags, static_binaries,
                       libxml2_version=None, libxslt_version=None, libiconv_version=None,
+                      zlib_version=None,
                       multicore=None):
     safe_mkdir(download_dir)
     safe_mkdir(build_dir)
+    zlib_dir = unpack_tarball(download_zlib(download_dir, zlib_version), build_dir)
     libiconv_dir = unpack_tarball(download_libiconv(download_dir, libiconv_version), build_dir)
     libxml2_dir  = unpack_tarball(download_libxml2(download_dir, libxml2_version), build_dir)
     libxslt_dir  = unpack_tarball(download_libxslt(download_dir, libxslt_version), build_dir)
@@ -344,13 +377,22 @@ def build_libxml2xslt(download_dir, build_dir,
                      '--prefix=%s' % prefix,
                      ]
 
+    # build zlib
+    zlib_configure_cmd = [
+        './configure',
+        '--prefix=%s' % prefix,
+    ]
+    cmmi(zlib_configure_cmd, zlib_dir, multicore, **call_setup)
+
     # build libiconv
     cmmi(configure_cmd, libiconv_dir, multicore, **call_setup)
 
     # build libxml2
     libxml2_configure_cmd = configure_cmd + [
         '--without-python',
-        '--with-iconv=%s' % prefix]
+        '--with-iconv=%s' % prefix,
+        '--with-zlib=%s' % prefix,
+    ]
     try:
         if libxml2_version and tuple(map(tryint, libxml2_version.split('.'))) >= (2,7,3):
             libxml2_configure_cmd.append('--enable-rebuild-docs=no')
@@ -381,9 +423,10 @@ def build_libxml2xslt(download_dir, build_dir,
             os.path.join(prefix, 'include', 'libexslt')])
     static_library_dirs.append(lib_dir)
 
-    for filename in os.listdir(lib_dir):
-        if [l for l in ['iconv', 'libxml2', 'libxslt', 'libexslt'] if l in filename]:
-            if [ext for ext in ['.a'] if filename.endswith(ext)]:
-                static_binaries.append(os.path.join(lib_dir,filename))
+    listdir = os.listdir(lib_dir)
+    static_binaries += [os.path.join(lib_dir, filename)
+        for lib in ['libxml2', 'libexslt', 'libxslt', 'iconv', 'libz']
+        for filename in listdir
+        if lib in filename and filename.endswith('.a')]
 
     return (xml2_config, xslt_config)

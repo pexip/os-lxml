@@ -53,19 +53,16 @@ class ETreeXSLTTestCase(HelperTestCase):
     def test_xslt_input_none(self):
         self.assertRaises(TypeError, etree.XSLT, None)
 
-    if False and etree.LIBXSLT_VERSION >= (1,1,15):
-        # earlier versions generate no error
-        if etree.LIBXSLT_VERSION > (1,1,17):
-            def test_xslt_invalid_stylesheet(self):
-                style = self.parse('''\
+    def test_xslt_invalid_stylesheet(self):
+        style = self.parse('''\
 <xsl:stylesheet version="1.0"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:stylesheet />
+        xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:stylesheet />
 </xsl:stylesheet>''')
 
-                self.assertRaises(
-                    etree.XSLTParseError, etree.XSLT, style)
-        
+        self.assertRaises(
+            etree.XSLTParseError, etree.XSLT, style)
+
     def test_xslt_copy(self):
         tree = self.parse('<a><b>B</b><c>C</c></a>')
         style = self.parse('''\
@@ -259,6 +256,18 @@ class ETreeXSLTTestCase(HelperTestCase):
         self.assertRaises(etree.XSLTParseError,
                           etree.XSLT, style)
 
+        exc = None
+        try:
+            etree.XSLT(style)
+        except etree.XSLTParseError as e:
+            exc = e
+        else:
+            self.assertFalse(True, "XSLT processing should have failed but didn't")
+        self.assertTrue(exc is not None)
+        self.assertTrue(len(exc.error_log))
+        for error in exc.error_log:
+            self.assertTrue(':ERROR:XSLT:' in str(error))
+
     def test_xslt_parameters(self):
         tree = self.parse('<a><b>B</b><c>C</c></a>')
         style = self.parse('''\
@@ -312,12 +321,10 @@ class ETreeXSLTTestCase(HelperTestCase):
         res = self.assertRaises(etree.XSLTApplyError,
                                 st, tree, bar="....")
 
-    if etree.LIBXSLT_VERSION < (1,1,18):
-        # later versions produce no error
-        def test_xslt_parameter_missing(self):
-            # apply() without needed parameter will lead to XSLTApplyError
-            tree = self.parse('<a><b>B</b><c>C</c></a>')
-            style = self.parse('''\
+    def test_xslt_parameter_missing(self):
+        # apply() without needed parameter will lead to XSLTApplyError
+        tree = self.parse('<a><b>B</b><c>C</c></a>')
+        style = self.parse('''\
 <xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:template match="/">
@@ -325,9 +332,9 @@ class ETreeXSLTTestCase(HelperTestCase):
   </xsl:template>
 </xsl:stylesheet>''')
 
-            st = etree.XSLT(style)
-            self.assertRaises(etree.XSLTApplyError,
-                              st.apply, tree)
+        st = etree.XSLT(style)
+        # at least libxslt 1.1.28 produces this error, earlier ones (e.g. 1.1.18) might not ...
+        self.assertRaises(etree.XSLTApplyError, st.apply, tree)
 
     def test_xslt_multiple_parameters(self):
         tree = self.parse('<a><b>B</b><c>C</c></a>')
@@ -644,7 +651,21 @@ class ETreeXSLTTestCase(HelperTestCase):
   </xsl:template>
 </xsl:stylesheet>
 """))
-        self.assertRaises(etree.XSLTApplyError, xslt, etree.XML('<a/>'))
+
+        errors = None
+        try:
+            xslt(etree.XML('<a/>'))
+        except etree.XSLTApplyError as exc:
+            errors = exc.error_log
+        else:
+            self.assertFalse(True, "XSLT processing should have failed but didn't")
+
+        self.assertTrue(len(errors))
+        for error in errors:
+            if ':ERROR:XSLT:' in str(error):
+                break
+        else:
+            self.assertFalse(True, 'No XSLT errors found in error log:\n%s' % errors)
 
     def test_xslt_document_XML_resolver(self):
         # make sure document('') works when custom resolvers are in use
@@ -1015,28 +1036,26 @@ class ETreeEXSLTTestCase(HelperTestCase):
 ''',
                           str(res))
 
-    if etree.LIBXSLT_VERSION >= (1,1,21):
-        def test_exslt_str_attribute_replace(self):
-            tree = self.parse('<a><b>B</b><c>C</c></a>')
-            style = self.parse('''\
-      <xsl:stylesheet version = "1.0"
-          xmlns:xsl='http://www.w3.org/1999/XSL/Transform'
-          xmlns:str="http://exslt.org/strings"
-          extension-element-prefixes="str">
+    def test_exslt_str_attribute_replace(self):
+        tree = self.parse('<a><b>B</b><c>C</c></a>')
+        style = self.parse('''\
+          <xsl:stylesheet version = "1.0"
+              xmlns:xsl='http://www.w3.org/1999/XSL/Transform'
+              xmlns:str="http://exslt.org/strings"
+              extension-element-prefixes="str">
 
-          <xsl:template match="/">
-            <h1 class="{str:replace('abc', 'b', 'x')}">test</h1>
-          </xsl:template>
+              <xsl:template match="/">
+                <h1 class="{str:replace('abc', 'b', 'x')}">test</h1>
+              </xsl:template>
 
-      </xsl:stylesheet>''')
+          </xsl:stylesheet>''')
 
-            st = etree.XSLT(style)
-            res = st(tree)
-            self.assertEqual('''\
+        st = etree.XSLT(style)
+        res = st(tree)
+        self.assertEqual(str(res), '''\
 <?xml version="1.0"?>
 <h1 class="axc">test</h1>
-''',
-                              str(res))
+''')
 
     def test_exslt_math(self):
         tree = self.parse('<a><b>B</b><c>C</c></a>')
@@ -1823,6 +1842,51 @@ class ETreeXSLTExtElementTestCase(HelperTestCase):
 
         extensions = { ('testns', 'myext') : MyExt() }
         self.assertRaises(MyError, tree.xslt, style, extensions=extensions)
+
+    # FIXME: DISABLED - implementation seems to be broken
+    # if someone cares enough about this feature, I take pull requests that fix it.
+    def _test_multiple_extension_elements_with_output_parent(self):
+        tree = self.parse("""\
+<text>
+  <par>This is <format>arbitrary</format> text in a paragraph</par>
+</text>""")
+        style = self.parse("""\
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:my="my" extension-element-prefixes="my" version="1.0">
+  <xsl:template match="par">
+    <my:par><xsl:apply-templates /></my:par>
+  </xsl:template>
+  <xsl:template match="format">
+    <my:format><xsl:apply-templates /></my:format>
+  </xsl:template>
+</xsl:stylesheet>
+""")
+        test = self
+        calls = []
+
+        class ExtMyPar(etree.XSLTExtension):
+            def execute(self, context, self_node, input_node, output_parent):
+                calls.append('par')
+                p = etree.Element("p")
+                p.attrib["style"] = "color:red"
+                self.process_children(context, p)
+                output_parent.append(p)
+
+        class ExtMyFormat(etree.XSLTExtension):
+            def execute(self, context, self_node, input_node, output_parent):
+                calls.append('format')
+                content = self.process_children(context)
+                test.assertEqual(1, len(content))
+                test.assertEqual('arbitrary', content[0])
+                test.assertEqual('This is ', output_parent.text)
+                output_parent.text += '*-%s-*' % content[0]
+
+        extensions = {("my", "par"): ExtMyPar(), ("my", "format"): ExtMyFormat()}
+        transform = etree.XSLT(style, extensions=extensions)
+        result = transform(tree)
+        self.assertEqual(['par', 'format'], calls)
+        self.assertEqual(
+            b'<p style="color:red">This is *-arbitrary-* text in a paragraph</p>\n',
+            etree.tostring(result))
 
 
 class Py3XSLTTestCase(HelperTestCase):
