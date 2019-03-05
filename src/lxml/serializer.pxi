@@ -3,14 +3,17 @@
 cdef object GzipFile
 from gzip import GzipFile
 
-class SerialisationError(LxmlError):
-    u"""A libxml2 error that occurred during serialisation.
+
+cdef class SerialisationError(LxmlError):
+    """A libxml2 error that occurred during serialisation.
     """
+
 
 cdef enum _OutputMethods:
     OUTPUT_METHOD_XML
     OUTPUT_METHOD_HTML
     OUTPUT_METHOD_TEXT
+
 
 cdef int _findOutputMethod(method) except -1:
     if method is None:
@@ -22,7 +25,8 @@ cdef int _findOutputMethod(method) except -1:
         return OUTPUT_METHOD_HTML
     if method == "text":
         return OUTPUT_METHOD_TEXT
-    raise ValueError(u"unknown output method %r" % method)
+    raise ValueError(f"unknown output method {method!r}")
+
 
 cdef _textToString(xmlNode* c_node, encoding, bint with_tail):
     cdef bint needs_conversion
@@ -50,14 +54,14 @@ cdef _textToString(xmlNode* c_node, encoding, bint with_tail):
 
     try:
         needs_conversion = 0
-        if encoding is _unicode:
+        if encoding is unicode:
             needs_conversion = 1
         elif encoding is not None:
             # Python prefers lower case encoding names
             encoding = encoding.lower()
             if encoding not in (u'utf8', u'utf-8'):
                 if encoding == u'ascii':
-                    if isutf8(c_text):
+                    if isutf8l(c_text, tree.xmlBufferLength(c_buffer)):
                         # will raise a decode error below
                         needs_conversion = 1
                 else:
@@ -66,7 +70,7 @@ cdef _textToString(xmlNode* c_node, encoding, bint with_tail):
         if needs_conversion:
             text = python.PyUnicode_DecodeUTF8(
                 <const_char*>c_text, tree.xmlBufferLength(c_buffer), 'strict')
-            if encoding is not _unicode:
+            if encoding is not unicode:
                 encoding = _utf8(encoding)
                 text = python.PyUnicode_AsEncodedString(
                     text, encoding, 'strict')
@@ -97,7 +101,7 @@ cdef _tostring(_Element element, encoding, doctype, method,
     c_method = _findOutputMethod(method)
     if c_method == OUTPUT_METHOD_TEXT:
         return _textToString(element._c_node, encoding, with_tail)
-    if encoding is None or encoding is _unicode:
+    if encoding is None or encoding is unicode:
         c_enc = NULL
     else:
         encoding = _utf8(encoding)
@@ -113,7 +117,7 @@ cdef _tostring(_Element element, encoding, doctype, method,
     if enchandler is NULL and c_enc is not NULL:
         if encoding is not None:
             encoding = encoding.decode('UTF-8')
-        raise LookupError, u"unknown encoding: '%s'" % encoding
+        raise LookupError, f"unknown encoding: '{encoding}'"
     c_buffer = tree.xmlAllocOutputBuffer(enchandler)
     if c_buffer is NULL:
         tree.xmlCharEncCloseFunc(enchandler)
@@ -135,7 +139,7 @@ cdef _tostring(_Element element, encoding, doctype, method,
         _raiseSerialisationError(error_result)
 
     try:
-        if encoding is _unicode:
+        if encoding is unicode:
             result = (<unsigned char*>tree.xmlBufContent(
                 c_result_buffer))[:tree.xmlBufUse(c_result_buffer)].decode('UTF-8')
         else:
@@ -191,7 +195,7 @@ cdef _raiseSerialisationError(int error_result):
         raise MemoryError()
     message = ErrorTypes._getName(error_result)
     if message is None:
-        message = u"unknown error %d" % error_result
+        message = f"unknown error {error_result}"
     raise SerialisationError, message
 
 ############################################################
@@ -399,6 +403,211 @@ cdef void _writeNextSiblings(tree.xmlOutputBuffer* c_buffer, xmlNode* c_node,
                                pretty_print, encoding)
         c_sibling = c_sibling.next
 
+
+# copied and adapted from libxml2
+cdef unsigned char *xmlSerializeHexCharRef(unsigned char *out, int val):
+    cdef xmlChar *ptr
+    cdef xmlChar c
+
+    out[0] = '&'
+    out += 1
+
+    out[0] = '#'
+    out += 1
+
+    out[0] = 'x'
+    out += 1
+
+    if val < 0x10:
+        ptr = out
+    elif val < 0x100:
+        ptr = out + 1
+    elif val < 0x1000:
+        ptr = out + 2
+    elif val < 0x10000:
+        ptr = out + 3
+    elif val < 0x100000:
+        ptr = out + 4
+    else:
+        ptr = out + 5
+
+    out = ptr + 1
+    while val > 0:
+        c = (val & 0xF)
+
+        if c == 0:
+            ptr[0] = '0'
+        elif c == 1:
+            ptr[0] = '1'
+        elif c == 2:
+            ptr[0] = '2'
+        elif c == 3:
+            ptr[0] = '3'
+        elif c == 4:
+            ptr[0] = '4'
+        elif c == 5:
+            ptr[0] = '5'
+        elif c == 6:
+            ptr[0] = '6'
+        elif c == 7:
+            ptr[0] = '7'
+        elif c == 8:
+            ptr[0] = '8'
+        elif c == 9:
+            ptr[0] = '9'
+        elif c == 0xA:
+            ptr[0] = 'A'
+        elif c == 0xB:
+            ptr[0] = 'B'
+        elif c == 0xC:
+            ptr[0] = 'C'
+        elif c == 0xD:
+            ptr[0] = 'D'
+        elif c == 0xE:
+            ptr[0] = 'E'
+        elif c == 0xF:
+            ptr[0] = 'F'
+        else:
+            ptr[0] = '0'
+
+        ptr -= 1
+
+        val >>= 4
+
+    out[0] = ';'
+    out += 1
+    out[0] = 0
+
+    return out
+
+
+# copied and adapted from libxml2 (xmlBufAttrSerializeTxtContent())
+cdef _write_attr_string(tree.xmlOutputBuffer* buf, const char *string):
+    cdef const char *base
+    cdef const char *cur
+    cdef const unsigned char *ucur
+
+    cdef unsigned char tmp[12]
+    cdef int val = 0
+    cdef int l
+
+    if string == NULL:
+        return
+
+    base = cur = <const char*>string
+    while cur[0] != 0:
+        if cur[0] == '\n':
+            if base != cur:
+                tree.xmlOutputBufferWrite(buf, cur - base, base)
+
+            tree.xmlOutputBufferWrite(buf, 5, "&#10;")
+            cur += 1
+            base = cur
+
+        elif cur[0] == '\r':
+            if base != cur:
+                tree.xmlOutputBufferWrite(buf, cur - base, base)
+
+            tree.xmlOutputBufferWrite(buf, 5, "&#13;")
+            cur += 1
+            base = cur
+
+        elif cur[0] == '\t':
+            if base != cur:
+                tree.xmlOutputBufferWrite(buf, cur - base, base)
+
+            tree.xmlOutputBufferWrite(buf, 4, "&#9;")
+            cur += 1
+            base = cur
+
+        elif cur[0] == '"':
+            if base != cur:
+                tree.xmlOutputBufferWrite(buf, cur - base, base)
+
+            tree.xmlOutputBufferWrite(buf, 6, "&quot;")
+            cur += 1
+            base = cur
+
+        elif cur[0] == '<':
+            if base != cur:
+                tree.xmlOutputBufferWrite(buf, cur - base, base)
+
+            tree.xmlOutputBufferWrite(buf, 4, "&lt;")
+            cur += 1
+            base = cur
+
+        elif cur[0] == '>':
+            if base != cur:
+                tree.xmlOutputBufferWrite(buf, cur - base, base)
+
+            tree.xmlOutputBufferWrite(buf, 4, "&gt;")
+            cur += 1
+            base = cur
+        elif cur[0] == '&':
+            if base != cur:
+                tree.xmlOutputBufferWrite(buf, cur - base, base)
+
+            tree.xmlOutputBufferWrite(buf, 5, "&amp;")
+            cur += 1
+            base = cur
+
+        elif (<const unsigned char>cur[0] >= 0x80) and (cur[1] != 0):
+
+            if base != cur:
+                tree.xmlOutputBufferWrite(buf, cur - base, base)
+
+            ucur = <const unsigned char *>cur
+
+            if ucur[0] < 0xC0:
+                # invalid UTF-8 sequence
+                val = ucur[0]
+                l = 1
+
+            elif ucur[0] < 0xE0:
+                val = (ucur[0]) & 0x1F
+                val <<= 6
+                val |= (ucur[1]) & 0x3F
+                l = 2
+
+            elif (ucur[0] < 0xF0) and (ucur[2] != 0):
+                val = (ucur[0]) & 0x0F
+                val <<= 6
+                val |= (ucur[1]) & 0x3F
+                val <<= 6
+                val |= (ucur[2]) & 0x3F
+                l = 3
+
+            elif (ucur[0] < 0xF8) and (ucur[2] != 0) and (ucur[3] != 0):
+                val = (ucur[0]) & 0x07
+                val <<= 6
+                val |= (ucur[1]) & 0x3F
+                val <<= 6
+                val |= (ucur[2]) & 0x3F
+                val <<= 6
+                val |= (ucur[3]) & 0x3F
+                l = 4
+            else:
+                # invalid UTF-8 sequence
+                val = ucur[0]
+                l = 1
+
+            if (l == 1) or (not tree.xmlIsCharQ(val)):
+                raise ValueError(f"Invalid character: {val:X}")
+
+            # We could do multiple things here. Just save
+            # as a char ref
+            xmlSerializeHexCharRef(tmp, val)
+            tree.xmlOutputBufferWrite(buf, len(tmp), <const char*> tmp)
+            cur += l
+            base = cur
+
+        else:
+            cur += 1
+
+    if base != cur:
+        tree.xmlOutputBufferWrite(buf, cur - base, base)
+
+
 ############################################################
 # output to file-like objects
 
@@ -543,29 +752,29 @@ cdef int _serialise_node(tree.xmlOutputBuffer* c_buffer, const_xmlChar* c_doctyp
     return error_result
 
 
-cdef _create_output_buffer(f, const_char* c_enc, int compression,
-                           tree.xmlOutputBuffer** c_buffer_ret, bint close):
+cdef _FilelikeWriter _create_output_buffer(
+        f, const_char* c_enc, int c_compression,
+        tree.xmlOutputBuffer** c_buffer_ret, bint close):
     cdef tree.xmlOutputBuffer* c_buffer
     cdef _FilelikeWriter writer
     enchandler = tree.xmlFindCharEncodingHandler(c_enc)
     if enchandler is NULL:
-        raise LookupError(u"unknown encoding: '%s'" %
-                          c_enc.decode(u'UTF-8') if c_enc is not NULL else u'')
+        raise LookupError(
+            f"unknown encoding: '{c_enc.decode('UTF-8') if c_enc is not NULL else u''}'")
     try:
         if _isString(f):
             filename8 = _encodeFilename(f)
             c_buffer = tree.xmlOutputBufferCreateFilename(
-                _cstr(filename8), enchandler, compression)
+                _cstr(filename8), enchandler, c_compression)
             if c_buffer is NULL:
                 return python.PyErr_SetFromErrno(IOError) # raises IOError
             writer = None
         elif hasattr(f, 'write'):
-            writer = _FilelikeWriter(f, compression=compression, close=close)
+            writer = _FilelikeWriter(f, compression=c_compression, close=close)
             c_buffer = writer._createOutputBuffer(enchandler)
         else:
             raise TypeError(
-                u"File or filename expected, got '%s'" %
-                python._fqtypename(f).decode('UTF-8'))
+                f"File or filename expected, got '{python._fqtypename(f).decode('UTF-8')}'")
     except:
         tree.xmlCharEncCloseFunc(enchandler)
         raise
@@ -626,11 +835,10 @@ cdef _tofilelikeC14N(f, _Element element, bint exclusive, bint with_comments,
                     c_doc, NULL, exclusive, c_inclusive_ns_prefixes,
                     with_comments, c_buffer)
                 error = tree.xmlOutputBufferClose(c_buffer)
-            if bytes_count < 0:
-                error = bytes_count
+                if bytes_count < 0:
+                    error = bytes_count
         else:
-            raise TypeError(u"File or filename expected, got '%s'" %
-                            python._fqtypename(f).decode('UTF-8'))
+            raise TypeError(f"File or filename expected, got '{python._fqtypename(f).decode('UTF-8')}'")
     finally:
         _destroyFakeDoc(c_base_doc, c_doc)
         if c_inclusive_ns_prefixes is not NULL:
@@ -688,6 +896,7 @@ cdef class xmlfile:
     cdef object output_file
     cdef bytes encoding
     cdef _IncrementalFileWriter writer
+    cdef _AsyncIncrementalFileWriter async_writer
     cdef int compresslevel
     cdef bint close
     cdef bint buffered
@@ -714,6 +923,25 @@ cdef class xmlfile:
             old_writer, self.writer = self.writer, None
             raise_on_error = exc_type is None
             old_writer._close(raise_on_error)
+            if self.close:
+                self.output_file = None
+
+    async def __aenter__(self):
+        assert self.output_file is not None
+        if isinstance(self.output_file, basestring):
+            raise TypeError("Cannot asynchronously write to a plain file")
+        if not hasattr(self.output_file, 'write'):
+            raise TypeError("Output file needs an async .write() method")
+        self.async_writer = _AsyncIncrementalFileWriter(
+            self.output_file, self.encoding, self.compresslevel,
+            self.close, self.buffered, self.method)
+        return self.async_writer
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.async_writer is not None:
+            old_writer, self.async_writer = self.async_writer, None
+            raise_on_error = exc_type is None
+            await old_writer._close(raise_on_error)
             if self.close:
                 self.output_file = None
 
@@ -812,10 +1040,21 @@ cdef class _IncrementalFileWriter:
             tree.xmlOutputBufferFlush(self._c_out)
         self._handle_error(self._c_out.error)
 
-    def element(self, tag, attrib=None, nsmap=None, **_extra):
-        """element(self, tag, attrib=None, nsmap=None, **_extra)
+    def method(self, method):
+        """method(self, method)
+
+        Returns a context manager that overrides and restores the output method.
+        method is one of (None, 'xml', 'html') where None means 'xml'.
+        """
+        assert self._c_out is not NULL
+        c_method = self._method if method is None else _findOutputMethod(method)
+        return _MethodChanger(self, c_method)
+
+    def element(self, tag, attrib=None, nsmap=None, method=None, **_extra):
+        """element(self, tag, attrib=None, nsmap=None, method, **_extra)
 
         Returns a context manager that writes an opening and closing tag.
+        method is one of (None, 'xml', 'html') where None means 'xml'.
         """
         assert self._c_out is not NULL
         attributes = []
@@ -836,7 +1075,10 @@ cdef class _IncrementalFileWriter:
                     _prefixValidOrRaise(prefix)
                 reversed_nsmap[_utf8(ns)] = prefix
         ns, name = _getNsTag(tag)
-        return _FileWriterElement(self, (ns, name, attributes, reversed_nsmap))
+
+        c_method = self._method if method is None else _findOutputMethod(method)
+
+        return _FileWriterElement(self, (ns, name, attributes, reversed_nsmap), c_method)
 
     cdef _write_qname(self, bytes name, bytes prefix):
         if prefix:  # empty bytes for no prefix (not None to allow sorting)
@@ -883,7 +1125,8 @@ cdef class _IncrementalFileWriter:
             tree.xmlOutputBufferWrite(self._c_out, 1, ' ')
             self._write_qname(name, prefix)
             tree.xmlOutputBufferWrite(self._c_out, 2, '="')
-            tree.xmlOutputBufferWriteEscape(self._c_out, _xcstr(value), NULL)
+            _write_attr_string(self._c_out, _cstr(value))
+
             tree.xmlOutputBufferWrite(self._c_out, 1, '"')
 
     cdef _write_end_element(self, element_config):
@@ -892,16 +1135,23 @@ cdef class _IncrementalFileWriter:
         if not self._element_stack or self._element_stack[-1][:2] != element_config[:2]:
             raise LxmlSyntaxError("inconsistent exit action in context manager")
 
+        # If previous write operations failed, the context manager exit might still call us.
+        # That is ok, but we stop writing closing tags and handling errors in that case.
+        # For all non-I/O errors, we continue writing closing tags if we can.
+        ok_to_write = self._c_out.error == xmlerror.XML_ERR_OK
+
         name, prefix = self._element_stack.pop()[1:3]
-        tree.xmlOutputBufferWrite(self._c_out, 2, '</')
-        self._write_qname(name, prefix)
-        tree.xmlOutputBufferWrite(self._c_out, 1, '>')
+        if ok_to_write:
+            tree.xmlOutputBufferWrite(self._c_out, 2, '</')
+            self._write_qname(name, prefix)
+            tree.xmlOutputBufferWrite(self._c_out, 1, '>')
 
         if not self._element_stack:
             self._status = WRITER_FINISHED
-        if not self._buffered:
-            tree.xmlOutputBufferFlush(self._c_out)
-        self._handle_error(self._c_out.error)
+        if ok_to_write:
+            if not self._buffered:
+                tree.xmlOutputBufferFlush(self._c_out)
+            self._handle_error(self._c_out.error)
 
     cdef _find_prefix(self, bytes href, dict flat_namespaces_map, list new_namespaces):
         if href is None:
@@ -953,8 +1203,19 @@ cdef class _IncrementalFileWriter:
                 if self._status != WRITER_IN_ELEMENT:
                     if self._status > WRITER_IN_ELEMENT or content.strip():
                         raise LxmlSyntaxError("not in an element")
-                content = _utf8(content)
-                tree.xmlOutputBufferWriteEscape(self._c_out, _xcstr(content), NULL)
+                bstring = _utf8(content)
+                if not bstring:
+                    continue
+
+                ns, name, _, _ = self._element_stack[-1]
+                if (c_method == OUTPUT_METHOD_HTML and
+                        ns in (None, b'http://www.w3.org/1999/xhtml') and
+                        name in (b'script', b'style')):
+                    tree.xmlOutputBufferWrite(self._c_out, len(bstring), _cstr(bstring))
+
+                else:
+                    tree.xmlOutputBufferWriteEscape(self._c_out, _xcstr(bstring), NULL)
+
             elif iselement(content):
                 if self._status > WRITER_IN_ELEMENT:
                     raise LxmlSyntaxError("cannot append trailing element to complete XML document")
@@ -964,11 +1225,14 @@ cdef class _IncrementalFileWriter:
                 if (<_Element>content)._c_node.type == tree.XML_ELEMENT_NODE:
                     if not self._element_stack:
                         self._status = WRITER_FINISHED
-            else:
-                raise TypeError("got invalid input value of type %s, expected string or Element" % type(content))
+
+            elif content is not None:
+                raise TypeError(
+                    f"got invalid input value of type {type(content)}, expected string or Element")
             self._handle_error(self._c_out.error)
         if not self._buffered:
             tree.xmlOutputBufferFlush(self._c_out)
+            self._handle_error(self._c_out.error)
 
     def flush(self):
         """flush(self)
@@ -977,6 +1241,7 @@ cdef class _IncrementalFileWriter:
         """
         assert self._c_out is not NULL
         tree.xmlOutputBufferFlush(self._c_out)
+        self._handle_error(self._c_out.error)
 
     cdef _close(self, bint raise_on_error):
         if raise_on_error:
@@ -1003,19 +1268,174 @@ cdef class _IncrementalFileWriter:
                 self._target._exc_context._raise_if_stored()
             _raiseSerialisationError(error_result)
 
+
+@cython.final
+@cython.internal
+cdef class _AsyncDataWriter:
+    cdef list _data
+    def __cinit__(self):
+        self._data = []
+
+    cdef bytes collect(self):
+        data = b''.join(self._data)
+        del self._data[:]
+        return data
+
+    def write(self, data):
+        self._data.append(data)
+
+    def close(self):
+        pass
+
+
+@cython.final
+@cython.internal
+cdef class _AsyncIncrementalFileWriter:
+    cdef _IncrementalFileWriter _writer
+    cdef _AsyncDataWriter _buffer
+    cdef object _async_outfile
+    cdef int _flush_after_writes
+    cdef bint _should_close
+    cdef bint _buffered
+
+    def __cinit__(self, async_outfile, bytes encoding, int compresslevel, bint close,
+                  bint buffered, int method):
+        self._flush_after_writes = 20
+        self._async_outfile = async_outfile
+        self._should_close = close
+        self._buffered = buffered
+        self._buffer = _AsyncDataWriter()
+        self._writer = _IncrementalFileWriter(
+            self._buffer, encoding, compresslevel, close=True, buffered=False, method=method)
+
+    cdef bytes _flush(self):
+        if not self._buffered or len(self._buffer._data) > self._flush_after_writes:
+            return self._buffer.collect()
+        return None
+
+    async def flush(self):
+        self._writer.flush()
+        data = self._buffer.collect()
+        if data:
+            await self._async_outfile.write(data)
+
+    async def write_declaration(self, version=None, standalone=None, doctype=None):
+        self._writer.write_declaration(version, standalone, doctype)
+        data = self._flush()
+        if data:
+            await self._async_outfile.write(data)
+
+    async def write_doctype(self, doctype):
+        self._writer.write_doctype(doctype)
+        data = self._flush()
+        if data:
+            await self._async_outfile.write(data)
+
+    async def write(self, *args, with_tail=True, pretty_print=False, method=None):
+        self._writer.write(*args, with_tail=with_tail, pretty_print=pretty_print, method=method)
+        data = self._flush()
+        if data:
+            await self._async_outfile.write(data)
+
+    def method(self, method):
+        return self._writer.method(method)
+
+    def element(self, tag, attrib=None, nsmap=None, method=None, **_extra):
+        element_writer = self._writer.element(tag, attrib, nsmap, method, **_extra)
+        return _AsyncFileWriterElement(element_writer, self)
+
+    async def _close(self, bint raise_on_error):
+        self._writer._close(raise_on_error)
+        data = self._buffer.collect()
+        if data:
+            await self._async_outfile.write(data)
+        if self._should_close:
+            await self._async_outfile.close()
+
+
+@cython.final
+@cython.internal
+cdef class _AsyncFileWriterElement:
+    cdef _FileWriterElement _element_writer
+    cdef _AsyncIncrementalFileWriter _writer
+
+    def __cinit__(self, _FileWriterElement element_writer not None,
+                  _AsyncIncrementalFileWriter writer not None):
+        self._element_writer = element_writer
+        self._writer = writer
+
+    async def __aenter__(self):
+        self._element_writer.__enter__()
+        data = self._writer._flush()
+        if data:
+            await self._writer._async_outfile.write(data)
+
+    async def __aexit__(self, *args):
+        self._element_writer.__exit__(*args)
+        data = self._writer._flush()
+        if data:
+            await self._writer._async_outfile.write(data)
+
+
 @cython.final
 @cython.internal
 @cython.freelist(8)
 cdef class _FileWriterElement:
-    cdef object _element
     cdef _IncrementalFileWriter _writer
+    cdef object _element
+    cdef int _new_method
+    cdef int _old_method
 
-    def __cinit__(self, _IncrementalFileWriter writer not None, element_config):
+    def __cinit__(self, _IncrementalFileWriter writer not None, element_config, int method):
         self._writer = writer
         self._element = element_config
+        self._new_method = method
+        self._old_method = writer._method
 
     def __enter__(self):
+        self._writer._method = self._new_method
         self._writer._write_start_element(self._element)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._writer._write_end_element(self._element)
+        self._writer._method = self._old_method
+
+
+@cython.final
+@cython.internal
+@cython.freelist(8)
+cdef class _MethodChanger:
+    cdef _IncrementalFileWriter _writer
+    cdef int _new_method
+    cdef int _old_method
+    cdef bint _entered
+    cdef bint _exited
+
+    def __cinit__(self, _IncrementalFileWriter writer not None, int method):
+        self._writer = writer
+        self._new_method = method
+        self._old_method = writer._method
+        self._entered = False
+        self._exited = False
+
+    def __enter__(self):
+        if self._entered:
+            raise LxmlSyntaxError("Inconsistent enter action in context manager")
+        self._writer._method = self._new_method
+        self._entered = True
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._exited:
+            raise LxmlSyntaxError("Inconsistent exit action in context manager")
+        if self._writer._method != self._new_method:
+            raise LxmlSyntaxError("Method changed outside of context manager")
+        self._writer._method = self._old_method
+        self._exited = True
+
+    async def __aenter__(self):
+        # for your async convenience
+        return self.__enter__()
+
+    async def __aexit__(self, *args):
+        # for your async convenience
+        return self.__exit__(*args)

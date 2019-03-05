@@ -1,24 +1,21 @@
 # support for extension functions in XPath and XSLT
 
-class XPathError(LxmlError):
-    u"""Base class of all XPath errors.
+cdef class XPathError(LxmlError):
+    """Base class of all XPath errors.
     """
-    pass
 
-class XPathEvalError(XPathError):
-    u"""Error during XPath evaluation.
+cdef class XPathEvalError(XPathError):
+    """Error during XPath evaluation.
     """
-    pass
 
-class XPathFunctionError(XPathEvalError):
-    u"""Internal error looking up an XPath extension function.
+cdef class XPathFunctionError(XPathEvalError):
+    """Internal error looking up an XPath extension function.
     """
-    pass
 
-class XPathResultError(XPathEvalError):
-    u"""Error handling an XPath result.
+cdef class XPathResultError(XPathEvalError):
+    """Error handling an XPath result.
     """
-    pass
+
 
 # forward declarations
 
@@ -298,27 +295,27 @@ cdef class _BaseContext:
 
     # Python access to the XPath context for extension functions
 
-    property context_node:
-        def __get__(self):
-            cdef xmlNode* c_node
-            if self._xpathCtxt is NULL:
-                raise XPathError, \
-                    u"XPath context is only usable during the evaluation"
-            c_node = self._xpathCtxt.node
-            if c_node is NULL:
-                raise XPathError, u"no context node"
-            if c_node.doc != self._xpathCtxt.doc:
-                raise XPathError, \
-                    u"document-external context nodes are not supported"
-            if self._doc is None:
-                raise XPathError, u"document context is missing"
-            return _elementFactory(self._doc, c_node)
+    @property
+    def context_node(self):
+        cdef xmlNode* c_node
+        if self._xpathCtxt is NULL:
+            raise XPathError, \
+                u"XPath context is only usable during the evaluation"
+        c_node = self._xpathCtxt.node
+        if c_node is NULL:
+            raise XPathError, u"no context node"
+        if c_node.doc != self._xpathCtxt.doc:
+            raise XPathError, \
+                u"document-external context nodes are not supported"
+        if self._doc is None:
+            raise XPathError, u"document context is missing"
+        return _elementFactory(self._doc, c_node)
 
-    property eval_context:
-        def __get__(self):
-            if self._eval_context_dict is None:
-                self._eval_context_dict = {}
-            return self._eval_context_dict
+    @property
+    def eval_context(self):
+        if self._eval_context_dict is None:
+            self._eval_context_dict = {}
+        return self._eval_context_dict
 
     # Python reference keeping during XPath function evaluation
 
@@ -413,6 +410,7 @@ cdef void _forwardXPathError(void* c_ctxt, xmlerror.xmlError* c_error) with gil:
     error.line = c_error.line
     error.int2 = c_error.int1 # column
     error.file = c_error.file
+    error.node = NULL
 
     (<_BaseContext>c_ctxt)._error_log._receive(&error)
 
@@ -583,7 +581,7 @@ cdef xpath.xmlXPathObject* _wrapXPathObject(object obj, _Document doc,
                 else:
                     if context is None or doc is None:
                         raise XPathResultError, \
-                              u"Non-Element values not supported at this point - got %r" % value
+                              f"Non-Element values not supported at this point - got {value!r}"
                     # support strings by appending text nodes to an Element
                     if isinstance(value, unicode):
                         value = _utf8(value)
@@ -606,13 +604,12 @@ cdef xpath.xmlXPathObject* _wrapXPathObject(object obj, _Document doc,
                         xpath.xmlXPathNodeSetAdd(resultSet, c_node)
                     else:
                         raise XPathResultError, \
-                              u"This is not a supported node-set result: %r" % value
+                              f"This is not a supported node-set result: {value!r}"
         except:
             xpath.xmlXPathFreeNodeSet(resultSet)
             raise
     else:
-        raise XPathResultError, u"Unknown return type: %s" % \
-            python._fqtypename(obj).decode('utf8')
+        raise XPathResultError, f"Unknown return type: {python._fqtypename(obj).decode('utf8')}"
     return xpath.xmlXPathWrapNodeSet(resultSet)
 
 cdef object _unwrapXPathObject(xpath.xmlXPathObject* xpathObj,
@@ -642,7 +639,7 @@ cdef object _unwrapXPathObject(xpath.xmlXPathObject* xpathObj,
     elif xpathObj.type == xpath.XPATH_XSLT_TREE:
         return _createNodeSetResult(xpathObj, doc, context)
     else:
-        raise XPathResultError, u"Unknown xpath result %s" % unicode(xpathObj.type)
+        raise XPathResultError, f"Unknown xpath result {xpathObj.type}"
 
 cdef object _createNodeSetResult(xpath.xmlXPathObject* xpathObj, _Document doc,
                                  _BaseContext context):
@@ -692,7 +689,7 @@ cdef _unpackNodeSetEntry(list results, xmlNode* c_node, _Document doc,
         pass
     else:
         raise NotImplementedError, \
-            u"Not yet implemented result node type: %d" % c_node.type
+            f"Not yet implemented result node type: {c_node.type}"
 
 cdef void _freeXPathObject(xpath.xmlXPathObject* xpathObj):
     u"""Free the XPath object, but *never* free the *content* of node sets.
@@ -864,9 +861,8 @@ cdef void _xpath_function_call(xpath.xmlXPathParserContext* ctxt,
             _extension_function_call(context, function, ctxt, nargs)
         else:
             xpath.xmlXPathErr(ctxt, xpath.XPATH_UNKNOWN_FUNC_ERROR)
-            context._exc._store_exception(
-                XPathFunctionError(u"XPath function '%s' not found" %
-                _namespacedNameFromNsName(rctxt.functionURI, rctxt.function)))
+            context._exc._store_exception(XPathFunctionError(
+                f"XPath function '{_namespacedNameFromNsName(rctxt.functionURI, rctxt.function)}' not found"))
     except:
         # may not be the right error, but we need to tell libxml2 *something*
         xpath.xmlXPathErr(ctxt, xpath.XPATH_UNKNOWN_FUNC_ERROR)

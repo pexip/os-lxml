@@ -2,18 +2,22 @@ import os
 import re
 import sys
 import fnmatch
+import os.path
 
 # for command line options and supported environment variables, please
 # see the end of 'setupinfo.py'
 
-if sys.version_info < (2, 6) or sys.version_info[:2] in [(3, 0), (3, 1)]:
-    print("This lxml version requires Python 2.6, 2.7, 3.2 or later.")
+if sys.version_info < (2, 7) or sys.version_info[:2] in [(3, 0), (3, 1), (3, 2), (3, 3)]:
+    print("This lxml version requires Python 2.7, 3.4 or later.")
     sys.exit(1)
 
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
+
+# make sure Cython finds include files in the project directory and not outside
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 import versioninfo
 import setupinfo
@@ -74,6 +78,8 @@ extra_options.update(setupinfo.extra_setup_args())
 
 extra_options['package_data'] = {
     'lxml': [
+        'etree.h',
+        'etree_api.h',
         'lxml.etree.h',
         'lxml.etree_api.h',
     ],
@@ -178,6 +184,7 @@ setup(
     author_email="lxml-dev@lxml.de",
     maintainer="lxml dev team",
     maintainer_email="lxml-dev@lxml.de",
+    license="BSD",
     url="http://lxml.de/",
     # Commented out because this causes distutils to emit warnings
     # `Unknown distribution option: 'bugtrack_url'`
@@ -216,13 +223,12 @@ an appropriate version of Cython installed.
     'License :: OSI Approved :: BSD License',
     'Programming Language :: Cython',
     'Programming Language :: Python :: 2',
-    'Programming Language :: Python :: 2.6',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.2',
-    'Programming Language :: Python :: 3.3',
     'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
     'Programming Language :: C',
     'Operating System :: OS Independent',
     'Topic :: Text Processing :: Markup :: HTML',

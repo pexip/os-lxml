@@ -27,10 +27,13 @@ ElementTree_.
      1.8  How can I find out if an Element is a comment or PI?
      1.9  How can I map an XML tree into a dict of dicts?
      1.10 Why does lxml sometimes return 'str' values for text in Python 2?
+     1.11 Why do I get XInclude or DTD lookup failures on some systems but not on others?
+     1.12 How do namespaces work in lxml?
    2  Installation
      2.1  Which version of libxml2 and libxslt should I use or require?
      2.2  Where are the binary builds?
      2.3  Why do I get errors about missing UCS4 symbols when installing lxml?
+     2.4  My C compiler crashes on installation
    3  Contributing
      3.1  Why is lxml not written in Python?
      3.2  How can I contribute?
@@ -215,8 +218,8 @@ not take advantage of lxml's enhanced feature set.
   a query framework for XML/HTML, similar to jQuery for JavaScript
 * `python-docx <http://github.com/mikemaccana/python-docx>`_,
   a package for handling Microsoft's Word OpenXML format
-* `Rambler <http://beta.rambler.ru/srch?query=python+lxml&searchtype=web>`_,
-  a meta search engine that aggregates different data sources
+* `Rambler <https://www.rambler.ru/>`_,
+  news aggregator on Runet
 * `rdfadict <http://pypi.python.org/pypi/rdfadict>`_,
   an RDFa parser with a simple dictionary-like interface.
 * `xupdate-processor <http://pypi.python.org/pypi/xupdate-processor>`_,
@@ -364,6 +367,12 @@ I'm glad you asked.
          return element.tag, \
                 dict(map(recursive_dict, element)) or element.text
 
+Note that this beautiful quick-and-dirty converter expects children
+to have unique tag names and will silently overwrite any data that
+was contained in preceding siblings with the same name.  For any
+real-world application of xml-to-dict conversion, you would better
+write your own, longer version of this.
+
 
 Why does lxml sometimes return 'str' values for text in Python 2?
 -----------------------------------------------------------------
@@ -382,6 +391,26 @@ as does ElementTree.  Since Python 3.3, Unicode strings containing
 only characters that can be encoded in ASCII or Latin-1 are generally
 as efficient as byte strings.  In older versions of Python 3, the
 above mentioned drawbacks apply.
+
+
+Why do I get XInclude or DTD lookup failures on some systems but not on others?
+-------------------------------------------------------------------------------
+
+To avoid network access, external resources are first looked up in
+`XML catalogues <https://www.oasis-open.org/committees/entity/spec.html>`_.
+Many systems have them installed by default, but some don't.
+On Linux systems, the default place to look is the index file
+``/etc/xml/catalog``, which most importantly provides a mapping from
+doctype IDs to locally installed DTD files.
+
+See the `libxml2 catalogue documentation <http://xmlsoft.org/catalog.html>`_
+for further information.
+
+
+How do namespaces work in lxml?
+-------------------------------
+
+The same as in ElementTree.  See the `tutorial <tutorial.html#namespaces>`_.
 
 
 Installation
@@ -423,16 +452,23 @@ see when (or if) a specific bug has been fixed.
 Where are the binary builds?
 ----------------------------
 
-Binary builds are most often requested by users of Microsoft Windows.
-Two of the major design issues of this operating system make it
-non-trivial for its users to build lxml: the lack of a pre-installed
-standard compiler and the missing package management.
+Thanks to the help by Joar Wandborg, we try to make "manylinux_" binary
+builds for Linux available shortly after each source release, as they
+are very frequently used by continuous integration and/or build servers.
 
-For recent lxml releases, PyPI provides community donated Windows binaries.
+Thanks to the help by Maximilian Hils and the Appveyor build service,
+we also try to serve the frequent requests for binary builds available
+for Microsoft Windows in a timely fashion, since users of that platform
+usually fail to build lxml themselves.  Two of the major design issues
+of this operating system make this non-trivial for its users: the lack
+of a pre-installed standard compiler and the missing package management.
+
 Besides that, Christoph Gohlke generously provides `unofficial lxml binary
 builds for Windows <http://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml>`_
 that are usually very up to date.  Consider using them if you prefer a
 binary build over a signed official source release.
+
+.. _manylinux: https://www.python.org/dev/peps/pep-0513
 
 
 Why do I get errors about missing UCS4 symbols when installing lxml?
@@ -449,6 +485,20 @@ This means that you have to compile lxml from sources for your system.  Note
 that you do not need Cython for this, the lxml source distribution is directly
 compilable on both platform types.  See the `build instructions`_ on how to do
 this.
+
+
+My C compiler crashes on installation
+-------------------------------------
+
+lxml consists of a relatively large amount of (Cython) generated C code
+in a single source module.  Compiling this module requires a lot of free
+memory, usually more than half a GB, which can pose problems especially on
+shared/cloud build systems.
+
+If your C compiler crashes while building lxml from sources, consider
+using one of the binary wheels that we provide.  The "manylinux_" binaries
+should generally work well on most build systems and install substantially
+faster than a source build.
 
 
 Contributing
@@ -477,7 +527,7 @@ is written entirely in Python.
 
 Please contact the `mailing list`_ if you need any help.
 
-.. _Cython: http://www.cython.org/
+.. _Cython: http://cython.org/
 .. _`code that Cython accepts`: http://docs.cython.org/docs/tutorial.html
 
 
@@ -485,9 +535,9 @@ How can I contribute?
 ---------------------
 
 If you find something that you would like lxml to do (or do better),
-then please tell us about it on the `mailing list`_.  Patches are
-always appreciated, especially when accompanied by unit tests and
-documentation (doctests would be great).  See the ``tests``
+then please tell us about it on the `mailing list`_.  Pull requests
+on github are always appreciated, especially when accompanied by unit
+tests and documentation (doctests would be great).  See the ``tests``
 subdirectories in the lxml source tree (below the ``src`` directory)
 and the ReST_ `text files`_ in the ``doc`` directory.
 

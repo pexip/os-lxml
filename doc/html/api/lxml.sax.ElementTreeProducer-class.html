@@ -131,7 +131,7 @@ Produces SAX events for an element and children.
         <tr>
           <td><span class="summary-sig"><a name="_recursive_saxify"></a><span class="summary-sig-name">_recursive_saxify</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">element</span>,
-        <span class="summary-sig-arg">prefixes</span>)</span></td>
+        <span class="summary-sig-arg">parent_nsmap</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="lxml.sax-pysrc.html#ElementTreeProducer._recursive_saxify">source&nbsp;code</a></span>
             
@@ -150,10 +150,62 @@ Produces SAX events for an element and children.
           <td><span class="summary-sig"><a name="_build_qname"></a><span class="summary-sig-name">_build_qname</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">ns_uri</span>,
         <span class="summary-sig-arg">local_name</span>,
-        <span class="summary-sig-arg">prefixes</span>,
-        <span class="summary-sig-arg">new_prefixes</span>)</span></td>
+        <span class="summary-sig-arg">nsmap</span>,
+        <span class="summary-sig-arg">preferred_prefix</span>,
+        <span class="summary-sig-arg">is_attribute</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="lxml.sax-pysrc.html#ElementTreeProducer._build_qname">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">a new object with type S, a subtype of T</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="lxml.sax.ElementTreeProducer-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">T</span>,
+        <span class="summary-sig-arg">S</span>,
+        <span class="summary-sig-arg">...</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="lxml.sax-pysrc.html#ElementTreeProducer.__new__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="lxml.sax.ElementTreeProducer-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">...</span>)</span><br />
+      helper for pickle</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="lxml.sax-pysrc.html#ElementTreeProducer.__reduce__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">...</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="lxml.sax-pysrc.html#ElementTreeProducer.__setstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -168,8 +220,6 @@ Produces SAX events for an element and children.
       <code>__format__</code>,
       <code>__getattribute__</code>,
       <code>__hash__</code>,
-      <code>__new__</code>,
-      <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
       <code>__repr__</code>,
       <code>__setattr__</code>,
@@ -244,6 +294,53 @@ Produces SAX events for an element and children.
   <dl class="fields">
     <dt>Overrides:
         object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__new__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__new__</span>(<span class="sig-arg">T</span>,
+        <span class="sig-arg">S</span>,
+        <span class="sig-arg">...</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="lxml.sax-pysrc.html#ElementTreeProducer.__new__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Returns: a new object with type S, a subtype of T</dt>
+    <dt>Overrides:
+        object.__new__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__reduce__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">...</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="lxml.sax-pysrc.html#ElementTreeProducer.__reduce__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  helper for pickle
+  <dl class="fields">
+    <dt>Overrides:
+        object.__reduce__
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
@@ -282,7 +379,7 @@ Produces SAX events for an element and children.
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Fri Dec 23 19:00:53 2016
+    on Thu Feb 28 20:36:14 2019
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

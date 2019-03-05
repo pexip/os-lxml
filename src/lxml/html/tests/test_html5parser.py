@@ -7,23 +7,7 @@ except ImportError:                     # python 3
 import sys
 import tempfile
 import unittest
-try:
-    from unittest import skipUnless
-except ImportError:
-    # sys.version < (2, 7)
-    def skipUnless(condition, reason):
-        return lambda f: condition and f or None
-
-if sys.version_info < (2,6):
-    class NamedTemporaryFile(object):
-        def __init__(self, delete=True, **kwargs):
-            self._tmpfile = tempfile.NamedTemporaryFile(**kwargs)
-        def close(self):
-            self._tmpfile.flush()
-        def __getattr__(self, name):
-            return getattr(self._tmpfile, name)
-else:
-    NamedTemporaryFile = tempfile.NamedTemporaryFile
+from unittest import skipUnless
 
 from lxml.builder import ElementMaker
 from lxml.etree import Element, ElementTree, ParserError
@@ -118,14 +102,19 @@ class Test_document_fromstring(unittest.TestCase):
 
     def test_basic(self):
         parser = DummyParser(doc=DummyElementTree(root='dummy root'))
-        elem = self.call_it('dummy input', parser=parser)
+        elem = self.call_it(b'dummy input', parser=parser)
         self.assertEqual(elem, 'dummy root')
-        self.assertEqual(parser.parse_args, ('dummy input',))
+        self.assertEqual(parser.parse_args, (b'dummy input',))
         self.assertEqual(parser.parse_kwargs, {'useChardet': True})
+
+    def test_guess_charset_not_used_for_unicode(self):
+        parser = DummyParser()
+        elem = self.call_it(b''.decode('ascii'), parser=parser)
+        self.assertEqual(parser.parse_kwargs, {})
 
     def test_guess_charset_arg_gets_passed_to_parser(self):
         parser = DummyParser()
-        elem = self.call_it('', guess_charset='gc_arg', parser=parser)
+        elem = self.call_it(b'', guess_charset='gc_arg', parser=parser)
         self.assertEqual(parser.parse_kwargs, {'useChardet': 'gc_arg'})
 
     def test_raises_type_error_on_nonstring_input(self):
@@ -145,13 +134,19 @@ class Test_fragments_fromstring(unittest.TestCase):
 
     def test_basic(self):
         parser = DummyParser(fragments='fragments')
-        fragments = self.call_it('dummy input', parser=parser)
+        fragments = self.call_it(b'dummy input', parser=parser)
         self.assertEqual(fragments, 'fragments')
+        self.assertEqual(parser.parseFragment_kwargs, {'useChardet': False})
 
     def test_guess_charset_arg_gets_passed_to_parser(self):
         parser = DummyParser()
-        elem = self.call_it('', guess_charset='gc_arg', parser=parser)
+        elem = self.call_it(b'', guess_charset='gc_arg', parser=parser)
         self.assertEqual(parser.parseFragment_kwargs, {'useChardet': 'gc_arg'})
+
+    def test_guess_charset_not_used_for_unicode(self):
+        parser = DummyParser()
+        elem = self.call_it(b''.decode('ascii'), parser=parser)
+        self.assertEqual(parser.parseFragment_kwargs, {})
 
     def test_raises_type_error_on_nonstring_input(self):
         not_a_string = None
@@ -233,6 +228,12 @@ class Test_fromstring(unittest.TestCase):
         self.assertEqual(self.call_it('<!DOCTYPE html>', parser=parser),
                          'the doc')
 
+    def test_returns_whole_doc_if_input_is_encoded(self):
+        parser = DummyParser(root='the doc')
+        input = '<!DOCTYPE html>'.encode('ascii')
+        self.assertEqual(self.call_it(input, parser=parser),
+                         'the doc')
+
     def test_returns_whole_doc_if_head_not_empty(self, use_ns=True):
         E = HTMLElementMaker(namespaceHTMLElements=use_ns)
         root = E.html(E.head(E.title()))
@@ -301,7 +302,7 @@ class Test_parse(unittest.TestCase):
         return parse(*args, **kwargs)
 
     def make_temp_file(self, contents=''):
-        tmpfile = NamedTemporaryFile(delete=False)
+        tmpfile = tempfile.NamedTemporaryFile(delete=False)
         try:
             tmpfile.write(contents.encode('utf8'))
             tmpfile.flush()
@@ -311,7 +312,7 @@ class Test_parse(unittest.TestCase):
             try:
                 tmpfile.close()
             finally:
-                os.unlink(tempfile.name)
+                os.unlink(tmpfile.name)
             raise
 
     def test_with_file_object(self):

@@ -1,3 +1,92 @@
+lxml (4.3.2-1) unstable; urgency=medium
+
+  * New upstream version.
+    - Fix crash in 4.3.1 when appending a child subtree with certain text nodes.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 05 Mar 2019 16:27:09 +0100
+
+lxml (4.3.1-1) unstable; urgency=medium
+
+  * New upstream version 4.3.1.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 20 Feb 2019 16:27:45 +0100
+
+lxml (4.3.0-1) unstable; urgency=medium
+
+  * New upstream version 4.3.0.
+  * Bump standards version.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 18 Jan 2019 10:04:35 +0100
+
+lxml (4.2.5-1) unstable; urgency=medium
+
+  * New upstream version 4.2.5.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 17 Sep 2018 16:47:04 +0200
+
+lxml (4.2.4-1) unstable; urgency=medium
+
+  * New upstream version 4.2.4.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 20 Aug 2018 14:59:17 +0200
+
+lxml (4.2.3-1) unstable; urgency=medium
+
+  * New upstream version 4.2.3.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 11 Jul 2018 14:43:51 +0200
+
+lxml (4.2.1-1) unstable; urgency=medium
+
+  * New upstream version 4.2.1.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 02 Apr 2018 11:36:32 +0200
+
+lxml (4.2.0-1) unstable; urgency=medium
+
+  * New upstream version 4.2.0.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 16 Mar 2018 14:41:33 +0100
+
+lxml (4.1.0-1) unstable; urgency=medium
+
+  * New upstream version 4.1.0.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 01 Nov 2017 05:55:16 +0100
+
+lxml (4.0.0-1) unstable; urgency=medium
+
+  * New upstream version 4.0.0.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 23 Sep 2017 12:01:24 +0200
+
+lxml (3.8.0-2) unstable; urgency=medium
+
+  * Rebuild against pythonX.Y packages without the _fpectl extension.
+    Addresses: #873899.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 01 Sep 2017 07:53:12 +0200
+
+lxml (3.8.0-1) unstable; urgency=medium
+
+  * New upstream version 3.8.0.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 20 Jun 2017 15:25:39 +0200
+
+lxml (3.7.3-1) unstable; urgency=medium
+
+  * New upstream version 3.7.3.
+    - GH#218 was ineffective in Python 3.
+    - GH#222: ``lxml.html.submit_form()`` failed in Python 3.
+    - GH#220: ``xmlfile`` allows switching output methods at an element level.
+    - Work around installation problems in recent Python 2.7 versions
+      due to FTP download failures.
+    - GH#219: ``xmlfile.element()`` was not properly quoting attribute values.
+    - GH#218: ``xmlfile.element()`` was not properly escaping text content of
+      script/style tags.
+
+ -- Matthias Klose <doko@debian.org>  Sun, 26 Feb 2017 18:51:56 +0100
+
 lxml (3.7.1-1) unstable; urgency=medium
 
   * New upstream version 3.7.1.

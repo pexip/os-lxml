@@ -1292,7 +1292,7 @@ order.
 <div class="fields">      <p><strong>Deprecated:</strong>
         Note that this method has been deprecated as of
 ElementTree 1.3 and lxml 2.0.  New code should use
-<tt class="rst-rst-docutils literal rst-docutils literal">list(element)</tt> or simply iterate over elements.
+<tt class="rst-docutils literal">list(element)</tt> or simply iterate over elements.
       </p>
 </div></td></tr></table>
 </div>
@@ -1315,7 +1315,7 @@ ElementTree 1.3 and lxml 2.0.  New code should use
   <p>Returns a sequence or iterator of all elements in the subtree in
 document order (depth first pre-order), starting with this
 element.</p>
-<p>Can be restricted to find only elements with a specific tag,
+<p>Can be restricted to find only elements with specific tags,
 see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
   <dl class="fields">
   </dl>
@@ -1324,7 +1324,7 @@ see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
 ElementTree 1.3 and lxml 2.0.  It returns an iterator in
 lxml, which diverges from the original ElementTree
 behaviour.  If you want an efficient iterator, use the
-<tt class="rst-rst-docutils literal rst-docutils literal">element.iter()</tt> method instead.  You should only use this
+<tt class="rst-docutils literal">element.iter()</tt> method instead.  You should only use this
 method in new code if you require backwards compatibility
 with older versions of lxml or ElementTree.
       </p>
@@ -1394,7 +1394,7 @@ the last parent that was returned.</p>
   
   <p>Iterate over all elements in the subtree in document order (depth
 first pre-order), starting with this element.</p>
-<p>Can be restricted to find only elements with a specific tag:
+<p>Can be restricted to find only elements with specific tags:
 pass <tt class="rst-docutils literal">&quot;{ns}localname&quot;</tt> as tag. Either or both of <tt class="rst-docutils literal">ns</tt> and
 <tt class="rst-docutils literal">localname</tt> can be <tt class="rst-docutils literal">*</tt> for a wildcard; <tt class="rst-docutils literal">ns</tt> can be empty
 for no namespace. <tt class="rst-docutils literal">&quot;localname&quot;</tt> is equivalent to <tt class="rst-docutils literal"><span class="pre">&quot;{}localname&quot;</span></tt>
@@ -1402,8 +1402,9 @@ for no namespace. <tt class="rst-docutils literal">&quot;localname&quot;</tt> is
 not <tt class="rst-docutils literal"><span class="pre">&quot;{}*&quot;</span></tt>.</p>
 <p>You can also pass the Element, Comment, ProcessingInstruction and
 Entity factory functions to look only for the specific element type.</p>
-<p>Passing more than one tag will let the iterator return all elements
-matching any of these tags, in document order.</p>
+<p>Passing multiple tags (or a sequence of tags) instead of a single tag
+will let the iterator return all elements matching any of these tags,
+in document order.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1425,7 +1426,7 @@ matching any of these tags, in document order.</p>
   </tr></table>
   
   <p>Iterate over the ancestors of this element (from parent to parent).</p>
-<p>Can be restricted to find only elements with a specific tag,
+<p>Can be restricted to find only elements with specific tags,
 see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
   <dl class="fields">
   </dl>
@@ -1451,7 +1452,7 @@ see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
   <p>Iterate over the children of this element.</p>
 <p>As opposed to using normal iteration on this element, the returned
 elements can be reversed with the 'reversed' keyword and restricted
-to find only elements with a specific tag, see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
+to find only elements with specific tags, see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1475,7 +1476,7 @@ to find only elements with a specific tag, see <a href="lxml.etree._Element-clas
   <p>Iterate over the descendants of this element in document order.</p>
 <p>As opposed to <tt class="rst-docutils literal">el.iter()</tt>, this iterator does not yield the element
 itself.  The returned elements can be restricted to find only elements
-with a specific tag, see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
+with specific tags, see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1527,7 +1528,7 @@ defaults to False, i.e. forward iteration over the following
 siblings.  When True, the iterator yields the preceding
 siblings in reverse document order, i.e. starting right before
 the current element and going backwards.</p>
-<p>Can be restricted to find only elements with a specific tag,
+<p>Can be restricted to find only elements with specific tags,
 see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
   <dl class="fields">
   </dl>
@@ -1551,7 +1552,7 @@ see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
   </tr></table>
   
   <p>Iterates over the text content of a subtree.</p>
-<p>You can pass a tag name to restrict text content to specific elements,
+<p>You can pass tag names to restrict text content to specific elements,
 see <a href="lxml.etree._Element-class.html#iter" class="link">iter</a>.</p>
 <p>You can set the <tt class="rst-docutils literal">with_tail</tt> keyword argument to <tt class="rst-docutils literal">False</tt> to skip
 over tail text.</p>
@@ -1642,7 +1643,7 @@ parents.</p>
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Fri Dec 23 19:00:53 2016
+    on Thu Feb 28 20:36:14 2019
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -2,20 +2,25 @@
 
 """
 Tests for the incremental XML serialisation API.
-
-Tests require Python 2.5 or later.
 """
 
-from __future__ import with_statement
+from __future__ import absolute_import
 
+import io
+import os
+import sys
 import unittest
-import tempfile, os, sys
+import textwrap
+import tempfile
+
+from lxml.etree import LxmlSyntaxError
 
 this_dir = os.path.dirname(__file__)
 if this_dir not in sys.path:
     sys.path.insert(0, this_dir) # needed for Py3
 
-from common_imports import etree, BytesIO, HelperTestCase, skipIf
+from .common_imports import etree, BytesIO, HelperTestCase, skipIf, _str
+
 
 class _XmlFileTestCaseBase(HelperTestCase):
     _file = None  # to be set by specific subtypes below
@@ -31,6 +36,15 @@ class _XmlFileTestCaseBase(HelperTestCase):
             with xf.element('test'):
                 xf.write('toast')
         self.assertXml('<test>toast</test>')
+
+    def test_element_write_empty(self):
+        with etree.xmlfile(self._file) as xf:
+            with xf.element('test'):
+                xf.write(None)
+                xf.write('')
+                xf.write('')
+                xf.write(None)
+        self.assertXml('<test></test>')
 
     def test_element_nested(self):
         with etree.xmlfile(self._file) as xf:
@@ -68,7 +82,7 @@ class _XmlFileTestCaseBase(HelperTestCase):
         tree = self._parse_file()
         self.assertTrue(tree is not None)
         self.assertEqual(100, len(tree.getroot()))
-        self.assertEqual(set(['test']), set(el.tag for el in tree.getroot()))
+        self.assertEqual({'test'}, {el.tag for el in tree.getroot()})
 
     def test_namespace_nsmap(self):
         with etree.xmlfile(self._file) as xf:
@@ -195,6 +209,37 @@ class _XmlFileTestCaseBase(HelperTestCase):
             self.assertXml("<test>toast<taste>")
         self.assertXml("<test>toast<taste></taste></test>")
 
+    def test_non_io_exception_continues_closing(self):
+        try:
+            with etree.xmlfile(self._file) as xf:
+                with xf.element('root'):
+                    with xf.element('test'):
+                        xf.write("BEFORE")
+                        raise TypeError("FAIL!")
+                    xf.write("AFTER")
+        except TypeError as exc:
+            self.assertTrue("FAIL" in str(exc), exc)
+        else:
+            self.assertTrue(False, "exception not propagated")
+        self.assertXml("<root><test>BEFORE</test></root>")
+
+    def test_generator_close_continues_closing(self):
+        def gen():
+            with etree.xmlfile(self._file) as xf:
+                with xf.element('root'):
+                    while True:
+                        content = (yield)
+                        with xf.element('entry'):
+                            xf.write(content)
+
+        g = gen()
+        next(g)
+        g.send('A')
+        g.send('B')
+        g.send('C')
+        g.close()
+        self.assertXml("<root><entry>A</entry><entry>B</entry><entry>C</entry></root>")
+
     def test_failure_preceding_text(self):
         try:
             with etree.xmlfile(self._file) as xf:
@@ -285,6 +330,7 @@ class TempXmlFileTestCase(_XmlFileTestCaseBase):
         self._file = tempfile.TemporaryFile()
 
 
+@skipIf(sys.platform.startswith("win"), "Can't reopen temporary files on Windows")
 class TempPathXmlFileTestCase(_XmlFileTestCaseBase):
     def setUp(self):
         self._tmpfile = tempfile.NamedTemporaryFile()
@@ -356,6 +402,37 @@ class SimpleFileLikeXmlFileTestCase(_XmlFileTestCaseBase):
         self.assertTrue(self._file.closed)
         self._file = None  # prevent closing in tearDown()
 
+    def test_write_fails(self):
+        class WriteError(Exception):
+            pass
+
+        class Writer(object):
+            def __init__(self, trigger):
+                self._trigger = trigger
+                self._failed = False
+
+            def write(self, data):
+                assert not self._failed, "write() called again after failure"
+                if self._trigger in data:
+                    self._failed = True
+                    raise WriteError("FAILED: " + self._trigger.decode('utf8'))
+
+        for trigger in ['text', 'root', 'tag', 'noflush']:
+            try:
+                with etree.xmlfile(Writer(trigger.encode('utf8')), encoding='utf8') as xf:
+                    with xf.element('root'):
+                        xf.flush()
+                        with xf.element('tag'):
+                            xf.write('text')
+                            xf.flush()
+                            xf.write('noflush')
+                        xf.flush()
+                    xf.flush()
+            except WriteError as exc:
+                self.assertTrue('FAILED: ' + trigger in str(exc))
+            else:
+                self.assertTrue(False, "exception not raised for '%s'" % trigger)
+
 
 class HtmlFileTestCase(_XmlFileTestCaseBase):
     def setUp(self):
@@ -363,11 +440,9 @@ class HtmlFileTestCase(_XmlFileTestCaseBase):
 
     def test_void_elements(self):
         # http://www.w3.org/TR/html5/syntax.html#elements-0
-        void_elements = set([
-            "area", "base", "br", "col", "embed", "hr", "img",
-            "input", "keygen", "link", "meta", "param",
-            "source", "track", "wbr"
-        ])
+        void_elements = {
+            "area", "base", "br", "col", "embed", "hr", "img", "input",
+            "keygen", "link", "meta", "param", "source", "track", "wbr"}
 
         # FIXME: These don't get serialized as void elements.
         void_elements.difference_update([
@@ -380,8 +455,29 @@ class HtmlFileTestCase(_XmlFileTestCaseBase):
             self.assertXml('<%s>' % tag)
             self._file = BytesIO()
 
+    def test_method_context_manager_misuse(self):
+        with etree.htmlfile(self._file) as xf:
+            with xf.element('foo'):
+                cm = xf.method('xml')
+                cm.__enter__()
+
+                self.assertRaises(LxmlSyntaxError, cm.__enter__)
+
+                cm2 = xf.method('xml')
+                cm2.__enter__()
+                cm2.__exit__(None, None, None)
+
+                self.assertRaises(LxmlSyntaxError, cm2.__exit__, None, None, None)
+
+                cm3 = xf.method('xml')
+                cm3.__enter__()
+                with xf.method('html'):
+                    self.assertRaises(LxmlSyntaxError, cm3.__exit__, None, None, None)
+
     def test_xml_mode_write_inside_html(self):
-        elt = etree.Element("foo", attrib={'selected': 'bar'})
+        tag = 'foo'
+        attrib = {'selected': 'bar'}
+        elt = etree.Element(tag, attrib=attrib)
 
         with etree.htmlfile(self._file) as xf:
             with xf.element("root"):
@@ -393,11 +489,22 @@ class HtmlFileTestCase(_XmlFileTestCaseBase):
                 elt.text = ""
                 xf.write(elt, method='xml')  # 3
 
+                with xf.element(tag, attrib=attrib, method='xml'):
+                    pass # 4
+
+                xf.write(elt)  # 5
+
+                with xf.method('xml'):
+                    xf.write(elt)  # 6
+
         self.assertXml(
             '<root>'
                 '<foo selected></foo>'  # 1
                 '<foo selected="bar"/>'  # 2
                 '<foo selected="bar"></foo>'  # 3
+                '<foo selected="bar"></foo>'  # 4
+                '<foo selected></foo>'  # 5
+                '<foo selected="bar"></foo>'  # 6
             '</root>')
         self._file = BytesIO()
 
@@ -417,6 +524,34 @@ class HtmlFileTestCase(_XmlFileTestCaseBase):
               '<foo selected="bar"></foo>'
             '</root>')
         self._file = BytesIO()
+
+    def test_attribute_quoting(self):
+        with etree.htmlfile(self._file) as xf:
+            with xf.element("tagname", attrib={"attr": '"misquoted"'}):
+                xf.write("foo")
+
+        self.assertXml('<tagname attr="&quot;misquoted&quot;">foo</tagname>')
+
+    def test_attribute_quoting_unicode(self):
+        with etree.htmlfile(self._file) as xf:
+            with xf.element("tagname", attrib={"attr": _str('"misquöted\\u3344\\U00013344"')}):
+                xf.write("foo")
+
+        self.assertXml('<tagname attr="&quot;misqu&#xF6;ted&#x3344;&#x13344;&quot;">foo</tagname>')
+
+    def test_unescaped_script(self):
+        with etree.htmlfile(self._file) as xf:
+            elt = etree.Element('script')
+            elt.text = "if (a < b);"
+            xf.write(elt)
+        self.assertXml('<script>if (a < b);</script>')
+
+    def test_unescaped_script_incremental(self):
+        with etree.htmlfile(self._file) as xf:
+            with xf.element('script'):
+                xf.write("if (a < b);")
+
+        self.assertXml('<script>if (a < b);</script>')
 
     def test_write_declaration(self):
         with etree.htmlfile(self._file) as xf:
@@ -440,15 +575,104 @@ class HtmlFileTestCase(_XmlFileTestCaseBase):
         self.assertXml('<ns0:some_tag xmlns:ns0="some_ns"></ns0:some_tag>')
 
 
+class AsyncXmlFileTestCase(HelperTestCase):
+    def test_async_api(self):
+        out = io.BytesIO()
+        xf = etree.xmlfile(out)
+        scm = xf.__enter__()
+        acm = xf.__aenter__()
+        list(acm.__await__())  # fake await to avoid destructor warning
+
+        def api_of(obj):
+            return sorted(name for name in dir(scm) if not name.startswith('__'))
+
+        a_api = api_of(acm)
+
+        self.assertEqual(api_of(scm), api_of(acm))
+        self.assertTrue('write' in a_api)
+        self.assertTrue('element' in a_api)
+        self.assertTrue('method' in a_api)
+        self.assertTrue(len(a_api) > 5)
+
+    def _run_async(self, coro):
+        while True:
+            try:
+                coro.send(None)
+            except StopIteration as ex:
+                return ex.value
+
+    @skipIf(sys.version_info < (3, 5), "requires support for async-def (Py3.5+)")
+    def test_async(self):
+        code = textwrap.dedent("""\
+        async def test_async_xmlfile(close=True, buffered=True):
+            class Writer(object):
+                def __init__(self):
+                    self._data = []
+                    self._all_data = None
+                    self._calls = 0
+
+                async def write(self, data):
+                    self._calls += 1
+                    self._data.append(data)
+
+                async def close(self):
+                    assert self._all_data is None
+                    assert self._data is not None
+                    self._all_data = b''.join(self._data)
+                    self._data = None  # make writing fail afterwards
+
+            async def generate(out, close=True, buffered=True):
+                async with etree.xmlfile(out, close=close, buffered=buffered) as xf:
+                    async with xf.element('root'):
+                        await xf.write('root-text')
+                        async with xf.method('html'):
+                            await xf.write(etree.Element('img', src='http://huhu.org/'))
+                        await xf.flush()
+                        for i in range(3):
+                            async with xf.element('el'):
+                                await xf.write('text-%d' % i)
+
+            out = Writer()
+            await generate(out, close=close, buffered=buffered)
+            if not close:
+                await out.close()
+            assert out._data is None, out._data
+            return out._all_data, out._calls
+        """)
+        lns = {}
+        exec(code, globals(), lns)
+        test_async_xmlfile = lns['test_async_xmlfile']
+
+        expected = (
+            b'<root>root-text<img src="http://huhu.org/">'
+            b'<el>text-0</el><el>text-1</el><el>text-2</el></root>'
+        )
+
+        data, calls = self._run_async(test_async_xmlfile(close=True))
+        self.assertEqual(expected, data)
+        self.assertEqual(2, calls)  # only flush() and close()
+
+        data, calls = self._run_async(test_async_xmlfile(close=False))
+        self.assertEqual(expected, data)
+        self.assertEqual(2, calls)  # only flush() and close()
+
+        data, unbuffered_calls = self._run_async(test_async_xmlfile(buffered=False))
+        self.assertEqual(expected, data)
+        self.assertTrue(unbuffered_calls > calls, unbuffered_calls)
+
+
 def test_suite():
     suite = unittest.TestSuite()
-    suite.addTests([unittest.makeSuite(BytesIOXmlFileTestCase),
-                    unittest.makeSuite(TempXmlFileTestCase),
-                    unittest.makeSuite(TempPathXmlFileTestCase),
-                    unittest.makeSuite(SimpleFileLikeXmlFileTestCase),
-                    unittest.makeSuite(HtmlFileTestCase),
-                    ])
+    suite.addTests([
+        unittest.makeSuite(BytesIOXmlFileTestCase),
+        unittest.makeSuite(TempXmlFileTestCase),
+        unittest.makeSuite(TempPathXmlFileTestCase),
+        unittest.makeSuite(SimpleFileLikeXmlFileTestCase),
+        unittest.makeSuite(HtmlFileTestCase),
+        unittest.makeSuite(AsyncXmlFileTestCase),
+    ])
     return suite
+
 
 if __name__ == '__main__':
     print('to test use test.py %s' % __file__)

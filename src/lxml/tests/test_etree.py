@@ -20,11 +20,12 @@ import tempfile
 import textwrap
 import zlib
 import gzip
+from contextlib import closing, contextmanager
 
 from .common_imports import etree, StringIO, BytesIO, HelperTestCase
 from .common_imports import fileInTestDir, fileUrlInTestDir, read_file, path2url
 from .common_imports import SillyFileLike, LargeFileLikeUnicode, doctest, make_doctest
-from .common_imports import canonicalize, sorted, _str, _bytes
+from .common_imports import canonicalize, _str, _bytes
 
 print("")
 print("TESTED VERSION: %s" % etree.__version__)
@@ -41,6 +42,16 @@ try:
 except NameError:
     # Python 3
     _unicode = str
+
+
+@contextmanager
+def tmpfile():
+    handle, filename = tempfile.mkstemp()
+    try:
+        yield filename
+    finally:
+        os.close(handle)
+        os.remove(filename)
 
 
 class ETreeOnlyTestCase(HelperTestCase):
@@ -168,7 +179,16 @@ class ETreeOnlyTestCase(HelperTestCase):
     def test_qname_empty(self):
         QName = self.etree.QName
         self.assertRaises(ValueError, QName, '')
+        self.assertRaises(ValueError, QName, None)
+        self.assertRaises(ValueError, QName, None, None)
         self.assertRaises(ValueError, QName, 'test', '')
+
+    def test_qname_none(self):
+        QName = self.etree.QName
+        q = QName(None, 'TAG')
+        self.assertEqual('TAG', q)
+        self.assertEqual('TAG', q.localname)
+        self.assertEqual(None, q.namespace)
 
     def test_qname_colon(self):
         QName = self.etree.QName
@@ -197,7 +217,10 @@ class ETreeOnlyTestCase(HelperTestCase):
 
         qname2 = QName(a)
         self.assertEqual(a.tag, qname1.text)
+        self.assertEqual(a.tag, qname1)
         self.assertEqual(qname1.text, qname2.text)
+        self.assertEqual(qname1, qname2.text)
+        self.assertEqual(qname1.text, qname2)
         self.assertEqual(qname1, qname2)
 
     def test_qname_text_resolve(self):
@@ -674,7 +697,7 @@ class ETreeOnlyTestCase(HelperTestCase):
 
         def name(event, el):
             if event == 'pi':
-                return (el.target, el.text)
+                return el.target, el.text
             else:
                 return el.tag
 
@@ -1165,6 +1188,40 @@ class ETreeOnlyTestCase(HelperTestCase):
              ('start', root[1]), ('end', root[1]), ('end', root)],
             events)
 
+    def test_iterwalk_start_tags(self):
+        iterwalk = self.etree.iterwalk
+        root = self.etree.XML(_bytes('<a><b></b><c/><b><d/></b></a>'))
+
+        iterator = iterwalk(root, events=('start',), tag='b')
+        events = list(iterator)
+        self.assertEqual(
+            [('start', root[0]), ('start', root[2])],
+            events)
+
+    def test_iterwalk_start_end_tags(self):
+        iterwalk = self.etree.iterwalk
+        root = self.etree.XML(_bytes('<a><b></b><c/><b><d/></b></a>'))
+
+        iterator = iterwalk(root, events=('start', 'end'), tag='b')
+        events = list(iterator)
+        self.assertEqual(
+            [('start', root[0]), ('end', root[0]), ('start', root[2]), ('end', root[2])],
+            events)
+
+    def test_iterwalk_start_end_tags_with_root(self):
+        iterwalk = self.etree.iterwalk
+        root = self.etree.XML(_bytes('<a><b></b><c/><b><d/></b></a>'))
+
+        iterator = iterwalk(root, events=('start', 'end'), tag=('b', 'a'))
+        events = list(iterator)
+        self.assertEqual(
+            [('start', root),
+             ('start', root[0]), ('end', root[0]),
+             ('start', root[2]), ('end', root[2]),
+             ('end', root),
+             ],
+            events)
+
     def test_iterwalk_clear(self):
         iterwalk = self.etree.iterwalk
         root = self.etree.XML(_bytes('<a><b></b><c/></a>'))
@@ -1200,6 +1257,71 @@ class ETreeOnlyTestCase(HelperTestCase):
         self.assertEqual(
             'value',
             root[0].get(attr_name))
+
+    def test_iterwalk_end_skip(self):
+        iterwalk = self.etree.iterwalk
+        root = self.etree.XML(_bytes('<a><b><c/></b><d><e/></d></a>'))
+
+        iterator = iterwalk(root)
+        tags = []
+        for event, elem in iterator:
+            tags.append(elem.tag)
+            # requesting a skip after an 'end' event should never have an effect
+            iterator.skip_subtree()
+
+        self.assertEqual(['c', 'b', 'e', 'd', 'a'], tags)
+
+    def test_iterwalk_start_end_skip(self):
+        iterwalk = self.etree.iterwalk
+        root = self.etree.XML(_bytes('<a><b><c/></b><d><e/></d></a>'))
+
+        iterator = iterwalk(root, events=('start', 'end'))
+        tags = []
+        for event, elem in iterator:
+            tags.append((event, elem.tag))
+            if elem.tag in ('b', 'e'):
+                # skipping should only have an effect on 'start', not on 'end'
+                iterator.skip_subtree()
+
+        self.assertEqual(
+            [('start', 'a'),
+             ('start', 'b'), ('end', 'b'),  # ignored child 'c'
+             ('start', 'd'),
+             ('start', 'e'), ('end', 'e'),
+             ('end', 'd'),
+             ('end', 'a')],
+            tags)
+
+    def test_iterwalk_ns_skip(self):
+        iterwalk = self.etree.iterwalk
+        root = self.etree.XML(_bytes(
+            '<a xmlns="ns1"><b xmlns="nsb"><c xmlns="ns2"/></b><d xmlns="ns2"><e/></d></a>'))
+
+        events = []
+        iterator = iterwalk(root, events=('start','start-ns','end-ns'))
+        for event, elem in iterator:
+            if event in ('start-ns', 'end-ns'):
+                events.append((event, elem))
+                if event == 'start-ns' and elem == ('', 'nsb'):
+                    events.append('skip')
+                    iterator.skip_subtree()
+            else:
+                events.append((event, elem.tag))
+
+        self.assertEqual(
+            [('start-ns', ('', 'ns1')),
+             ('start', '{ns1}a'),
+             ('start-ns', ('', 'nsb')),
+             'skip',
+             ('start', '{nsb}b'),
+             ('end-ns', None),
+             ('start-ns', ('', 'ns2')),
+             ('start', '{ns2}d'),
+             ('start', '{ns2}e'),
+             ('end-ns', None),
+             ('end-ns', None)
+             ],
+            events)
 
     def test_iterwalk_getiterator(self):
         iterwalk = self.etree.iterwalk
@@ -1381,42 +1503,41 @@ class ETreeOnlyTestCase(HelperTestCase):
         xml = '<!DOCTYPE doc SYSTEM "test"><doc>&myentity;</doc>'
         self.assertRaises(_LocalException, parse, BytesIO(xml), parser)
 
-    if etree.LIBXML_VERSION > (2,6,20):
-        def test_entity_parse(self):
-            parse = self.etree.parse
-            tostring = self.etree.tostring
-            parser = self.etree.XMLParser(resolve_entities=False)
-            Entity = self.etree.Entity
+    def test_entity_parse(self):
+        parse = self.etree.parse
+        tostring = self.etree.tostring
+        parser = self.etree.XMLParser(resolve_entities=False)
+        Entity = self.etree.Entity
 
-            xml = _bytes('<!DOCTYPE doc SYSTEM "test"><doc>&myentity;</doc>')
-            tree = parse(BytesIO(xml), parser)
-            root = tree.getroot()
-            self.assertEqual(root[0].tag, Entity)
-            self.assertEqual(root[0].text, "&myentity;")
-            self.assertEqual(root[0].tail, None)
-            self.assertEqual(root[0].name, "myentity")
+        xml = _bytes('<!DOCTYPE doc SYSTEM "test"><doc>&myentity;</doc>')
+        tree = parse(BytesIO(xml), parser)
+        root = tree.getroot()
+        self.assertEqual(root[0].tag, Entity)
+        self.assertEqual(root[0].text, "&myentity;")
+        self.assertEqual(root[0].tail, None)
+        self.assertEqual(root[0].name, "myentity")
 
-            self.assertEqual(_bytes('<doc>&myentity;</doc>'),
-                              tostring(root))
+        self.assertEqual(_bytes('<doc>&myentity;</doc>'),
+                          tostring(root))
 
-        def test_entity_restructure(self):
-            xml = _bytes('''<!DOCTYPE root [ <!ENTITY nbsp "&#160;"> ]>
-                <root>
-                  <child1/>
-                  <child2/>
-                  <child3>&nbsp;</child3>
-                </root>''')
+    def test_entity_restructure(self):
+        xml = _bytes('''<!DOCTYPE root [ <!ENTITY nbsp "&#160;"> ]>
+            <root>
+              <child1/>
+              <child2/>
+              <child3>&nbsp;</child3>
+            </root>''')
 
-            parser = self.etree.XMLParser(resolve_entities=False)
-            root = etree.fromstring(xml, parser)
-            self.assertEqual([ el.tag for el in root ],
-                              ['child1', 'child2', 'child3'])
+        parser = self.etree.XMLParser(resolve_entities=False)
+        root = etree.fromstring(xml, parser)
+        self.assertEqual([ el.tag for el in root ],
+                          ['child1', 'child2', 'child3'])
 
-            root[0] = root[-1]
-            self.assertEqual([ el.tag for el in root ],
-                              ['child3', 'child2'])
-            self.assertEqual(root[0][0].text, '&nbsp;')
-            self.assertEqual(root[0][0].name, 'nbsp')
+        root[0] = root[-1]
+        self.assertEqual([ el.tag for el in root ],
+                          ['child3', 'child2'])
+        self.assertEqual(root[0][0].text, '&nbsp;')
+        self.assertEqual(root[0][0].name, 'nbsp')
 
     def test_entity_append(self):
         Entity = self.etree.Entity
@@ -1433,6 +1554,24 @@ class ETreeOnlyTestCase(HelperTestCase):
 
         self.assertEqual(_bytes('<root>&test;</root>'),
                           tostring(root))
+
+    def test_entity_append_parsed(self):
+        Entity = self.etree.Entity
+        Element = self.etree.Element
+        parser = self.etree.XMLParser(resolve_entities=False)
+        entity = self.etree.XML('''<!DOCTYPE data [
+        <!ENTITY a "a">
+        <!ENTITY b "&a;">
+        ]>
+        <data>&b;</data>
+        ''', parser)
+
+        el = Element('test')
+        el.append(entity)
+        self.assertEqual(el.tag, 'test')
+        self.assertEqual(el[0].tag, 'data')
+        self.assertEqual(el[0][0].tag, Entity)
+        self.assertEqual(el[0][0].name, 'b')
 
     def test_entity_values(self):
         Entity = self.etree.Entity
@@ -3041,7 +3180,7 @@ class ETreeOnlyTestCase(HelperTestCase):
         nsmap = {'xx': 'X'}
         self.assertEqual(len(root.findall(".//xx:b", namespaces=nsmap)), 2)
         nsmap = {'xx': 'X', None: 'Y'}
-        self.assertRaises(ValueError, root.findall, ".//xx:b", namespaces=nsmap)
+        self.assertEqual(len(root.findall(".//b", namespaces=nsmap)), 1)
         nsmap = {'xx': 'X', '': 'Y'}
         self.assertRaises(ValueError, root.findall, ".//xx:b", namespaces=nsmap)
 
@@ -4062,39 +4201,25 @@ class ETreeC14NTestCase(HelperTestCase):
         tree = self.parse(_bytes('<a>'+'<b/>'*200+'</a>'))
         f = BytesIO()
         tree.write_c14n(f, compression=9)
-        gzfile = gzip.GzipFile(fileobj=BytesIO(f.getvalue()))
-        try:
+        with closing(gzip.GzipFile(fileobj=BytesIO(f.getvalue()))) as gzfile:
             s = gzfile.read()
-        finally:
-            gzfile.close()
         self.assertEqual(_bytes('<a>'+'<b></b>'*200+'</a>'),
                           s)
 
     def test_c14n_file(self):
         tree = self.parse(_bytes('<a><b/></a>'))
-        handle, filename = tempfile.mkstemp()
-        try:
+        with tmpfile() as filename:
             tree.write_c14n(filename)
             data = read_file(filename, 'rb')
-        finally:
-            os.close(handle)
-            os.remove(filename)
         self.assertEqual(_bytes('<a><b></b></a>'),
                           data)
 
     def test_c14n_file_gzip(self):
         tree = self.parse(_bytes('<a>'+'<b/>'*200+'</a>'))
-        handle, filename = tempfile.mkstemp()
-        try:
+        with tmpfile() as filename:
             tree.write_c14n(filename, compression=9)
-            f = gzip.open(filename, 'rb')
-            try:
+            with closing(gzip.open(filename, 'rb')) as f:
                 data = f.read()
-            finally:
-                f.close()
-        finally:
-            os.close(handle)
-            os.remove(filename)
         self.assertEqual(_bytes('<a>'+'<b></b>'*200+'</a>'),
                           data)
 
@@ -4225,16 +4350,30 @@ class ETreeWriteTestCase(HelperTestCase):
         self.assertEqual(_bytes('<a><b/></a>'),
                           s)
 
+    def test_write_doctype(self):
+        tree = self.parse(_bytes('<a><b/></a>'))
+        f = BytesIO()
+        tree.write(f, doctype='HUHU')
+        s = f.getvalue()
+        self.assertEqual(_bytes('HUHU\n<a><b/></a>'),
+                          s)
+
     def test_write_gzip(self):
         tree = self.parse(_bytes('<a>'+'<b/>'*200+'</a>'))
         f = BytesIO()
         tree.write(f, compression=9)
-        gzfile = gzip.GzipFile(fileobj=BytesIO(f.getvalue()))
-        try:
+        with closing(gzip.GzipFile(fileobj=BytesIO(f.getvalue()))) as gzfile:
             s = gzfile.read()
-        finally:
-            gzfile.close()
         self.assertEqual(_bytes('<a>'+'<b/>'*200+'</a>'),
+                          s)
+
+    def test_write_gzip_doctype(self):
+        tree = self.parse(_bytes('<a>'+'<b/>'*200+'</a>'))
+        f = BytesIO()
+        tree.write(f, compression=9, doctype='<!DOCTYPE a>')
+        with closing(gzip.GzipFile(fileobj=BytesIO(f.getvalue()))) as gzfile:
+            s = gzfile.read()
+        self.assertEqual(_bytes('<!DOCTYPE a>\n<a>'+'<b/>'*200+'</a>'),
                           s)
 
     def test_write_gzip_level(self):
@@ -4251,21 +4390,15 @@ class ETreeWriteTestCase(HelperTestCase):
         tree.write(f, compression=1)
         s = f.getvalue()
         self.assertTrue(len(s) <= len(s0))
-        gzfile = gzip.GzipFile(fileobj=BytesIO(s))
-        try:
+        with closing(gzip.GzipFile(fileobj=BytesIO(s))) as gzfile:
             s1 = gzfile.read()
-        finally:
-            gzfile.close()
 
         f = BytesIO()
         tree.write(f, compression=9)
         s = f.getvalue()
         self.assertTrue(len(s) <= len(s0))
-        gzfile = gzip.GzipFile(fileobj=BytesIO(s))
-        try:
+        with closing(gzip.GzipFile(fileobj=BytesIO(s))) as gzfile:
             s9 = gzfile.read()
-        finally:
-            gzfile.close()
 
         self.assertEqual(_bytes('<a>'+'<b/>'*200+'</a>'),
                           s0)
@@ -4276,56 +4409,38 @@ class ETreeWriteTestCase(HelperTestCase):
 
     def test_write_file(self):
         tree = self.parse(_bytes('<a><b/></a>'))
-        handle, filename = tempfile.mkstemp()
-        try:
+        with tmpfile() as filename:
             tree.write(filename)
             data = read_file(filename, 'rb')
-        finally:
-            os.close(handle)
-            os.remove(filename)
         self.assertEqual(_bytes('<a><b/></a>'),
                           data)
 
     def test_write_file_gzip(self):
         tree = self.parse(_bytes('<a>'+'<b/>'*200+'</a>'))
-        handle, filename = tempfile.mkstemp()
-        try:
+        with tmpfile() as filename:
             tree.write(filename, compression=9)
-            f = gzip.open(filename, 'rb')
-            try:
+            with closing(gzip.open(filename, 'rb')) as f:
                 data = f.read()
-            finally:
-                f.close()
-        finally:
-            os.close(handle)
-            os.remove(filename)
         self.assertEqual(_bytes('<a>'+'<b/>'*200+'</a>'),
                           data)
 
     def test_write_file_gzip_parse(self):
         tree = self.parse(_bytes('<a>'+'<b/>'*200+'</a>'))
-        handle, filename = tempfile.mkstemp()
-        try:
+        with tmpfile() as filename:
             tree.write(filename, compression=9)
             data = etree.tostring(etree.parse(filename))
-        finally:
-            os.close(handle)
-            os.remove(filename)
         self.assertEqual(_bytes('<a>'+'<b/>'*200+'</a>'),
                           data)
 
     def test_write_file_gzipfile_parse(self):
         tree = self.parse(_bytes('<a>'+'<b/>'*200+'</a>'))
-        handle, filename = tempfile.mkstemp()
-        try:
+        with tmpfile() as filename:
             tree.write(filename, compression=9)
-            data = etree.tostring(etree.parse(
-                gzip.GzipFile(filename)))
-        finally:
-            os.close(handle)
-            os.remove(filename)
+            with closing(gzip.GzipFile(filename)) as f:
+                data = etree.tostring(etree.parse(f))
         self.assertEqual(_bytes('<a>'+'<b/>'*200+'</a>'),
                           data)
+
 
 class ETreeErrorLogTest(HelperTestCase):
     etree = etree
@@ -4515,10 +4630,8 @@ def test_suite():
     suite.addTests(doctest.DocTestSuite(etree))
     suite.addTests(
         [make_doctest('../../../doc/tutorial.txt')])
-    if sys.version_info >= (2,6):
-        # now requires the 'with' statement
-        suite.addTests(
-            [make_doctest('../../../doc/api.txt')])
+    suite.addTests(
+        [make_doctest('../../../doc/api.txt')])
     suite.addTests(
         [make_doctest('../../../doc/FAQ.txt')])
     suite.addTests(
@@ -4526,6 +4639,7 @@ def test_suite():
     suite.addTests(
         [make_doctest('../../../doc/resolvers.txt')])
     return suite
+
 
 if __name__ == '__main__':
     print('to test use test.py %s' % __file__)
