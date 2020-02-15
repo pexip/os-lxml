@@ -154,6 +154,26 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="lxml.tests.test_xmlschema.ETreeXMLSchemaTestCase-class.html#test_xmlschema_error_log_path" class="summary-sig-name">test_xmlschema_error_log_path</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      We don't have a guarantee that there will always be a path
+for a _LogEntry object (or even a node for which to determina
+a path), but at least when this test was created schema validation
+errors always got a node and an XPath value.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="lxml.tests.test_xmlschema-pysrc.html#ETreeXMLSchemaTestCase.test_xmlschema_error_log_path">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="test_xmlschema_default_attributes"></a><span class="summary-sig-name">test_xmlschema_default_attributes</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="lxml.tests.test_xmlschema-pysrc.html#ETreeXMLSchemaTestCase.test_xmlschema_default_attributes">source&nbsp;code</a></span>
@@ -253,6 +273,22 @@
           <td><span class="summary-sig"><a name="test_xmlschema_iterparse"></a><span class="summary-sig-name">test_xmlschema_iterparse</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="lxml.tests.test_xmlschema-pysrc.html#ETreeXMLSchemaTestCase.test_xmlschema_iterparse">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="test_xmlschema_iterparse_incomplete"></a><span class="summary-sig-name">test_xmlschema_iterparse_incomplete</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="lxml.tests.test_xmlschema-pysrc.html#ETreeXMLSchemaTestCase.test_xmlschema_iterparse_incomplete">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -445,6 +481,7 @@
       <code>assertDictEqual</code>,
       <code>assertEqual</code>,
       <code>assertEquals</code>,
+      <code>assertFalse</code>,
       <code>assertGreater</code>,
       <code>assertGreaterEqual</code>,
       <code>assertIn</code>,
@@ -558,9 +595,6 @@
 </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="lxml.tests.common_imports.HelperTestCase-class.html">common_imports.HelperTestCase</a></code></b>:
-      <code><a href="lxml.tests.common_imports.HelperTestCase-class.html#assertFalse">assertFalse</a></code>
-      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>unittest.case.TestCase</code></b>:
       <code>longMessage</code>,
       <code>maxDiff</code>
@@ -597,6 +631,54 @@
     </td>
   </tr>
 </table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="test_xmlschema_error_log_path"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">test_xmlschema_error_log_path</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="lxml.tests.test_xmlschema-pysrc.html#ETreeXMLSchemaTestCase.test_xmlschema_error_log_path">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+We don't have a guarantee that there will always be a path
+for a _LogEntry object (or even a node for which to determina
+a path), but at least when this test was created schema validation
+errors always got a node and an XPath value. If that ever changes,
+we can modify this test to something like:
+    self.assertTrue(error_path is None or tree_path == error_path)
+That way, we can at least verify that if we did get a path value
+it wasn't bogus.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -629,7 +711,7 @@
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Fri Dec 23 19:00:53 2016
+    on Thu Feb 28 20:36:14 2019
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -47,8 +47,9 @@ working Cython installation.  You can use pip_ to install it::
 
 https://github.com/lxml/lxml/blob/master/requirements.txt
 
-lxml currently requires at least Cython 0.20, later release versions
-should work as well.
+lxml currently requires at least Cython 0.26.1, later release versions
+should work as well.  For Python 3.7 support, at least Cython 0.29 is
+required.
 
 
 Github, git and hg
@@ -60,10 +61,15 @@ developer version using::
 
   hg clone git+ssh://git@github.com/lxml/lxml.git lxml
 
+Or, using git::
+
+  git clone ssh://git@github.com/lxml/lxml.git lxml
+
 This will create a directory ``lxml`` and download the source into it,
 including the complete development history.  Don't be afraid, the
-download is fairly quick.  You can also browse the `lxml repository`_
-through the web.
+repository download is fairly quick.  You can also browse the
+`lxml repository`_ through the web or download a ZIP archive with the
+`latest master branch <https://github.com/lxml/lxml/archive/master.zip>`_.
 
 .. _Github: https://github.com/lxml/
 .. _Mercurial: http://mercurial.selenic.com/
@@ -114,6 +120,14 @@ installed in non-standard places, try passing the following option to
 setup.py to make sure the right config is found::
 
   python setup.py build --with-xslt-config=/path/to/xslt-config
+
+There are also env vars to allow overriding the config tool::
+
+  env XML2_CONFIG=/path/to/xml2-config python build
+
+You may also use ``pkg-config`` as the tools::
+
+  env XSLT_CONFIG="pkg-config libxslt" python setup.py build
 
 If this doesn't help, you may have to add the location of the header
 files to the include path like::

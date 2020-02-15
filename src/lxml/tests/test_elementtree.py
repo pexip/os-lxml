@@ -20,7 +20,7 @@ from common_imports import ElementTree, cElementTree, ET_VERSION, CET_VERSION
 from common_imports import filter_by_version, fileInTestDir, canonicalize, HelperTestCase
 from common_imports import _str, _bytes, unicode, next
 
-if cElementTree is not None and (CET_VERSION <= (1,0,7) or sys.version_info >= (3,3)):
+if cElementTree is not None and (CET_VERSION <= (1,0,7) or sys.version_info[0] >= 3):
     cElementTree = None
 
 if ElementTree is not None:
@@ -28,14 +28,6 @@ if ElementTree is not None:
 
 if cElementTree is not None:
     print("Comparing with cElementTree %s" % getattr(cElementTree, "VERSION", "?"))
-
-try:
-    reversed
-except NameError:
-    # Python 2.3
-    def reversed(seq):
-        seq = list(seq)[::-1]
-        return seq
 
 class _ETreeTestCaseBase(HelperTestCase):
     etree = None
@@ -797,12 +789,19 @@ class _ETreeTestCaseBase(HelperTestCase):
             result.append(el.tag)
         self.assertEqual([], result)
 
-    def test_iteration_crash(self):
+    def test_iteration_set_tail_empty(self):
         # this would cause a crash in the past
         fromstring = self.etree.fromstring
-        root = etree.fromstring('<html><p></p>x</html>')
+        root = fromstring('<html><p></p>x</html>')
         for elem in root:
             elem.tail = ''
+
+    def test_iteration_clear_tail(self):
+        # this would cause a crash in the past
+        fromstring = self.etree.fromstring
+        root = fromstring('<html><p></p>x</html>')
+        for elem in root:
+            elem.tail = None
 
     def test_iteration_reversed(self):
         XML = self.etree.XML
@@ -1607,6 +1606,38 @@ class _ETreeTestCaseBase(HelperTestCase):
             _bytes('<a><d></d><b></b><e></e><c></c></a>'),
             a)
 
+    def test_insert_name_interning(self):
+        # See GH#268 / LP#1773749.
+        Element = self.etree.Element
+        SubElement = self.etree.SubElement
+
+        # Use unique names to make sure they are new in the tag name dict.
+        import uuid
+        names = dict((k, 'tag-' + str(uuid.uuid4())) for k in 'abcde')
+
+        a = Element(names['a'])
+        b = SubElement(a, names['b'])
+        c = SubElement(a, names['c'])
+        d = Element(names['d'])
+        a.insert(0, d)
+
+        self.assertEqual(
+            d,
+            a[0])
+
+        self.assertXML(
+            _bytes('<%(a)s><%(d)s></%(d)s><%(b)s></%(b)s><%(c)s></%(c)s></%(a)s>' % names),
+            a)
+
+        e = Element(names['e'])
+        a.insert(2, e)
+        self.assertEqual(
+            e,
+            a[2])
+        self.assertXML(
+            _bytes('<%(a)s><%(d)s></%(d)s><%(b)s></%(b)s><%(e)s></%(e)s><%(c)s></%(c)s></%(a)s>' % names),
+            a)
+
     def test_insert_beyond_index(self):
         Element = self.etree.Element
         SubElement = self.etree.SubElement
@@ -1711,7 +1742,21 @@ class _ETreeTestCaseBase(HelperTestCase):
             a)
         self.assertEqual('b2', b.tail)
 
-    def _test_getchildren(self):
+    def test_remove_while_iterating(self):
+        # There is no guarantee that this "works", but it should
+        # remove at least one child and not crash.
+        Element = self.etree.Element
+        SubElement = self.etree.SubElement
+
+        a = Element('a')
+        SubElement(a, 'b')
+        SubElement(a, 'c')
+        SubElement(a, 'd')
+        for el in a:
+            a.remove(el)
+        self.assertLess(len(a), 3)
+
+    def test_getchildren(self):
         Element = self.etree.Element
         SubElement = self.etree.SubElement
 
@@ -1759,6 +1804,34 @@ class _ETreeTestCaseBase(HelperTestCase):
         self.assertEqual(
             [d],
             list(d.iter()))
+
+    def test_iter_remove_tail(self):
+        Element = self.etree.Element
+        SubElement = self.etree.SubElement
+
+        a = Element('a')
+        a.text = 'a'
+        a.tail = 'a1' * 100
+        b = SubElement(a, 'b')
+        b.text = 'b'
+        b.tail = 'b1' * 100
+        c = SubElement(a, 'c')
+        c.text = 'c'
+        c.tail = 'c1' * 100
+        d = SubElement(b, 'd')
+        d.text = 'd'
+        d.tail = 'd1' * 100
+        e = SubElement(c, 'e')
+        e.text = 'e'
+        e.tail = 'e1' * 100
+
+        for el in a.iter():
+            el.tail = None
+        el = None
+
+        self.assertEqual(
+            [None] * 5,
+            [el.tail for el in a.iter()])
 
     def test_getiterator(self):
         Element = self.etree.Element
@@ -1895,8 +1968,8 @@ class _ETreeTestCaseBase(HelperTestCase):
         c.text = 'c'
         c.tail = 'c1'
         d = SubElement(b, 'd')
-        c.text = 'd'
-        c.tail = 'd1'
+        d.text = 'd'
+        d.tail = 'd1'
         e = SubElement(c, 'e')
         e.text = 'e'
         e.tail = 'e1'
@@ -1921,8 +1994,8 @@ class _ETreeTestCaseBase(HelperTestCase):
         c.text = 'c'
         c.tail = 'c1'
         d = SubElement(b, 'd')
-        c.text = 'd'
-        c.tail = 'd1'
+        d.text = 'd'
+        d.tail = 'd1'
         e = SubElement(c, 'e')
         e.text = 'e'
         e.tail = 'e1'
@@ -2794,6 +2867,17 @@ class _ETreeTestCaseBase(HelperTestCase):
         self.assertEqual(
             [('end', root[0]), ('end', root[1]), ('end', root)],
             events)
+
+    def test_iterparse_incomplete(self):
+        iterparse = self.etree.iterparse
+        f = BytesIO('<a><b></b><c/></a>')
+
+        iterator = iterparse(f)
+        self.assertEqual(None,
+                          iterator.root)
+        event, element = next(iter(iterator))
+        self.assertEqual('end', event)
+        self.assertEqual('b', element.tag)
 
     def test_iterparse_file(self):
         iterparse = self.etree.iterparse
@@ -3894,9 +3978,9 @@ class _ETreeTestCaseBase(HelperTestCase):
         self.assertTrue(hasattr(element, 'tail'))
         self._check_string(element.tag)
         self._check_mapping(element.attrib)
-        if element.text != None:
+        if element.text is not None:
             self._check_string(element.text)
-        if element.tail != None:
+        if element.tail is not None:
             self._check_string(element.tail)
         
     def _check_string(self, string):
@@ -4066,7 +4150,7 @@ class _XMLPullParserTest(unittest.TestCase):
 
     def test_events_sequence(self):
         # Test that events can be some sequence that's not just a tuple or list
-        eventset = set(['end', 'start'])
+        eventset = {'end', 'start'}
         parser = self.etree.XMLPullParser(events=eventset)
         self._feed(parser, "<foo>bar</foo>")
         self.assert_event_tags(parser, [('start', 'foo'), ('end', 'foo')])
@@ -4111,7 +4195,7 @@ if ElementTree:
             # ElementTree warns about getiterator() in recent Pythons
             warnings.filterwarnings(
                 'ignore',
-                'This method will be removed.*\.iter\(\).*instead',
+                r'This method will be removed.*\.iter\(\).*instead',
                 PendingDeprecationWarning)
 
     filter_by_version(

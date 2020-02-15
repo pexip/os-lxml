@@ -109,6 +109,9 @@
     <li> <strong class="uidlink"><a href="lxml.sax.ElementTreeContentHandler-class.html">lxml.sax.ElementTreeContentHandler</a></strong>:
       <em class="summary">Build an lxml ElementTree from SAX events.</em>
     </li>
+    <li> <strong class="uidlink"><a href="lxml.tests.test_sax.SimpleContentHandler-class.html">lxml.tests.test_sax.SimpleContentHandler</a></strong>:
+      <em class="summary">A SAX content handler that just stores the events</em>
+    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="lxml.html.diff.DEL_END-class.html" onclick="show_private();">lxml.html.diff.DEL_END</a></strong>
@@ -266,6 +269,11 @@ this one.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.etree.SerialisationError-class.html">lxml.etree.SerialisationError</a></strong>:
       <em class="summary">A libxml2 error that occurred during serialisation.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="lxml.etree.XSLTSaveError-class.html">lxml.etree.XSLTSaveError</a></strong>:
+      <em class="summary">Error serialising an XSLT result.</em>
+    </li>
+    </ul>
     </li>
     <li> <strong class="uidlink"><a href="lxml.etree.XIncludeError-class.html">lxml.etree.XIncludeError</a></strong>:
       <em class="summary">Error during XInclude processing.</em>
@@ -596,14 +604,14 @@ get/set the value with <tt class="rst-docutils literal">.value</tt></em>
       <em class="summary">Mix-in for all input elements (input, select, and textarea)</em>
     <ul>
     <li> <strong class="uidlink"><a href="lxml.html.InputElement-class.html">lxml.html.InputElement</a></strong>:
-      <em class="summary">Represents an <tt class="rst-rst-docutils literal rst-docutils literal">&lt;input&gt;</tt> element.</em>
+      <em class="summary">Represents an <tt class="rst-docutils literal">&lt;input&gt;</tt> element.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.html.SelectElement-class.html">lxml.html.SelectElement</a></strong>:
-      <em class="summary"><tt class="rst-rst-docutils literal rst-docutils literal">&lt;select&gt;</tt> element.  You can get the name with <tt class="rst-rst-docutils literal rst-docutils literal">.name</tt>.</em>
+      <em class="summary"><tt class="rst-docutils literal">&lt;select&gt;</tt> element.  You can get the name with <tt class="rst-docutils literal">.name</tt>.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.html.TextareaElement-class.html">lxml.html.TextareaElement</a></strong>:
-      <em class="summary"><tt class="rst-rst-docutils literal rst-docutils literal">&lt;textarea&gt;</tt> element.  You can get the name with <tt class="rst-rst-docutils literal rst-docutils literal">.name</tt> and
-get/set the value with <tt class="rst-rst-docutils literal rst-docutils literal">.value</tt></em>
+      <em class="summary"><tt class="rst-docutils literal">&lt;textarea&gt;</tt> element.  You can get the name with <tt class="rst-docutils literal">.name</tt> and
+get/set the value with <tt class="rst-docutils literal">.value</tt></em>
     </li>
     </ul>
     </li>
@@ -641,7 +649,7 @@ Usage:</em>
 checkboxes with the same name.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.html.MultipleSelectOptions-class.html">lxml.html.MultipleSelectOptions</a></strong>:
-      <em class="summary">Represents all the selected options in a <tt class="rst-rst-docutils literal rst-docutils literal">&lt;select multiple&gt;</tt> element.</em>
+      <em class="summary">Represents all the selected options in a <tt class="rst-docutils literal">&lt;select multiple&gt;</tt> element.</em>
     </li>
     </ul>
     </li>
@@ -673,6 +681,9 @@ User defined type.</em>
     <li> <strong class="uidlink"><a href="lxml.tests.test_xmlschema.ETreeXMLSchemaResolversTestCase.simple_resolver-class.html">lxml.tests.test_xmlschema.ETreeXMLSchemaResolversTestCase.simple_resolver</a></strong>
     </li>
     </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="lxml.tests.test_sax.SimpleContentHandler-class.html">lxml.tests.test_sax.SimpleContentHandler</a></strong>:
+      <em class="summary">A SAX content handler that just stores the events</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.tests.test_incremental_xmlfile.SimpleFileLikeXmlFileTestCase.SimpleFileLike-class.html">lxml.tests.test_incremental_xmlfile.SimpleFileLikeXmlFileTestCase.SimpleFileLike</a></strong>
     </li>
@@ -710,7 +721,7 @@ Usage:</em>
 checkboxes with the same name.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.html.MultipleSelectOptions-class.html">lxml.html.MultipleSelectOptions</a></strong>:
-      <em class="summary">Represents all the selected options in a <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">&lt;select multiple&gt;</tt> element.</em>
+      <em class="summary">Represents all the selected options in a <tt class="rst-docutils literal">&lt;select multiple&gt;</tt> element.</em>
     </li>
     </ul>
     </li>
@@ -725,6 +736,8 @@ checkboxes with the same name.</em>
     <ul>
     <li> <strong class="uidlink"><a href="lxml.tests.common_imports.HelperTestCase-class.html">lxml.tests.common_imports.HelperTestCase</a></strong>
     <ul>
+    <li> <strong class="uidlink"><a href="lxml.tests.test_incremental_xmlfile.AsyncXmlFileTestCase-class.html">lxml.tests.test_incremental_xmlfile.AsyncXmlFileTestCase</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="lxml.tests.test_builder.BuilderTestCase-class.html">lxml.tests.test_builder.BuilderTestCase</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="lxml.tests.test_css.CSSTestCase-class.html">lxml.tests.test_css.CSSTestCase</a></strong>
@@ -789,10 +802,15 @@ checkboxes with the same name.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.tests.test_elementpath.EtreeElementPathTestCase-class.html">lxml.tests.test_elementpath.EtreeElementPathTestCase</a></strong>
     </li>
+    <li> <strong class="uidlink"><a href="lxml.tests.test_external_document.ExternalDocumentTestCase-class.html">lxml.tests.test_external_document.ExternalDocumentTestCase</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="lxml.tests.test_htmlparser.HtmlParserTestCase-class.html">lxml.tests.test_htmlparser.HtmlParserTestCase</a></strong>:
       <em class="summary">HTML parser test cases</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.tests.test_http_io.HttpIOTestCase-class.html">lxml.tests.test_http_io.HttpIOTestCase</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="lxml.tests.test_sax.NSPrefixSaxTestCase-class.html">lxml.tests.test_sax.NSPrefixSaxTestCase</a></strong>:
+      <em class="summary">Testing that namespaces generate the right SAX events</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.tests.test_objectify.ObjectifyTestCase-class.html">lxml.tests.test_objectify.ObjectifyTestCase</a></strong>:
       <em class="summary">Test cases for lxml.objectify</em>
@@ -915,7 +933,7 @@ A global error log that connects to the Python stdlib logging package.</em>
     <li> <strong class="uidlink"><a href="lxml.etree._FeedParser-class.html" onclick="show_private();">lxml.etree._FeedParser</a></strong>
     <ul>
     <li> <strong class="uidlink"><a href="lxml.etree.HTMLParser-class.html">lxml.etree.HTMLParser</a></strong>:
-      <em class="summary">HTMLParser(self, encoding=None, remove_blank_text=False,                    remove_comments=False, remove_pis=False, strip_cdata=True,                    no_network=True, target=None, schema: XMLSchema =None,                    recover=True, compact=True, collect_ids=True)</em>
+      <em class="summary">HTMLParser(self, encoding=None, remove_blank_text=False,                    remove_comments=False, remove_pis=False, strip_cdata=True,                    no_network=True, target=None, schema: XMLSchema =None,                    recover=True, compact=True, collect_ids=True, huge_tree=False)</em>
     <ul>
     <li> <strong class="uidlink"><a href="lxml.html.HTMLParser-class.html">lxml.html.HTMLParser</a></strong>:
       <em class="summary">An HTML parser that is configured to return lxml.html Element
@@ -927,7 +945,7 @@ objects.</em>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="lxml.etree.XMLParser-class.html">lxml.etree.XMLParser</a></strong>:
-      <em class="summary">XMLParser(self, encoding=None, attribute_defaults=False, dtd_validation=False, load_dtd=False, no_network=True, ns_clean=False, recover=False, schema: XMLSchema =None, remove_blank_text=False, resolve_entities=True, remove_comments=False, remove_pis=False, strip_cdata=True, collect_ids=True, target=None, compact=True)</em>
+      <em class="summary">XMLParser(self, encoding=None, attribute_defaults=False, dtd_validation=False, load_dtd=False, no_network=True, ns_clean=False, recover=False, schema: XMLSchema =None, huge_tree=False, remove_blank_text=False, resolve_entities=True, remove_comments=False, remove_pis=False, strip_cdata=True, collect_ids=True, target=None, compact=True)</em>
     <ul>
     <li> <strong class="uidlink"><a href="lxml.etree.ETCompatXMLParser-class.html">lxml.etree.ETCompatXMLParser</a></strong>:
       <em class="summary">ETCompatXMLParser(self, encoding=None, attribute_defaults=False,                  dtd_validation=False, load_dtd=False, no_network=True,                  ns_clean=False, recover=False, schema=None,                  huge_tree=False, remove_blank_text=False, resolve_entities=True,                  remove_comments=True, remove_pis=True, strip_cdata=True,                  target=None, compact=True)</em>
@@ -960,17 +978,17 @@ objects.</em>
       <em class="summary">Represents a &lt;form&gt; element.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.html.InputElement-class.html">lxml.html.InputElement</a></strong>:
-      <em class="summary">Represents an <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">&lt;input&gt;</tt> element.</em>
+      <em class="summary">Represents an <tt class="rst-docutils literal">&lt;input&gt;</tt> element.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.html.LabelElement-class.html">lxml.html.LabelElement</a></strong>:
-      <em class="summary">Represents a <tt class="rst-rst-docutils literal rst-docutils literal">&lt;label&gt;</tt> element.</em>
+      <em class="summary">Represents a <tt class="rst-docutils literal">&lt;label&gt;</tt> element.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.html.SelectElement-class.html">lxml.html.SelectElement</a></strong>:
-      <em class="summary"><tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">&lt;select&gt;</tt> element.  You can get the name with <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">.name</tt>.</em>
+      <em class="summary"><tt class="rst-docutils literal">&lt;select&gt;</tt> element.  You can get the name with <tt class="rst-docutils literal">.name</tt>.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.html.TextareaElement-class.html">lxml.html.TextareaElement</a></strong>:
-      <em class="summary"><tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">&lt;textarea&gt;</tt> element.  You can get the name with <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">.name</tt> and
-get/set the value with <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">.value</tt></em>
+      <em class="summary"><tt class="rst-docutils literal">&lt;textarea&gt;</tt> element.  You can get the name with <tt class="rst-docutils literal">.name</tt> and
+get/set the value with <tt class="rst-docutils literal">.value</tt></em>
     </li>
     </ul>
     </li>
@@ -1080,7 +1098,8 @@ Iterates over the siblings of an element.</em>
     </li>
     <li> <strong class="uidlink"><a href="lxml.etree._ElementTree-class.html" onclick="show_private();">lxml.etree._ElementTree</a></strong>
     <ul>
-    <li> <strong class="uidlink"><a href="lxml.etree._XSLTResultTree-class.html" onclick="show_private();">lxml.etree._XSLTResultTree</a></strong>
+    <li> <strong class="uidlink"><a href="lxml.etree._XSLTResultTree-class.html" onclick="show_private();">lxml.etree._XSLTResultTree</a></strong>:
+      <em class="summary">The result of an XSLT evaluation.</em>
     </li>
     </ul>
     </li>
@@ -1268,6 +1287,9 @@ that have the same name.</em>
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="lxml.tests.common_imports.skipif-class.html">lxml.tests.common_imports.skipif</a></strong>:
+      <em class="summary">Using a class because a function would bind into a method when used in classes</em>
+    </li>
     <li> <strong class="uidlink">type</strong>:
       <em class="summary">type(object) -&gt; the object's type
 type(name, bases, dict) -&gt; a new type</em>
@@ -1320,7 +1342,7 @@ type(name, bases, dict) -&gt; a new type</em>
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Fri Dec 23 19:00:53 2016
+    on Thu Feb 28 20:36:14 2019
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

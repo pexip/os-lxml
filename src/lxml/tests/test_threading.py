@@ -123,6 +123,81 @@ class ThreadingTestCase(HelperTestCase):
         self.assertEqual(_bytes('<a><b>B</b><c>C</c><foo><a>B</a></foo></a>'),
                           tostring(root))
 
+    def test_thread_xslt_parsing_error_log(self):
+        style = self.parse('''\
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:template match="tag" />
+    <!-- extend time for parsing + transform -->
+''' + '\n'.join('<xsl:template match="tag%x" />' % i for i in range(200)) + '''
+    <xsl:UnExpectedElement />
+</xsl:stylesheet>''')
+        self.assertRaises(etree.XSLTParseError,
+                          etree.XSLT, style)
+
+        error_logs = []
+
+        def run_thread():
+            try:
+                etree.XSLT(style)
+            except etree.XSLTParseError as e:
+                error_logs.append(e.error_log)
+            else:
+                self.assertFalse(True, "XSLT parsing should have failed but didn't")
+
+        self._run_threads(16, run_thread)
+
+        self.assertEqual(16, len(error_logs))
+        last_log = None
+        for log in error_logs:
+            self.assertTrue(len(log))
+            if last_log is not None:
+                self.assertEqual(len(last_log), len(log))
+            self.assertTrue(len(log) >= 2, len(log))
+            for error in log:
+                self.assertTrue(':ERROR:XSLT:' in str(error), str(error))
+            self.assertTrue(any('UnExpectedElement' in str(error) for error in log), log)
+            last_log = log
+
+    def test_thread_xslt_apply_error_log(self):
+        tree = self.parse('<tagFF/>')
+        style = self.parse('''\
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:template name="tag0">
+        <xsl:message terminate="yes">FAIL</xsl:message>
+    </xsl:template>
+    <!-- extend time for parsing + transform -->
+''' + '\n'.join('<xsl:template match="tag%X" name="tag%x"> <xsl:call-template name="tag%x" /> </xsl:template>' % (i, i, i-1)
+                for i in range(1, 256)) + '''
+</xsl:stylesheet>''')
+        self.assertRaises(etree.XSLTApplyError,
+                          etree.XSLT(style), tree)
+
+        error_logs = []
+
+        def run_thread():
+            transform = etree.XSLT(style)
+            try:
+                transform(tree)
+            except etree.XSLTApplyError:
+                error_logs.append(transform.error_log)
+            else:
+                self.assertFalse(True, "XSLT parsing should have failed but didn't")
+
+        self._run_threads(16, run_thread)
+
+        self.assertEqual(16, len(error_logs))
+        last_log = None
+        for log in error_logs:
+            self.assertTrue(len(log))
+            if last_log is not None:
+                self.assertEqual(len(last_log), len(log))
+            self.assertEqual(1, len(log))
+            for error in log:
+                self.assertTrue(':ERROR:XSLT:' in str(error))
+            last_log = log
+
     def test_thread_xslt_attr_replace(self):
         # this is the only case in XSLT where the result tree can be
         # modified in-place
@@ -179,7 +254,6 @@ class ThreadingTestCase(HelperTestCase):
 
     def test_thread_error_log(self):
         XML = self.etree.XML
-        ParseError = self.etree.ParseError
         expected_error = [self.etree.ErrorTypes.ERR_TAG_NAME_MISMATCH]
         children = "<a>test</a>" * 100
 
@@ -440,7 +514,7 @@ class ThreadPipelineTestCase(HelperTestCase):
             last = worker_class(last.out_queue, item_count, **kwargs)
             last.setDaemon(True)
             last.start()
-        return (in_queue, start, last)
+        return in_queue, start, last
 
     def test_thread_pipeline_thread_parse(self):
         item_count = self.item_count

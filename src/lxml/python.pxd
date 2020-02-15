@@ -29,7 +29,7 @@ cdef extern from "Python.h":
                                          char* encoding, char* errors)
     cdef cython.unicode PyUnicode_DecodeUTF8(char* s, Py_ssize_t size, char* errors)
     cdef cython.unicode PyUnicode_DecodeLatin1(char* s, Py_ssize_t size, char* errors)
-    cdef object PyUnicode_RichCompare(object o1, object o2, int op)  # not in Py2.4
+    cdef object PyUnicode_RichCompare(object o1, object o2, int op)
     cdef bytes PyUnicode_AsUTF8String(object ustring)
     cdef bytes PyUnicode_AsASCIIString(object ustring)
     cdef char* PyUnicode_AS_DATA(object ustring)
@@ -115,10 +115,11 @@ cdef extern from "pythread.h":
         WAIT_LOCK
         NOWAIT_LOCK
 
-cdef extern from "etree_defs.h": # redefines some functions as macros
+cdef extern from "includes/etree_defs.h": # redefines some functions as macros
     cdef void* lxml_malloc(size_t count, size_t item_size)
     cdef void* lxml_realloc(void* mem, size_t count, size_t item_size)
     cdef void lxml_free(void* mem)
+    cdef void* lxml_unpack_xmldoc_capsule(object capsule, bint* is_owned) except? NULL
     cdef bint _isString(object obj)
     cdef const_char* _fqtypename(object t)
     cdef object PY_NEW(object t)

@@ -2,30 +2,27 @@
 # XSLT
 from lxml.includes cimport xslt
 
-class XSLTError(LxmlError):
-    u"""Base class of all XSLT errors.
-    """
-    pass
 
-class XSLTParseError(XSLTError):
-    u"""Error parsing a stylesheet document.
+cdef class XSLTError(LxmlError):
+    """Base class of all XSLT errors.
     """
-    pass
 
-class XSLTApplyError(XSLTError):
-    u"""Error running an XSL transformation.
+cdef class XSLTParseError(XSLTError):
+    """Error parsing a stylesheet document.
     """
-    pass
 
-class XSLTSaveError(XSLTError):
-    u"""Error serialising an XSLT result.
+cdef class XSLTApplyError(XSLTError):
+    """Error running an XSL transformation.
     """
-    pass
 
-class XSLTExtensionError(XSLTError):
-    u"""Error registering an XSLT extension.
+class XSLTSaveError(XSLTError, SerialisationError):
+    """Error serialising an XSLT result.
     """
-    pass
+
+cdef class XSLTExtensionError(XSLTError):
+    """Error registering an XSLT extension.
+    """
+
 
 # version information
 LIBXSLT_COMPILED_VERSION = __unpackIntVersion(xslt.LIBXSLT_VERSION)
@@ -113,10 +110,11 @@ cdef xmlDoc* _xslt_resolve_from_python(const_xmlChar* c_uri, void* c_context,
     finally:
         return c_return_doc  # and swallow any further exceptions
 
+
 cdef void _xslt_store_resolver_exception(const_xmlChar* c_uri, void* context,
                                          xslt.xsltLoadType c_type) with gil:
     try:
-        message = u"Cannot resolve URI %s" % _decodeFilename(c_uri)
+        message = f"Cannot resolve URI {_decodeFilename(c_uri)}"
         if c_type == xslt.XSLT_LOAD_DOCUMENT:
             exception = XSLTApplyError(message)
         else:
@@ -124,6 +122,9 @@ cdef void _xslt_store_resolver_exception(const_xmlChar* c_uri, void* context,
         (<_XSLTResolverContext>context)._store_exception(exception)
     except BaseException as e:
         (<_XSLTResolverContext>context)._store_exception(e)
+    finally:
+        return  # and swallow any further exceptions
+
 
 cdef xmlDoc* _xslt_doc_loader(const_xmlChar* c_uri, tree.xmlDict* c_dict,
                               int parse_options, void* c_ctxt,
@@ -225,16 +226,16 @@ cdef class XSLTAccessControl:
     cdef void _register_in_context(self, xslt.xsltTransformContext* ctxt):
         xslt.xsltSetCtxtSecurityPrefs(self._prefs, ctxt)
 
-    property options:
-        u"The access control configuration as a map of options."
-        def __get__(self):
-            return {
-                u'read_file': self._optval(xslt.XSLT_SECPREF_READ_FILE),
-                u'write_file': self._optval(xslt.XSLT_SECPREF_WRITE_FILE),
-                u'create_dir': self._optval(xslt.XSLT_SECPREF_CREATE_DIRECTORY),
-                u'read_network': self._optval(xslt.XSLT_SECPREF_READ_NETWORK),
-                u'write_network': self._optval(xslt.XSLT_SECPREF_WRITE_NETWORK),
-                }
+    @property
+    def options(self):
+        """The access control configuration as a map of options."""
+        return {
+            u'read_file': self._optval(xslt.XSLT_SECPREF_READ_FILE),
+            u'write_file': self._optval(xslt.XSLT_SECPREF_WRITE_FILE),
+            u'create_dir': self._optval(xslt.XSLT_SECPREF_CREATE_DIRECTORY),
+            u'read_network': self._optval(xslt.XSLT_SECPREF_READ_NETWORK),
+            u'write_network': self._optval(xslt.XSLT_SECPREF_WRITE_NETWORK),
+        }
 
     @cython.final
     cdef _optval(self, xslt.xsltSecurityOption option):
@@ -368,7 +369,7 @@ cdef class XSLT:
 
     def __init__(self, xslt_input, *, extensions=None, regexp=True,
                  access_control=None):
-        cdef xslt.xsltStylesheet* c_style
+        cdef xslt.xsltStylesheet* c_style = NULL
         cdef xmlDoc* c_doc
         cdef _Document doc
         cdef _Element root_node
@@ -385,7 +386,7 @@ cdef class XSLT:
         # make sure we always have a stylesheet URL
         if c_doc.URL is NULL:
             doc_url_utf = python.PyUnicode_AsASCIIString(
-                u"string://__STRING__XSLT__/%d.xslt" % id(self))
+                f"string://__STRING__XSLT__/{id(self)}.xslt")
             c_doc.URL = tree.xmlStrdup(_xcstr(doc_url_utf))
 
         self._error_log = _ErrorLog()
@@ -426,10 +427,10 @@ cdef class XSLT:
         if self._c_style is not NULL:
             xslt.xsltFreeStylesheet(self._c_style)
 
-    property error_log:
-        u"The log of errors and warnings of an XSLT execution."
-        def __get__(self):
-            return self._error_log.copy()
+    @property
+    def error_log(self):
+        """The log of errors and warnings of an XSLT execution."""
+        return self._error_log.copy()
 
     @staticmethod
     def strparam(strval):
@@ -589,11 +590,11 @@ cdef class XSLT:
                 error = self._error_log.last_error
                 if error is not None and error.message:
                     if error.line > 0:
-                        message = u"%s, line %d" % (error.message, error.line)
+                        message = f"{error.message}, line {error.line}"
                     else:
                         message = error.message
                 elif error is not None and error.line > 0:
-                    message = u"Error applying stylesheet, line %d" % error.line
+                    message = f"Error applying stylesheet, line {error.line}"
                 else:
                     message = u"Error applying stylesheet"
                 raise XSLTApplyError(message, self._error_log)
@@ -631,10 +632,11 @@ cdef class XSLT:
                                        <xmlerror.xmlGenericErrorFunc>_receiveXSLTError)
         if self._access_control is not None:
             self._access_control._register_in_context(transform_ctxt)
-        with nogil:
+        with self._error_log, nogil:
             c_result = xslt.xsltApplyStylesheetUser(
                 self._c_style, c_input_doc, params, NULL, NULL, transform_ctxt)
         return c_result
+
 
 cdef _convert_xslt_parameters(xslt.xsltTransformContext* transform_ctxt,
                               dict parameters, const_char*** params_ptr):
@@ -697,15 +699,58 @@ cdef XSLT _copyXSLT(XSLT stylesheet):
 
 @cython.final
 cdef class _XSLTResultTree(_ElementTree):
+    """The result of an XSLT evaluation.
+
+    Use ``str()`` or ``bytes()`` (or ``unicode()`` in Python 2.x) to serialise to a string,
+    and the ``.write_output()`` method to write serialise to a file.
+    """
     cdef XSLT _xslt
     cdef _Document _profile
     cdef xmlChar* _buffer
     cdef Py_ssize_t _buffer_len
     cdef Py_ssize_t _buffer_refcnt
-    def __cinit__(self):
-        self._buffer = NULL
-        self._buffer_len = 0
-        self._buffer_refcnt = 0
+
+    def write_output(self, file, *, compression=0):
+        """write_output(self, file, *, compression=0)
+
+        Serialise the XSLT output to a file or file-like object.
+
+        As opposed to the generic ``.write()`` method, ``.write_output()`` serialises
+        the result as defined by the ``<xsl:output>`` tag.
+        """
+        cdef _FilelikeWriter writer = None
+        cdef _Document doc
+        cdef int r, c_compression
+        cdef const_xmlChar* c_encoding = NULL
+        cdef tree.xmlOutputBuffer* c_buffer
+
+        if self._context_node is not None:
+            doc = self._context_node._doc
+        else:
+            doc = None
+        if doc is None:
+            doc = self._doc
+            if doc is None:
+                raise XSLTSaveError("No document to serialise")
+        c_compression = compression or 0
+        if _isString(file):
+            file_path = _encodeFilename(file)
+            c_filename = _cstr(file_path)
+            with nogil:
+                r = xslt.xsltSaveResultToFilename(
+                    c_filename, doc._c_doc, self._xslt._c_style, c_compression)
+        else:
+            xslt.LXML_GET_XSLT_ENCODING(c_encoding, self._xslt._c_style)
+            writer = _create_output_buffer(file, <const_char*>c_encoding, compression, &c_buffer, close=False)
+            if writer is None:
+                with nogil:
+                    r = xslt.xsltSaveResultTo(c_buffer, doc._c_doc, self._xslt._c_style)
+            else:
+                r = xslt.xsltSaveResultTo(c_buffer, doc._c_doc, self._xslt._c_style)
+        if writer is not None:
+            writer._exc_context._raise_if_stored()
+        if r == -1:
+            python.PyErr_SetFromErrno(XSLTSaveError)  # raises
 
     cdef _saveToStringAndSize(self, xmlChar** s, int* l):
         cdef _Document doc
@@ -802,7 +847,7 @@ cdef class _XSLTResultTree(_ElementTree):
         buffer.buf = NULL
 
     property xslt_profile:
-        u"""Return an ElementTree with profiling data for the stylesheet run.
+        """Return an ElementTree with profiling data for the stylesheet run.
         """
         def __get__(self):
             cdef object root
@@ -919,7 +964,7 @@ cdef class _XSLTProcessingInstruction(PIBase):
         elif u'"' in value or u'>' in value:
             raise ValueError, u"Invalid URL, must not contain '\"' or '>'"
         else:
-            attrib = u' href="%s"' % value
+            attrib = f' href="{value}"'
         text = u' ' + self.text
         if _FIND_PI_HREF(text):
             self.text = _REPLACE_PI_HREF(attrib, text)

@@ -1,20 +1,19 @@
 # support for Schematron validation
 from lxml.includes cimport schematron
 
-class SchematronError(LxmlError):
-    u"""Base class of all Schematron errors.
-    """
-    pass
 
-class SchematronParseError(SchematronError):
-    u"""Error while parsing an XML document as Schematron schema.
+cdef class SchematronError(LxmlError):
+    """Base class of all Schematron errors.
     """
-    pass
 
-class SchematronValidateError(SchematronError):
-    u"""Error while validating an XML document with a Schematron schema.
+cdef class SchematronParseError(SchematronError):
+    """Error while parsing an XML document as Schematron schema.
     """
-    pass
+
+cdef class SchematronValidateError(SchematronError):
+    """Error while validating an XML document with a Schematron schema.
+    """
+
 
 ################################################################################
 # Schematron
@@ -79,7 +78,7 @@ cdef class Schematron(_Validator):
         cdef _Element root_node
         cdef xmlNode* c_node
         cdef char* c_href
-        cdef schematron.xmlSchematronParserCtxt* parser_ctxt
+        cdef schematron.xmlSchematronParserCtxt* parser_ctxt = NULL
         _Validator.__init__(self)
         if not config.ENABLE_SCHEMATRON:
             raise SchematronError, \

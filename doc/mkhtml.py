@@ -11,10 +11,7 @@ import shutil
 import textwrap
 import subprocess
 
-try:
-    from io import open as open_file
-except ImportError:
-    from codecs import open as open_file
+from io import open as open_file
 
 RST2HTML_OPTIONS = " ".join([
     '--no-toc-backlinks',
@@ -35,7 +32,7 @@ find_heading_tag = XPath("//h:h1[@class = 'title'][1]", namespaces=htmlnsmap)
 find_menu = XPath("//h:ul[@id=$name]", namespaces=htmlnsmap)
 find_page_end = XPath("/h:html/h:body/h:div[last()]", namespaces=htmlnsmap)
 
-find_words = re.compile('(\w+)').findall
+find_words = re.compile(r'(\w+)').findall
 replace_invalid = re.compile(r'[-_/.\s\\]').sub
 
 
@@ -269,7 +266,7 @@ def publish(dirname, lxml_path, release):
     ElementTree(sitemap).write(os.path.join(dirname, 'sitemap.html'))
 
     # integrate sitemap into the menu
-    SubElement(SubElement(menu_div[-1], 'li'), 'a', href='http://lxml.de/sitemap.html').text = 'Sitemap'
+    SubElement(SubElement(menu_div[-1], 'li'), 'a', href='/sitemap.html').text = 'Sitemap'
 
     # integrate menu into web pages
     for tree, basename, outpath in trees.itervalues():

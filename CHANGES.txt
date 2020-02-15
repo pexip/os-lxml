@@ -2,6 +2,349 @@
 lxml changelog
 ==============
 
+4.3.2 (2019-02-29)
+==================
+
+Bugs fixed
+----------
+
+* Crash in 4.3.1 when appending a child subtree with certain text nodes.
+
+Other changes
+-------------
+
+* Built with Cython 0.29.6.
+
+
+4.3.1 (2019-02-08)
+==================
+
+Bugs fixed
+----------
+
+* LP#1814522: Crash when appending a child subtree that contains unsubstituted
+  entity references.
+
+Other changes
+-------------
+
+* Built with Cython 0.29.5.
+
+
+4.3.0 (2019-01-04)
+==================
+
+Features added
+--------------
+
+* The module ``lxml.sax`` is compiled using Cython in order to speed it up.
+
+* GH#267: ``lxml.sax.ElementTreeProducer`` now preserves the namespace prefixes.
+  If two prefixes point to the same URI, the first prefix in alphabetical order
+  is used.  Patch by Lennart Regebro.
+
+* Updated ISO-Schematron implementation to 2013 version (now MIT licensed)
+  and the corresponding schema to the 2016 version (with optional "properties").
+
+Other changes
+-------------
+
+* GH#270, GH#271: Support for Python 2.6 and 3.3 was removed.
+  Patch by hugovk.
+
+* The minimum dependency versions were raised to libxml2 2.9.2 and libxslt 1.1.27,
+  which were released in 2014 and 2012 respectively.
+
+* Built with Cython 0.29.2.
+
+
+4.2.6 (2019-01-02)
+==================
+
+Bugs fixed
+----------
+
+* LP#1799755: Fix a DeprecationWarning in Py3.7+.
+
+* Import warnings in Python 3.6+ were resolved.
+
+
+4.2.5 (2018-09-09)
+==================
+
+Bugs fixed
+----------
+
+* Javascript URLs that used URL escaping were not removed by the HTML cleaner.
+  Security problem found by Omar Eissa.  (CVE-2018-19787)
+
+
+4.2.4 (2018-08-03)
+==================
+
+Features added
+--------------
+
+* GH#259: Allow using ``pkg-config`` for build configuration.
+  Patch by Patrick Griffis.
+
+Bugs fixed
+----------
+
+* LP#1773749, GH#268: Crash when moving an element to another document with
+  ``Element.insert()``.
+  Patch by Alexander Weggerle.
+
+
+4.2.3 (2018-06-27)
+==================
+
+Bugs fixed
+----------
+
+* Reverted GH#265: lxml links against zlib as a shared library again.
+
+
+4.2.2 (2018-06-22)
+==================
+
+Bugs fixed
+----------
+
+* GH#266: Fix sporadic crash during GC when parse-time schema validation is used
+  and the parser participates in a reference cycle.
+  Original patch by Julien Greard.
+
+* GH#265: lxml no longer links against zlib as a shared library, only on static builds.
+  Patch by Nehal J Wani.
+
+
+4.2.1 (2018-03-21)
+==================
+
+Bugs fixed
+----------
+
+* LP#1755825: ``iterwalk()`` failed to return the 'start' event for the initial
+  element if a tag selector is used.
+
+* LP#1756314: Failure to import 4.2.0 into PyPy due to a missing library symbol.
+
+* LP#1727864, GH#258: Add "-isysroot" linker option on MacOS as needed by XCode 9.
+
+
+4.2.0 (2018-03-13)
+==================
+
+Features added
+--------------
+
+* GH#255: ``SelectElement.value`` returns more standard-compliant and
+  browser-like defaults for non-multi-selects.  If no option is selected, the
+  value of the first option is returned (instead of None).  If multiple options
+  are selected, the value of the last one is returned (instead of that of the
+  first one).  If no options are present (not standard-compliant)
+  ``SelectElement.value`` still returns ``None``.
+
+* GH#261: The ``HTMLParser()`` now supports the ``huge_tree`` option.
+  Patch by stranac.
+
+Bugs fixed
+----------
+
+* LP#1551797: Some XSLT messages were not captured by the transform error log.
+
+* LP#1737825: Crash at shutdown after an interrupted iterparse run with XMLSchema
+  validation.
+
+Other changes
+-------------
+
+
+4.1.1 (2017-11-04)
+==================
+
+* Rebuild with Cython 0.27.3 to improve support for Py3.7.
+
+
+4.1.0 (2017-10-13)
+==================
+
+Features added
+--------------
+
+* ElementPath supports text predicates for current node, like "[.='text']".
+
+* ElementPath allows spaces in predicates.
+
+* Custom Element classes and XPath functions can now be registered with a
+  decorator rather than explicit dict assignments.
+
+* Static Linux wheels are now built with link time optimisation (LTO) enabled.
+  This should have a beneficial impact on the overall performance by providing
+  a tighter compiler integration between lxml and libxml2/libxslt.
+
+Bugs fixed
+----------
+
+* LP#1722776: Requesting non-Element objects like comments from a document with
+  ``PythonElementClassLookup`` could fail with a TypeError.
+
+
+4.0.0 (2017-09-17)
+==================
+
+Features added
+--------------
+
+* The ElementPath implementation is now compiled using Cython,
+  which speeds up the ``.find*()`` methods quite significantly.
+
+* The modules ``lxml.builder``, ``lxml.html.diff`` and ``lxml.html.clean``
+  are also compiled using Cython in order to speed them up.
+
+* ``xmlfile()`` supports async coroutines using ``async with`` and ``await``.
+
+* ``iterwalk()`` has a new method ``skip_subtree()`` that prevents walking into
+  the descendants of the current element.
+
+* ``RelaxNG.from_rnc_string()`` accepts a ``base_url`` argument to
+  allow relative resource lookups.
+
+* The XSLT result object has a new method ``.write_output(file)`` that serialises
+  output data into a file according to the ``<xsl:output>`` configuration.
+
+Bugs fixed
+----------
+
+* GH#251: HTML comments were handled incorrectly by the soupparser.
+  Patch by mozbugbox.
+
+* LP#1654544: The html5parser no longer passes the ``useChardet`` option
+  if the input is a Unicode string, unless explicitly requested.  When parsing
+  files, the default is to enable it when a URL or file path is passed (because
+  the file is then opened in binary mode), and to disable it when reading from
+  a file(-like) object.
+
+  Note: This is a backwards incompatible change of the default configuration.
+  If your code parses byte strings/streams and depends on character detection,
+  please pass the option ``guess_charset=True`` explicitly, which already worked
+  in older lxml versions.
+
+* LP#1703810: ``etree.fromstring()`` failed to parse UTF-32 data with BOM.
+
+* LP#1526522: Some RelaxNG errors were not reported in the error log.
+
+* LP#1567526: Empty and plain text input raised a TypeError in soupparser.
+
+* LP#1710429: Uninitialised variable usage in HTML diff.
+
+* LP#1415643: The closing tags context manager in ``xmlfile()`` could continue
+  to output end tags even after writing failed with an exception.
+
+* LP#1465357: ``xmlfile.write()`` now accepts and ignores None as input argument.
+
+* Compilation under Py3.7-pre failed due to a modified function signature.
+
+Other changes
+-------------
+
+* The main module source files were renamed from ``lxml.*.pyx`` to plain
+  ``*.pyx`` (e.g. ``etree.pyx``) to simplify their handling in the build
+  process.  Care was taken to keep the old header files as fallbacks for
+  code that compiles against the public C-API of lxml, but it might still
+  be worth validating that third-party code does not notice this change.
+
+
+3.8.0 (2017-06-03)
+==================
+
+Features added
+--------------
+
+* ``ElementTree.write()`` has a new option ``doctype`` that writes out a
+  doctype string before the serialisation, in the same way as ``tostring()``.
+
+* GH#220: ``xmlfile`` allows switching output methods at an element level.
+  Patch by Burak Arslan.
+
+* LP#1595781, GH#240: added a PyCapsule Python API and C-level API for
+  passing externally generated libxml2 documents into lxml.
+
+* GH#244: error log entries have a new property ``path`` with an XPath
+  expression (if known, None otherwise) that points to the tree element
+  responsible for the error. Patch by Bob Kline.
+
+* The namespace prefix mapping that can be used in ElementPath now injects
+  a default namespace when passing a None prefix.
+
+Bugs fixed
+----------
+
+* GH#238: Character escapes were not hex-encoded in the ``xmlfile`` serialiser.
+  Patch by matejcik.
+
+* GH#229: fix for externally created XML documents.  Patch by Theodore Dubois.
+
+* LP#1665241, GH#228: Form data handling in lxml.html no longer strips the
+  option values specified in form attributes but only the text values.
+  Patch by Ashish Kulkarni.
+
+* LP#1551797: revert previous fix for XSLT error logging as it breaks
+  multi-threaded XSLT processing.
+
+* LP#1673355, GH#233: ``fromstring()`` html5parser failed to parse byte strings.
+
+Other changes
+-------------
+
+* The previously undocumented ``docstring`` option in ``ElementTree.write()``
+  produces a deprecation warning and will eventually be removed.
+
+
+3.7.4 (2017-??-??)
+==================
+
+Bugs fixed
+----------
+
+* LP#1551797: revert previous fix for XSLT error logging as it breaks
+  multi-threaded XSLT processing.
+
+* LP#1673355, GH#233: ``fromstring()`` html5parser failed to parse byte strings.
+
+
+3.7.3 (2017-02-18)
+==================
+
+Bugs fixed
+----------
+
+* GH#218 was ineffective in Python 3.
+
+* GH#222: ``lxml.html.submit_form()`` failed in Python 3.
+  Patch by Jakub Wilk.
+
+
+3.7.2 (2017-01-08)
+==================
+
+* GH#220: ``xmlfile`` allows switching output methods at an element level.
+  Patch by Burak Arslan.
+
+Bugs fixed
+----------
+
+* Work around installation problems in recent Python 2.7 versions
+  due to FTP download failures.
+
+* GH#219: ``xmlfile.element()`` was not properly quoting attribute values.
+  Patch by Burak Arslan.
+
+* GH#218: ``xmlfile.element()`` was not properly escaping text content of
+  script/style tags.  Patch by Burak Arslan.
+
+
 3.7.1 (2016-12-23)
 ==================
 
@@ -1179,7 +1522,7 @@ Bugs fixed
   previously worked in 2.3.1.
 
 * Fixed parsing of some selectors in cssselect. Whitespace after combinators
-  ">", "+" and "~" is now correctly ignored. Previously is was parsed as
+  ">", "+" and "~" is now correctly ignored. Previously it was parsed as
   a descendant combinator. For example, "div> .foo" was parsed the same as
   "div>* .foo" instead of "div>.foo". Patch by Simon Sapin.
 
@@ -2876,7 +3219,7 @@ Features added
 
 * ``ElementMaker`` XML generator by Fredrik Lundh in ``lxml.builder.E``
 
-* Support for pickeling ``objectify.ObjectifiedElement`` objects to XML
+* Support for pickling ``objectify.ObjectifiedElement`` objects to XML
 
 * ``update()`` method on Element.attrib
 
@@ -3591,16 +3934,16 @@ Features added
   prefix to namespace URI mapping. This will create namespace
   prefix declarations on these elements and these prefixes will show up
   in XML serialization.
-  
+
 Bugs fixed
 ----------
- 
+
 * Killed yet another memory management related bug: trees created
   using newDoc would not get a libxml2-level dictionary, which caused
   problems when deallocating these documents later if they contained a
   node that came from a document with a dictionary.
 
-* Moving namespaced elements between documents was problematic as 
+* Moving namespaced elements between documents was problematic as
   references to the original document would remain. This has been fixed
   by applying xmlReconciliateNs() after each move operation.
 

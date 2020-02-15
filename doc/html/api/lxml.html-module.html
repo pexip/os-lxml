@@ -61,7 +61,7 @@
 </table>
 <!-- ==================== PACKAGE DESCRIPTION ==================== -->
 <h1 class="epydoc">Package html</h1><p class="nomargin-top"><span class="codelink"><a href="lxml.html-pysrc.html">source&nbsp;code</a></span></p>
-The <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">lxml.html</tt> tool set for HTML handling.
+The <tt class="rst-docutils literal">lxml.html</tt> tool set for HTML handling.
 
 <!-- ==================== SUBMODULES ==================== -->
 <a name="section-Submodules"></a>
@@ -116,7 +116,7 @@ The <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutil
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.html.CheckboxGroup-class.html" class="summary-name" onclick="show_private();">CheckboxGroup</a><br />
-      Represents a group of checkboxes (<tt class="rst-rst-docutils literal rst-docutils literal">&lt;input type=checkbox&gt;</tt>) that
+      Represents a group of checkboxes (<tt class="rst-docutils literal">&lt;input type=checkbox&gt;</tt>) that
 have the same name.
     </td>
   </tr>
@@ -210,7 +210,7 @@ objects.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.html.InputElement-class.html" class="summary-name" onclick="show_private();">InputElement</a><br />
-      Represents an <tt class="rst-rst-rst-rst-docutils literal rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">&lt;input&gt;</tt> element.
+      Represents an <tt class="rst-docutils literal">&lt;input&gt;</tt> element.
     </td>
   </tr>
 <tr class="private">
@@ -234,7 +234,7 @@ objects.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.html.LabelElement-class.html" class="summary-name" onclick="show_private();">LabelElement</a><br />
-      Represents a <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">&lt;label&gt;</tt> element.
+      Represents a <tt class="rst-docutils literal">&lt;label&gt;</tt> element.
     </td>
   </tr>
 <tr class="private">
@@ -242,7 +242,7 @@ objects.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.html.MultipleSelectOptions-class.html" class="summary-name" onclick="show_private();">MultipleSelectOptions</a><br />
-      Represents all the selected options in a <tt class="rst-rst-rst-rst-docutils literal rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">&lt;select multiple&gt;</tt> element.
+      Represents all the selected options in a <tt class="rst-docutils literal">&lt;select multiple&gt;</tt> element.
     </td>
   </tr>
 <tr class="private">
@@ -250,7 +250,7 @@ objects.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.html.RadioGroup-class.html" class="summary-name" onclick="show_private();">RadioGroup</a><br />
-      This object represents several <tt class="rst-rst-docutils literal rst-docutils literal">&lt;input type=radio&gt;</tt> elements
+      This object represents several <tt class="rst-docutils literal">&lt;input type=radio&gt;</tt> elements
 that have the same name.
     </td>
   </tr>
@@ -259,7 +259,7 @@ that have the same name.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.html.SelectElement-class.html" class="summary-name" onclick="show_private();">SelectElement</a><br />
-      <tt class="rst-rst-rst-rst-docutils literal rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">&lt;select&gt;</tt> element.  You can get the name with <tt class="rst-rst-rst-rst-docutils literal rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">.name</tt>.
+      <tt class="rst-docutils literal">&lt;select&gt;</tt> element.  You can get the name with <tt class="rst-docutils literal">.name</tt>.
     </td>
   </tr>
 <tr class="private">
@@ -267,8 +267,8 @@ that have the same name.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.html.TextareaElement-class.html" class="summary-name" onclick="show_private();">TextareaElement</a><br />
-      <tt class="rst-rst-rst-rst-docutils literal rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">&lt;textarea&gt;</tt> element.  You can get the name with <tt class="rst-rst-rst-rst-docutils literal rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">.name</tt> and
-get/set the value with <tt class="rst-rst-rst-rst-docutils literal rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">.value</tt>
+      <tt class="rst-docutils literal">&lt;textarea&gt;</tt> element.  You can get the name with <tt class="rst-docutils literal">.name</tt> and
+get/set the value with <tt class="rst-docutils literal">.value</tt>
     </td>
   </tr>
 <tr class="private">
@@ -1071,7 +1071,7 @@ is a fragment or a document.</p>
   
   <p>Parse a filename, URL, or file-like object into an HTML document
 tree.  Note: this returns a tree, not an element.  Use
-<tt class="rst-rst-docutils literal rst-docutils literal"><span class="pre">parse(...).getroot()</span></tt> to get the document root.</p>
+<tt class="rst-docutils literal"><span class="pre">parse(...).getroot()</span></tt> to get the document root.</p>
 <p>You can override the base URL with the <tt class="rst-docutils literal">base_url</tt> keyword.  This
 is most useful when parsing from a file-like object.</p>
   <dl class="fields">
@@ -1095,7 +1095,7 @@ is most useful when parsing from a file-like object.</p>
   </tr></table>
   
   <p>Helper function to submit a form.  Returns a file-like object, as from
-<tt class="rst-rst-docutils literal rst-docutils literal">urllib.urlopen()</tt>.  This object also has a <tt class="rst-rst-docutils literal rst-docutils literal">.geturl()</tt> function,
+<tt class="rst-docutils literal">urllib.urlopen()</tt>.  This object also has a <tt class="rst-docutils literal">.geturl()</tt> function,
 which shows the URL if there were any redirects.</p>
 <p>You can use this like:</p>
 <pre class="rst-literal-block">
@@ -1322,7 +1322,7 @@ descendant-or-self::a[@rel]|descendant-or-self::x:a[@rel]
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Fri Dec 23 19:00:53 2016
+    on Thu Feb 28 20:36:14 2019
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

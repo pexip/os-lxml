@@ -8,22 +8,24 @@ except ImportError:
     _rnc2rng = None
 
 
-class RelaxNGError(LxmlError):
-    u"""Base class for RelaxNG errors.
+cdef int _require_rnc2rng() except -1:
+    if _rnc2rng is None:
+        raise RelaxNGParseError(
+            'compact syntax not supported (please install rnc2rng)')
+    return 0
+
+
+cdef class RelaxNGError(LxmlError):
+    """Base class for RelaxNG errors.
     """
-    pass
 
-
-class RelaxNGParseError(RelaxNGError):
-    u"""Error while parsing an XML document as RelaxNG.
+cdef class RelaxNGParseError(RelaxNGError):
+    """Error while parsing an XML document as RelaxNG.
     """
-    pass
 
-
-class RelaxNGValidateError(RelaxNGError):
-    u"""Error while validating an XML document with a RelaxNG schema.
+cdef class RelaxNGValidateError(RelaxNGError):
+    """Error while validating an XML document with a RelaxNG schema.
     """
-    pass
 
 
 ################################################################################
@@ -44,7 +46,7 @@ cdef class RelaxNG(_Validator):
         cdef _Document doc
         cdef _Element root_node
         cdef xmlDoc* fake_c_doc = NULL
-        cdef relaxng.xmlRelaxNGParserCtxt* parser_ctxt
+        cdef relaxng.xmlRelaxNGParserCtxt* parser_ctxt = NULL
         _Validator.__init__(self)
         if etree is not None:
             doc = _documentOrRaise(etree)
@@ -53,10 +55,8 @@ cdef class RelaxNG(_Validator):
             parser_ctxt = relaxng.xmlRelaxNGNewDocParserCtxt(fake_c_doc)
         elif file is not None:
             if _isString(file):
-                if file.lower().endswith('.rnc'):
-                    if _rnc2rng is None:
-                        raise RelaxNGParseError(
-                            'compact syntax not supported (please install rnc2rng)')
+                if file[-4:].lower() == '.rnc':
+                    _require_rnc2rng()
                     rng_data = _rnc2rng.dumps(_rnc2rng.load(file))
                     doc = _parseMemoryDocument(rng_data, parser=None, url=None)
                     root_node = doc.getroot()
@@ -67,7 +67,8 @@ cdef class RelaxNG(_Validator):
                     filename = _encodeFilename(file)
                     with self._error_log:
                         parser_ctxt = relaxng.xmlRelaxNGNewParserCtxt(_cstr(filename))
-            elif (_getFilenameForFile(file) or '').lower().endswith('.rnc'):
+            elif (_getFilenameForFile(file) or '')[-4:].lower() == '.rnc':
+                _require_rnc2rng()
                 rng_data = _rnc2rng.dumps(_rnc2rng.load(file))
                 doc = _parseMemoryDocument(rng_data, parser=None, url=None)
                 root_node = doc.getroot()
@@ -89,7 +90,9 @@ cdef class RelaxNG(_Validator):
 
         relaxng.xmlRelaxNGSetParserStructuredErrors(
             parser_ctxt, _receiveError, <void*>self._error_log)
+        _connectGenericErrorLog(self._error_log, xmlerror.XML_FROM_RELAXNGP)
         self._c_schema = relaxng.xmlRelaxNGParse(parser_ctxt)
+        _connectGenericErrorLog(None)
 
         relaxng.xmlRelaxNGFreeParserCtxt(parser_ctxt)
         if self._c_schema is NULL:
@@ -129,11 +132,13 @@ cdef class RelaxNG(_Validator):
             self._error_log.clear()
             relaxng.xmlRelaxNGSetValidStructuredErrors(
                 valid_ctxt, _receiveError, <void*>self._error_log)
+            _connectGenericErrorLog(self._error_log, xmlerror.XML_FROM_RELAXNGV)
             c_doc = _fakeRootDoc(doc._c_doc, root_node._c_node)
             with nogil:
                 ret = relaxng.xmlRelaxNGValidateDoc(valid_ctxt, c_doc)
             _destroyFakeDoc(doc._c_doc, c_doc)
         finally:
+            _connectGenericErrorLog(None)
             relaxng.xmlRelaxNGFreeValidCtxt(valid_ctxt)
 
         if ret == -1:
@@ -146,6 +151,14 @@ cdef class RelaxNG(_Validator):
             return False
 
     @classmethod
-    def from_rnc_string(cls, src):
+    def from_rnc_string(cls, src, base_url=None):
+        """Parse a RelaxNG schema in compact syntax from a text string
+
+        Requires the rnc2rng package to be installed.
+
+        Passing the source URL or file path of the source as 'base_url'
+        will enable resolving resource references relative to the source.
+        """
+        _require_rnc2rng()
         rng_str = _rnc2rng.dumps(_rnc2rng.loads(src))
-        return cls(_parseMemoryDocument(rng_str, parser=None, url=None))
+        return cls(_parseMemoryDocument(rng_str, parser=None, url=base_url))

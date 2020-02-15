@@ -75,11 +75,11 @@
 <dl><dt>Known Subclasses:</dt>
 <dd>
       <ul class="subclass-list">
-<li><a href="lxml.etree.ETCompatXMLParser-class.html">ETCompatXMLParser</a></li><li class="private">, <a href="lxml.etree.XMLPullParser-class.html" onclick="show_private();">XMLPullParser</a></li><li>, <a href="lxml.html.XHTMLParser-class.html">html.XHTMLParser</a></li>  </ul>
+<li><a href="lxml.etree.ETCompatXMLParser-class.html">ETCompatXMLParser</a></li><li>, <a href="lxml.html.XHTMLParser-class.html">html.XHTMLParser</a></li><li class="private">, <a href="lxml.etree.XMLPullParser-class.html" onclick="show_private();">XMLPullParser</a></li>  </ul>
 </dd></dl>
 
 <hr />
-<p>XMLParser(self, encoding=None, attribute_defaults=False, dtd_validation=False, load_dtd=False, no_network=True, ns_clean=False, recover=False, schema: XMLSchema =None, remove_blank_text=False, resolve_entities=True, remove_comments=False, remove_pis=False, strip_cdata=True, collect_ids=True, target=None, compact=True)</p>
+<p>XMLParser(self, encoding=None, attribute_defaults=False, dtd_validation=False, load_dtd=False, no_network=True, ns_clean=False, recover=False, schema: XMLSchema =None, huge_tree=False, remove_blank_text=False, resolve_entities=True, remove_comments=False, remove_pis=False, strip_cdata=True, collect_ids=True, target=None, compact=True)</p>
 <p>The XML parser.</p>
 <p>Parsers can be supplied as additional argument to various parse
 functions of the lxml API.  A default parser is always available
@@ -92,37 +92,23 @@ validation or attribute default values are requested (unless you
 additionally provide an XMLSchema from which the default
 attributes can be read).</p>
 <p>Available boolean keyword arguments:</p>
-<ul>
-<li><p class="rst-first">attribute_defaults - inject default attributes from DTD or XMLSchema</p>
-</li>
-<li><p class="rst-first">dtd_validation     - validate against a DTD referenced by the document</p>
-</li>
-<li><p class="rst-first">load_dtd           - use DTD for parsing</p>
-</li>
-<li><p class="rst-first">no_network         - prevent network access for related files (default: True)</p>
-</li>
-<li><p class="rst-first">ns_clean           - clean up redundant namespace declarations</p>
-</li>
-<li><p class="rst-first">recover            - try hard to parse through broken XML</p>
-</li>
-<li><p class="rst-first">remove_blank_text  - discard blank text nodes that appear ignorable</p>
-</li>
-<li><p class="rst-first">remove_comments    - discard comments</p>
-</li>
-<li><p class="rst-first">remove_pis         - discard processing instructions</p>
-</li>
-<li><p class="rst-first">strip_cdata        - replace CDATA sections by normal text content (default: True)</p>
-</li>
-<li><p class="rst-first">compact            - save memory for short text content (default: True)</p>
-</li>
-<li><p class="rst-first">collect_ids        - use a hash table of XML IDs for fast access (default: True, always True with DTD validation)</p>
-</li>
-<li><p class="rst-first">resolve_entities   - replace entities by their text value (default: True)</p>
-</li>
+<ul class="rst-simple">
+<li>attribute_defaults - inject default attributes from DTD or XMLSchema</li>
+<li>dtd_validation     - validate against a DTD referenced by the document</li>
+<li>load_dtd           - use DTD for parsing</li>
+<li>no_network         - prevent network access for related files (default: True)</li>
+<li>ns_clean           - clean up redundant namespace declarations</li>
+<li>recover            - try hard to parse through broken XML</li>
+<li>remove_blank_text  - discard blank text nodes that appear ignorable</li>
+<li>remove_comments    - discard comments</li>
+<li>remove_pis         - discard processing instructions</li>
+<li>strip_cdata        - replace CDATA sections by normal text content (default: True)</li>
+<li>compact            - save memory for short text content (default: True)</li>
+<li>collect_ids        - use a hash table of XML IDs for fast access (default: True, always True with DTD validation)</li>
+<li>resolve_entities   - replace entities by their text value (default: True)</li>
 <li><dl class="rst-first rst-docutils">
 <dt>huge_tree          - disable security restrictions and support very deep trees</dt>
-<dd><p class="rst-first rst-last">and very long text content (only affects libxml2 2.7+)</p>
-</dd>
+<dd>and very long text content (only affects libxml2 2.7+)</dd>
 </dl>
 </li>
 </ul>
@@ -168,6 +154,7 @@ apply to the default parser.</p>
         <span class="summary-sig-arg">ns_clean</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">recover</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">schema: XMLSchema</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">huge_tree</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">remove_blank_text</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">resolve_entities</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">remove_comments</span>=<span class="summary-sig-default">False</span>,
@@ -300,6 +287,7 @@ apply to the default parser.</p>
         <span class="sig-arg">ns_clean</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">recover</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">schema: XMLSchema</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">huge_tree</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">remove_blank_text</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">resolve_entities</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">remove_comments</span>=<span class="sig-default">False</span>,
@@ -381,7 +369,7 @@ apply to the default parser.</p>
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Fri Dec 23 19:00:53 2016
+    on Thu Feb 28 20:36:14 2019
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

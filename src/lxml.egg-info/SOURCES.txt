@@ -7,9 +7,7 @@ Makefile
 README.rst
 TODO.txt
 buildlibxml.py
-ez_setup.py
 requirements.txt
-setup.cfg
 setup.py
 setupinfo.py
 test.py
@@ -58,7 +56,7 @@ doc/html/FAQ.html
 doc/html/api.html
 doc/html/build.html
 doc/html/capi.html
-doc/html/changes-3.7.1.html
+doc/html/changes-4.3.2.html
 doc/html/compatibility.html
 doc/html/credits.html
 doc/html/cssselect.html
@@ -340,6 +338,7 @@ doc/html/api/lxml.tests.common_imports.HelperTestCase-class.html
 doc/html/api/lxml.tests.common_imports.LargeFileLike-class.html
 doc/html/api/lxml.tests.common_imports.LargeFileLikeUnicode-class.html
 doc/html/api/lxml.tests.common_imports.SillyFileLike-class.html
+doc/html/api/lxml.tests.common_imports.skipif-class.html
 doc/html/api/lxml.tests.dummy_http_server-module.html
 doc/html/api/lxml.tests.dummy_http_server-pysrc.html
 doc/html/api/lxml.tests.dummy_http_server.HTTPRequestCollector-class.html
@@ -390,6 +389,9 @@ doc/html/api/lxml.tests.test_etree.ETreeXIncludeTestCase-class.html
 doc/html/api/lxml.tests.test_etree.ElementIncludeTestCase-class.html
 doc/html/api/lxml.tests.test_etree.XMLPullParserTest-class.html
 doc/html/api/lxml.tests.test_etree._XIncludeTestCase-class.html
+doc/html/api/lxml.tests.test_external_document-module.html
+doc/html/api/lxml.tests.test_external_document-pysrc.html
+doc/html/api/lxml.tests.test_external_document.ExternalDocumentTestCase-class.html
 doc/html/api/lxml.tests.test_htmlparser-module.html
 doc/html/api/lxml.tests.test_htmlparser-pysrc.html
 doc/html/api/lxml.tests.test_htmlparser.HtmlParserTestCase-class.html
@@ -398,6 +400,7 @@ doc/html/api/lxml.tests.test_http_io-pysrc.html
 doc/html/api/lxml.tests.test_http_io.HttpIOTestCase-class.html
 doc/html/api/lxml.tests.test_incremental_xmlfile-module.html
 doc/html/api/lxml.tests.test_incremental_xmlfile-pysrc.html
+doc/html/api/lxml.tests.test_incremental_xmlfile.AsyncXmlFileTestCase-class.html
 doc/html/api/lxml.tests.test_incremental_xmlfile.BytesIOXmlFileTestCase-class.html
 doc/html/api/lxml.tests.test_incremental_xmlfile.HtmlFileTestCase-class.html
 doc/html/api/lxml.tests.test_incremental_xmlfile.SimpleFileLikeXmlFileTestCase-class.html
@@ -432,6 +435,8 @@ doc/html/api/lxml.tests.test_relaxng.RelaxNGCompactTestCase-class.html
 doc/html/api/lxml.tests.test_sax-module.html
 doc/html/api/lxml.tests.test_sax-pysrc.html
 doc/html/api/lxml.tests.test_sax.ETreeSaxTestCase-class.html
+doc/html/api/lxml.tests.test_sax.NSPrefixSaxTestCase-class.html
+doc/html/api/lxml.tests.test_sax.SimpleContentHandler-class.html
 doc/html/api/lxml.tests.test_schematron-module.html
 doc/html/api/lxml.tests.test_schematron-pysrc.html
 doc/html/api/lxml.tests.test_schematron.ETreeSchematronTestCase-class.html
@@ -511,6 +516,7 @@ doc/html/api/toc-lxml.tests.test_elementpath-module.html
 doc/html/api/toc-lxml.tests.test_elementtree-module.html
 doc/html/api/toc-lxml.tests.test_errors-module.html
 doc/html/api/toc-lxml.tests.test_etree-module.html
+doc/html/api/toc-lxml.tests.test_external_document-module.html
 doc/html/api/toc-lxml.tests.test_htmlparser-module.html
 doc/html/api/toc-lxml.tests.test_http_io-module.html
 doc/html/api/toc-lxml.tests.test_incremental_xmlfile-module.html
@@ -569,11 +575,14 @@ doc/s5/ui/default/slides.js
 doc/s5/ui/default/tagpython.png
 samples/simple-ns.xml
 samples/simple.xml
-src/local_doctest.py
 src/lxml/ElementInclude.py
+src/lxml/__init__.pxd
 src/lxml/__init__.py
+src/lxml/_elementpath.c
 src/lxml/_elementpath.py
 src/lxml/apihelpers.pxi
+src/lxml/builder.c
+src/lxml/builder.pxd
 src/lxml/builder.py
 src/lxml/classlookup.pxi
 src/lxml/cleanup.pxi
@@ -583,16 +592,18 @@ src/lxml/debug.pxi
 src/lxml/docloader.pxi
 src/lxml/doctestcompare.py
 src/lxml/dtd.pxi
+src/lxml/etree.c
+src/lxml/etree.h
+src/lxml/etree.pyx
+src/lxml/etree_api.h
 src/lxml/extensions.pxi
 src/lxml/iterparse.pxi
-src/lxml/lxml.etree.c
 src/lxml/lxml.etree.h
-src/lxml/lxml.etree.pyx
 src/lxml/lxml.etree_api.h
-src/lxml/lxml.objectify.c
-src/lxml/lxml.objectify.pyx
 src/lxml/lxml_endian.h
 src/lxml/nsclasses.pxi
+src/lxml/objectify.c
+src/lxml/objectify.pyx
 src/lxml/objectpath.pxi
 src/lxml/parser.pxi
 src/lxml/parsertarget.pxi
@@ -602,6 +613,8 @@ src/lxml/pyclasslookup.py
 src/lxml/python.pxd
 src/lxml/readonlytree.pxi
 src/lxml/relaxng.pxi
+src/lxml/sax.c
+src/lxml/sax.pxd
 src/lxml/sax.py
 src/lxml/saxparser.pxi
 src/lxml/schematron.pxi
@@ -626,8 +639,10 @@ src/lxml/html/_diffcommand.py
 src/lxml/html/_html5builder.py
 src/lxml/html/_setmixin.py
 src/lxml/html/builder.py
+src/lxml/html/clean.c
 src/lxml/html/clean.py
 src/lxml/html/defs.py
+src/lxml/html/diff.c
 src/lxml/html/diff.py
 src/lxml/html/formfill.py
 src/lxml/html/html5parser.py
@@ -653,6 +668,7 @@ src/lxml/html/tests/test_frames.py
 src/lxml/html/tests/test_html5parser.py
 src/lxml/html/tests/test_rewritelinks.py
 src/lxml/html/tests/test_rewritelinks.txt
+src/lxml/html/tests/test_select.py
 src/lxml/html/tests/test_xhtml.py
 src/lxml/html/tests/test_xhtml.txt
 src/lxml/html/tests/transform_feedparser_data.py
@@ -700,6 +716,7 @@ src/lxml/html/tests/hackers-org-data/style-js-tag.data
 src/lxml/html/tests/hackers-org-data/style-url-js.data
 src/lxml/html/tests/hackers-org-data/xml-data-island.data
 src/lxml/html/tests/hackers-org-data/xml-embedded-js.data
+src/lxml/includes/__init__.pxd
 src/lxml/includes/__init__.py
 src/lxml/includes/c14n.pxd
 src/lxml/includes/config.pxd
@@ -737,6 +754,7 @@ src/lxml/tests/shakespeare.html
 src/lxml/tests/test-document.xslt
 src/lxml/tests/test-string.xml
 src/lxml/tests/test.dtd
+src/lxml/tests/test.rnc
 src/lxml/tests/test.sch
 src/lxml/tests/test.xml
 src/lxml/tests/test.xsd
@@ -754,6 +772,7 @@ src/lxml/tests/test_elementpath.py
 src/lxml/tests/test_elementtree.py
 src/lxml/tests/test_errors.py
 src/lxml/tests/test_etree.py
+src/lxml/tests/test_external_document.py
 src/lxml/tests/test_htmlparser.py
 src/lxml/tests/test_http_io.py
 src/lxml/tests/test_import.xsd
