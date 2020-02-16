@@ -1,3 +1,9 @@
+lxml (4.3.2-1pexip1) pexip; urgency=medium
+
+  * Migrate to Buster
+
+ -- Vincent Sanders <vince@pexip.com>  Sun, 16 Feb 2020 23:38:50 +0000
+
 lxml (4.3.2-1) unstable; urgency=medium
 
   * New upstream version.
