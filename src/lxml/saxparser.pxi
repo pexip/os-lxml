@@ -34,7 +34,7 @@ cdef int _buildParseEventFilter(events) except -1:
         elif event == 'pi':
             event_filter |= PARSE_EVENT_FILTER_PI
         else:
-            raise ValueError, u"invalid event name '%s'" % event
+            raise ValueError, f"invalid event name '{event}'"
     return event_filter
 
 
@@ -59,6 +59,7 @@ cdef class _SaxParserTarget:
 
 #@cython.final
 @cython.internal
+@cython.no_gc_clear  # Required because parent class uses it - Cython bug.
 cdef class _SaxParserContext(_ParserContext):
     u"""This class maps SAX2 events to parser target events.
     """
@@ -179,7 +180,7 @@ cdef class _SaxParserContext(_ParserContext):
         if not self._event_filter or tag is None or tag == '*':
             self._matcher = None
         else:
-            self._matcher = _MultiTagMatcher(tag)
+            self._matcher = _MultiTagMatcher.__new__(_MultiTagMatcher, tag)
 
     cdef int startDocument(self, xmlDoc* c_doc) except -1:
         try:
@@ -233,9 +234,9 @@ cdef class _ParseEventsIterator:
         return self
 
     def __next__(self):
+        cdef int event_index = self._event_index
         events = self._events
-        event_index = self._event_index
-        if event_index * 2 >= len(events):
+        if event_index >= 2**10 or event_index * 2 >= len(events):
             if event_index:
                 # clean up from time to time
                 del events[:event_index]
@@ -752,8 +753,7 @@ cdef class TreeBuilder(_SaxParserTarget):
         """
         element = self._handleSaxEnd(tag)
         assert self._last.tag == tag,\
-               u"end tag mismatch (expected %s, got %s)" % (
-                   self._last.tag, tag)
+            f"end tag mismatch (expected {self._last.tag}, got {tag})"
         return element
 
     def pi(self, target, data):

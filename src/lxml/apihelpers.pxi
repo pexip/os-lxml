@@ -38,11 +38,9 @@ cdef _Document _documentOrRaise(object input):
     elif isinstance(input, _Document):
         doc = <_Document>input
     else:
-        raise TypeError, u"Invalid input object: %s" % \
-            python._fqtypename(input).decode('utf8')
+        raise TypeError, f"Invalid input object: {python._fqtypename(input).decode('utf8')}"
     if doc is None:
-        raise ValueError, u"Input object has no document: %s" % \
-            python._fqtypename(input).decode('utf8')
+        raise ValueError, f"Input object has no document: {python._fqtypename(input).decode('utf8')}"
     _assertValidDoc(doc)
     return doc
 
@@ -60,12 +58,10 @@ cdef _Element _rootNodeOrRaise(object input):
     elif isinstance(input, _Document):
         node = (<_Document>input).getroot()
     else:
-        raise TypeError, u"Invalid input object: %s" % \
-            python._fqtypename(input).decode('utf8')
+        raise TypeError, f"Invalid input object: {python._fqtypename(input).decode('utf8')}"
     if (node is None or not node._c_node or
             node._c_node.type != tree.XML_ELEMENT_NODE):
-        raise ValueError, u"Input object is not an XML element: %s" % \
-            python._fqtypename(input).decode('utf8')
+        raise ValueError, f"Input object is not an XML element: {python._fqtypename(input).decode('utf8')}"
     _assertValidNode(node)
     return node
 
@@ -251,7 +247,7 @@ cdef _iter_nsmap(nsmap):
     if len(nsmap) <= 1:
         return nsmap.items()
     # nsmap will usually be a plain unordered dict => avoid type checking overhead
-    if OrderedDict is not None and type(nsmap) is not dict and isinstance(nsmap, OrderedDict):
+    if type(nsmap) is not dict and isinstance(nsmap, OrderedDict):
         return nsmap.items()  # keep existing order
     if None not in nsmap:
         return sorted(nsmap.items())
@@ -277,8 +273,7 @@ cdef _iter_attrib(attrib):
     # attrib will usually be a plain unordered dict
     if type(attrib) is dict:
         return sorted(attrib.items())
-    elif isinstance(attrib, _Attrib) or (
-            OrderedDict is not None and isinstance(attrib, OrderedDict)):
+    elif isinstance(attrib, (_Attrib, OrderedDict)):
         return attrib.items()
     else:
         # assume it's an unordered mapping of some kind
@@ -291,8 +286,7 @@ cdef _initNodeAttributes(xmlNode* c_node, _Document doc, attrib, dict extra):
     cdef bint is_html
     cdef xmlNs* c_ns
     if attrib is not None and not hasattr(attrib, u'items'):
-        raise TypeError, u"Invalid attribute dictionary: %s" % \
-            python._fqtypename(attrib).decode('utf8')
+        raise TypeError, f"Invalid attribute dictionary: {python._fqtypename(attrib).decode('utf8')}"
     if not attrib and not extra:
         return  # nothing to do
     is_html = doc._parser._for_html
@@ -559,6 +553,7 @@ cdef inline object _getAttributeValue(_Element element, key, default):
     return _getNodeAttributeValue(element._c_node, key, default)
 
 cdef int _setAttributeValue(_Element element, key, value) except -1:
+    cdef const_xmlChar* c_value
     cdef xmlNs* c_ns
     ns, tag = _getNsTag(key)
     is_html = element._doc._parser._for_html
@@ -1107,8 +1102,8 @@ cdef int _copyNonElementSiblings(xmlNode* c_node, xmlNode* c_target) except -1:
         tree.xmlAddPrevSibling(c_target, c_copy)
         c_sibling = c_sibling.next
     while c_sibling.next != NULL and \
-            (c_sibling.next.type == tree.XML_PI_NODE or \
-                 c_sibling.next.type == tree.XML_COMMENT_NODE):
+            (c_sibling.next.type == tree.XML_PI_NODE or
+             c_sibling.next.type == tree.XML_COMMENT_NODE):
         c_sibling = c_sibling.next
         c_copy = tree.xmlDocCopyNode(c_sibling, c_target.doc, 1)
         if c_copy is NULL:
@@ -1169,8 +1164,8 @@ cdef int _replaceSlice(_Element parent, xmlNode* c_node,
         # *replacing* children stepwise with list => check size!
         seqlength = len(elements)
         if seqlength != slicelength:
-            raise ValueError, u"attempt to assign sequence of size %d " \
-                u"to extended slice of size %d" % (seqlength, slicelength)
+            raise ValueError, f"attempt to assign sequence of size {seqlength} " \
+                f"to extended slice of size {slicelength}"
 
     if c_node is NULL:
         # no children yet => add all elements straight away
@@ -1272,6 +1267,23 @@ cdef int _replaceSlice(_Element parent, xmlNode* c_node,
 
     return 0
 
+
+cdef int _linkChild(xmlNode* c_parent, xmlNode* c_node) except -1:
+    """Adaptation of 'xmlAddChild()' that deep-fix the document links iteratively.
+    """
+    assert _isElement(c_node)
+    c_node.parent = c_parent
+    if c_parent.children is NULL:
+        c_parent.children = c_parent.last = c_node
+    else:
+        c_node.prev = c_parent.last
+        c_parent.last.next = c_node
+        c_parent.last = c_node
+
+    _setTreeDoc(c_node, c_parent.doc)
+    return 0
+
+
 cdef int _appendChild(_Element parent, _Element child) except -1:
     u"""Append a new child to a parent element.
     """
@@ -1284,7 +1296,8 @@ cdef int _appendChild(_Element parent, _Element child) except -1:
     c_next = c_node.next
     # move node itself
     tree.xmlUnlinkNode(c_node)
-    tree.xmlAddChild(parent._c_node, c_node)
+    # do not call xmlAddChild() here since it would deep-traverse the tree
+    _linkChild(parent._c_node, c_node)
     _moveTail(c_next, c_node)
     # uh oh, elements may be pointing to different doc when
     # parent element has moved; change them too..
@@ -1305,7 +1318,8 @@ cdef int _prependChild(_Element parent, _Element child) except -1:
     c_child = _findChildForwards(parent._c_node, 0)
     if c_child is NULL:
         tree.xmlUnlinkNode(c_node)
-        tree.xmlAddChild(parent._c_node, c_node)
+        # do not call xmlAddChild() here since it would deep-traverse the tree
+        _linkChild(parent._c_node, c_node)
     else:
         tree.xmlAddPrevSibling(c_child, c_node)
     _moveTail(c_next, c_node)
@@ -1345,14 +1359,50 @@ cdef int _addSibling(_Element element, _Element sibling, bint as_next) except -1
     moveNodeToDocument(element._doc, c_source_doc, c_node)
     return 0
 
-cdef inline int isutf8(const_xmlChar* s):
+cdef inline bint isutf8(const_xmlChar* s):
     cdef xmlChar c = s[0]
     while c != c'\0':
         if c & 0x80:
-            return 1
+            return True
         s += 1
         c = s[0]
-    return 0
+    return False
+
+cdef bint isutf8l(const_xmlChar* s, size_t length):
+    """
+    Search for non-ASCII characters in the string, knowing its length in advance.
+    """
+    cdef int i
+    cdef unsigned long non_ascii_mask
+    cdef const unsigned long *lptr = <const unsigned long*> s
+
+    cdef const unsigned long *end = lptr + length // sizeof(unsigned long)
+    if length >= sizeof(non_ascii_mask):
+        # Build constant 0x80808080... mask (and let the C compiler fold it).
+        non_ascii_mask = 0
+        for i in range(sizeof(non_ascii_mask) // 2):
+            non_ascii_mask = (non_ascii_mask << 16) | 0x8080
+
+        # Advance to long-aligned character before we start reading longs.
+        while (<size_t>s) % sizeof(unsigned long) and s < <const_xmlChar *>end:
+            if s[0] & 0x80:
+                return True
+            s += 1
+
+        # Read one long at a time
+        lptr = <const unsigned long*> s
+        while lptr < end:
+            if lptr[0] & non_ascii_mask:
+                return True
+            lptr += 1
+        s = <const_xmlChar *>lptr
+
+    while s < (<const_xmlChar *>end + length % sizeof(unsigned long)):
+        if s[0] & 0x80:
+            return True
+        s += 1
+
+    return False
 
 cdef int _is_valid_xml_ascii(bytes pystring):
     """Check if a string is XML ascii content."""
@@ -1416,7 +1466,7 @@ cdef object funicode(const_xmlChar* s):
         spos += 1
     slen = spos - s
     if spos[0] != c'\0':
-        slen += tree.xmlStrlen(spos)
+        slen += cstring_h.strlen(<const char*> spos)
     if is_non_ascii:
         return s[:slen].decode('UTF-8')
     return <bytes>s[:slen]
@@ -1525,7 +1575,7 @@ cdef object _encodeFilenameUTF8(object filename):
     if filename is None:
         return None
     elif isinstance(filename, bytes):
-        if not isutf8(<bytes>filename):
+        if not isutf8l(<bytes>filename, len(<bytes>filename)):
             # plain ASCII!
             return filename
         c_filename = _cstr(<bytes>filename)
@@ -1627,33 +1677,28 @@ cdef bint _characterReferenceIsValid(const_xmlChar* c_name):
 
 cdef int _tagValidOrRaise(tag_utf) except -1:
     if not _pyXmlNameIsValid(tag_utf):
-        raise ValueError(u"Invalid tag name %r" %
-                         (<bytes>tag_utf).decode('utf8'))
+        raise ValueError(f"Invalid tag name {(<bytes>tag_utf).decode('utf8')!r}")
     return 0
 
 cdef int _htmlTagValidOrRaise(tag_utf) except -1:
     if not _pyHtmlNameIsValid(tag_utf):
-        raise ValueError(u"Invalid HTML tag name %r" %
-                         (<bytes>tag_utf).decode('utf8'))
+        raise ValueError(f"Invalid HTML tag name {(<bytes>tag_utf).decode('utf8')!r}")
     return 0
 
 cdef int _attributeValidOrRaise(name_utf) except -1:
     if not _pyXmlNameIsValid(name_utf):
-        raise ValueError(u"Invalid attribute name %r" %
-                         (<bytes>name_utf).decode('utf8'))
+        raise ValueError(f"Invalid attribute name {(<bytes>name_utf).decode('utf8')!r}")
     return 0
 
 cdef int _prefixValidOrRaise(tag_utf) except -1:
     if not _pyXmlNameIsValid(tag_utf):
-        raise ValueError(u"Invalid namespace prefix %r" %
-                         (<bytes>tag_utf).decode('utf8'))
+        raise ValueError(f"Invalid namespace prefix {(<bytes>tag_utf).decode('utf8')!r}")
     return 0
 
 cdef int _uriValidOrRaise(uri_utf) except -1:
     cdef uri.xmlURI* c_uri = uri.xmlParseURI(_cstr(uri_utf))
     if c_uri is NULL:
-        raise ValueError(u"Invalid namespace URI %r" %
-                         (<bytes>uri_utf).decode('utf8'))
+        raise ValueError(f"Invalid namespace URI {(<bytes>uri_utf).decode('utf8')!r}")
     uri.xmlFreeURI(c_uri)
     return 0
 
@@ -1667,7 +1712,7 @@ cdef object _namespacedNameFromNsName(const_xmlChar* href, const_xmlChar* name):
         return python.PyUnicode_FromFormat("{%s}%s", href, name)
     else:
         s = python.PyBytes_FromFormat("{%s}%s", href, name)
-        if python.IS_PYPY and (python.LXML_UNICODE_STRINGS or isutf8(_xcstr(s))):
+        if python.IS_PYPY and (python.LXML_UNICODE_STRINGS or isutf8l(s, len(s))):
             return (<bytes>s).decode('utf8')
         else:
             return s

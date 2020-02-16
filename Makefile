@@ -5,22 +5,28 @@ TESTOPTS=
 SETUPFLAGS=
 LXMLVERSION=$(shell cat version.txt)
 
+PARALLEL=$(shell $(PYTHON) -c 'import sys; print("-j7" if sys.version_info >= (3, 5) else "")' )
+PARALLEL3=$(shell $(PYTHON3) -c 'import sys; print("-j7" if sys.version_info >= (3, 5) else "")' )
 PYTHON_WITH_CYTHON=$(shell $(PYTHON)  -c 'import Cython.Build.Dependencies' >/dev/null 2>/dev/null && echo " --with-cython" || true)
 PY3_WITH_CYTHON=$(shell $(PYTHON3) -c 'import Cython.Build.Dependencies' >/dev/null 2>/dev/null && echo " --with-cython" || true)
 CYTHON_WITH_COVERAGE=$(shell $(PYTHON) -c 'import Cython.Coverage; import sys; assert not hasattr(sys, "pypy_version_info")' >/dev/null 2>/dev/null && echo " --coverage" || true)
 CYTHON3_WITH_COVERAGE=$(shell $(PYTHON3) -c 'import Cython.Coverage; import sys; assert not hasattr(sys, "pypy_version_info")' >/dev/null 2>/dev/null && echo " --coverage" || true)
 
-MANYLINUX_LIBXML2_VERSION=2.9.3
-MANYLINUX_LIBXSLT_VERSION=1.1.29
+MANYLINUX_LIBXML2_VERSION=2.9.9
+MANYLINUX_LIBXSLT_VERSION=1.1.33
 MANYLINUX_IMAGE_X86_64=quay.io/pypa/manylinux1_x86_64
+MANYLINUX_IMAGE_686=quay.io/pypa/manylinux1_i686
 
-.PHONY: all inplace rebuild-sdist sdist build require-cython wheel_manylinux wheel
+.PHONY: all inplace inplace3 rebuild-sdist sdist build require-cython wheel_manylinux wheel
 
 all: inplace
 
 # Build in-place
 inplace:
-	$(PYTHON) setup.py $(SETUPFLAGS) build_ext -i $(PYTHON_WITH_CYTHON) --warnings --with-coverage
+	$(PYTHON) setup.py $(SETUPFLAGS) build_ext -i $(PYTHON_WITH_CYTHON) --warnings --with-coverage $(PARALLEL)
+
+inplace3:
+	$(PYTHON3) setup.py $(SETUPFLAGS) build_ext -i $(PY3_WITH_CYTHON) --warnings --with-coverage $(PARALLEL3)
 
 rebuild-sdist: require-cython
 	rm -f dist/lxml-$(LXMLVERSION).tar.gz
@@ -39,14 +45,17 @@ require-cython:
 	@[ -n "$(PYTHON_WITH_CYTHON)" ] || { \
 	    echo "NOTE: missing Cython - please use this command to install it: $(PYTHON) -m pip install Cython"; false; }
 
-wheel_manylinux: dist/lxml-$(LXMLVERSION).tar.gz
+wheel_manylinux: wheel_manylinux64 wheel_manylinux32
+
+wheel_manylinux32 wheel_manylinux64: dist/lxml-$(LXMLVERSION).tar.gz
 	time docker run --rm -t \
 		-v $(shell pwd):/io \
-		-e CFLAGS="-O3 -mtune=generic -pipe -fPIC" \
-		-e LDFLAGS="$(LDFLAGS)" \
+		-e CFLAGS="-O3 -g1 -march=core2 -pipe -fPIC -flto" \
+		-e LDFLAGS="$(LDFLAGS) -flto" \
 		-e LIBXML2_VERSION="$(MANYLINUX_LIBXML2_VERSION)" \
 		-e LIBXSLT_VERSION="$(MANYLINUX_LIBXSLT_VERSION)" \
-		$(MANYLINUX_IMAGE_X86_64) \
+		-e WHEELHOUSE=wheelhouse_$(subst wheel_,,$@) \
+		$(if $(patsubst %32,,$@),$(MANYLINUX_IMAGE_X86_64),$(MANYLINUX_IMAGE_686)) \
 		bash /io/tools/manylinux/build-wheels.sh /io/$<
 
 wheel:
@@ -61,8 +70,7 @@ test_build: build
 test_inplace: inplace
 	$(PYTHON) test.py $(TESTFLAGS) $(TESTOPTS) $(CYTHON_WITH_COVERAGE)
 
-test_inplace3: inplace
-	$(PYTHON3) setup.py $(SETUPFLAGS) build_ext -i $(PY3_WITH_CYTHON)
+test_inplace3: inplace3
 	$(PYTHON3) test.py $(TESTFLAGS) $(TESTOPTS) $(CYTHON3_WITH_COVERAGE)
 
 valgrind_test_inplace: inplace
@@ -70,7 +78,7 @@ valgrind_test_inplace: inplace
 		$(PYTHON) test.py
 
 gdb_test_inplace: inplace
-	@echo -e "file $(PYTHON)\nrun test.py" > .gdb.command
+	@echo "file $(PYTHON)\nrun test.py" > .gdb.command
 	gdb -x .gdb.command -d src -d src/lxml
 
 bench_inplace: inplace

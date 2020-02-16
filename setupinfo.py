@@ -1,4 +1,7 @@
-import sys, os, os.path
+import sys
+import io
+import os
+import os.path
 from distutils.core import Extension
 from distutils.errors import CompileError, DistutilsOptionError
 from distutils.command.build_ext import build_ext as _build_ext
@@ -11,9 +14,22 @@ except ImportError:
     CYTHON_INSTALLED = False
 
 EXT_MODULES = ["lxml.etree", "lxml.objectify"]
+COMPILED_MODULES = [
+    "lxml.builder",
+    "lxml._elementpath",
+    "lxml.html.diff",
+    "lxml.html.clean",
+    "lxml.sax",
+]
+HEADER_FILES = ['etree.h', 'etree_api.h']
 
-PACKAGE_PATH = "src%slxml%s" % (os.path.sep, os.path.sep)
-INCLUDE_PACKAGE_PATH = PACKAGE_PATH + 'includes'
+if hasattr(sys, 'pypy_version_info') or (
+        getattr(sys, 'implementation', None) and sys.implementation.name != 'cpython'):
+    # disable Cython compilation of Python modules in PyPy and other non-CPythons
+    del COMPILED_MODULES[:]
+
+SOURCE_PATH = "src"
+INCLUDE_PACKAGE_PATH = os.path.join(SOURCE_PATH, 'lxml', 'includes')
 
 if sys.version_info[0] >= 3:
     _system_encoding = sys.getdefaultencoding()
@@ -64,14 +80,14 @@ def ext_modules(static_include_dirs, static_library_dirs,
                 zlib_version=OPTION_ZLIB_VERSION,
                 multicore=OPTION_MULTICORE)
 
-    modules = EXT_MODULES
+    modules = EXT_MODULES + COMPILED_MODULES
     if OPTION_WITHOUT_OBJECTIFY:
         modules = [entry for entry in modules if 'objectify' not in entry]
 
-    c_files_exist = [os.path.exists('%s%s.c' % (PACKAGE_PATH, module))
-                     for module in modules]
+    module_files = list(os.path.join(SOURCE_PATH, *module.split('.')) for module in modules)
+    c_files_exist = [os.path.exists(module + '.c') for module in module_files]
 
-    source_extension = ".pyx"
+    use_cython = True
     if CYTHON_INSTALLED and (OPTION_WITH_CYTHON or not all(c_files_exist)):
         print("Building with Cython %s." % Cython.Compiler.Version.version)
         # generate module cleanup code
@@ -79,19 +95,18 @@ def ext_modules(static_include_dirs, static_library_dirs,
         Options.generate_cleanup_code = 3
         Options.clear_to_none = False
     elif not OPTION_WITHOUT_CYTHON and not all(c_files_exist):
-        for exists, module in zip(c_files_exist, modules):
+        for exists, module in zip(c_files_exist, module_files):
             if not exists:
                 raise RuntimeError(
-                    "ERROR: Trying to build without Cython, but pre-generated '%s%s.c' "
-                    "is not available (pass --without-cython to ignore this error)." % (
-                        PACKAGE_PATH, module))
+                    "ERROR: Trying to build without Cython, but pre-generated '%s.c' "
+                    "is not available (pass --without-cython to ignore this error)." % module)
     else:
         if not all(c_files_exist):
-            for exists, module in zip(c_files_exist, modules):
+            for exists, module in zip(c_files_exist, module_files):
                 if not exists:
                     print("WARNING: Trying to build without Cython, but pre-generated "
-                          "'%s%s.c' is not available." % (PACKAGE_PATH, module))
-        source_extension = ".c"
+                          "'%s.c' is not available." % module)
+        use_cython = False
         print("Building without Cython.")
 
     lib_versions = get_library_versions()
@@ -109,9 +124,13 @@ def ext_modules(static_include_dirs, static_library_dirs,
 
     base_dir = get_base_dir()
     _include_dirs = _prefer_reldirs(
-        base_dir, include_dirs(static_include_dirs) + [INCLUDE_PACKAGE_PATH])
+        base_dir, include_dirs(static_include_dirs) + [
+            SOURCE_PATH,
+            INCLUDE_PACKAGE_PATH,
+        ])
     _library_dirs = _prefer_reldirs(base_dir, library_dirs(static_library_dirs))
     _cflags = cflags(static_cflags)
+    _ldflags = ['-isysroot', get_xcode_isysroot()] if sys.platform == 'darwin' else None
     _define_macros = define_macros()
     _libraries = libraries()
 
@@ -134,43 +153,64 @@ def ext_modules(static_include_dirs, static_library_dirs,
         from Cython.Compiler import Errors
         Errors.LEVEL = 0
 
-    cythonize_options = {}
+    cythonize_directives = {
+        'binding': True,
+    }
     if OPTION_WITH_COVERAGE:
-        cythonize_options['compiler_directives'] = {'linetrace': True}
+        cythonize_directives['linetrace'] = True
 
     result = []
-    for module in modules:
-        main_module_source = PACKAGE_PATH + module + source_extension
+    for module, src_file in zip(modules, module_files):
+        is_py = module in COMPILED_MODULES
+        main_module_source = src_file + (
+            '.c' if not use_cython else '.py' if is_py else '.pyx')
         result.append(
             Extension(
                 module,
                 sources = [main_module_source],
                 depends = find_dependencies(module),
                 extra_compile_args = _cflags,
-                extra_objects = static_binaries,
+                extra_link_args = None if is_py else _ldflags,
+                extra_objects = None if is_py else static_binaries,
                 define_macros = _define_macros,
                 include_dirs = _include_dirs,
-                library_dirs = _library_dirs,
-                runtime_library_dirs = runtime_library_dirs,
-                libraries = _libraries,
+                library_dirs = None if is_py else _library_dirs,
+                runtime_library_dirs = None if is_py else runtime_library_dirs,
+                libraries = None if is_py else _libraries,
             ))
     if CYTHON_INSTALLED and OPTION_WITH_CYTHON_GDB:
         for ext in result:
             ext.cython_gdb = True
 
-    if CYTHON_INSTALLED and source_extension == '.pyx':
+    if CYTHON_INSTALLED and use_cython:
         # build .c files right now and convert Extension() objects
         from Cython.Build import cythonize
-        result = cythonize(result, **cythonize_options)
+        result = cythonize(result, compiler_directives=cythonize_directives)
+
+    # for backwards compatibility reasons, provide "etree[_api].h" also as "lxml.etree[_api].h"
+    for header_filename in HEADER_FILES:
+        src_file = os.path.join(SOURCE_PATH, 'lxml', header_filename)
+        dst_file = os.path.join(SOURCE_PATH, 'lxml', 'lxml.' + header_filename)
+        if not os.path.exists(src_file):
+            continue
+        if os.path.exists(dst_file) and os.path.getmtime(dst_file) >= os.path.getmtime(src_file):
+            continue
+
+        with io.open(src_file, 'r', encoding='iso8859-1') as f:
+            content = f.read()
+        for filename in HEADER_FILES:
+            content = content.replace('"%s"' % filename, '"lxml.%s"' % filename)
+        with io.open(dst_file, 'w', encoding='iso8859-1') as f:
+            f.write(content)
 
     return result
 
 
 def find_dependencies(module):
-    if not CYTHON_INSTALLED:
+    if not CYTHON_INSTALLED or 'lxml.html' in module:
         return []
     base_dir = get_base_dir()
-    package_dir = os.path.join(base_dir, PACKAGE_PATH)
+    package_dir = os.path.join(base_dir, SOURCE_PATH, 'lxml')
     includes_dir = os.path.join(base_dir, INCLUDE_PACKAGE_PATH)
 
     pxd_files = [
@@ -179,9 +219,9 @@ def find_dependencies(module):
         if filename.endswith('.pxd')
     ]
 
-    if 'etree' in module:
+    if module == 'lxml.etree':
         pxi_files = [
-            os.path.join(PACKAGE_PATH, filename)
+            os.path.join(SOURCE_PATH, 'lxml', filename)
             for filename in os.listdir(package_dir)
             if filename.endswith('.pxi') and 'objectpath' not in filename
         ]
@@ -189,10 +229,10 @@ def find_dependencies(module):
             filename for filename in pxd_files
             if 'etreepublic' not in filename
         ]
-    elif 'objectify' in module:
-        pxi_files = [os.path.join(PACKAGE_PATH, 'objectpath.pxi')]
+    elif module == 'lxml.objectify':
+        pxi_files = [os.path.join(SOURCE_PATH, 'lxml', 'objectpath.pxi')]
     else:
-        pxi_files = []
+        pxi_files = pxd_files = []
 
     return pxd_files + pxi_files
 
@@ -316,6 +356,8 @@ def define_macros():
         macros.append(('LXML_UNICODE_STRINGS', '1'))
     if OPTION_WITH_COVERAGE:
         macros.append(('CYTHON_TRACE_NOGIL', '1'))
+    # Disable showing C lines in tracebacks, unless explicitly requested.
+    macros.append(('CYTHON_CLINE_IN_TRACEBACK', '1' if OPTION_WITH_CLINES else '0'))
     return macros
 
 _ERROR_PRINTED = False
@@ -325,19 +367,10 @@ def run_command(cmd, *args):
         return ''
     if args:
         cmd = ' '.join((cmd,) + args)
-    try:
-        import subprocess
-    except ImportError:
-        # Python 2.3
-        sf, rf, ef = os.popen3(cmd)
-        sf.close()
-        errors = ef.read()
-        stdout_data = rf.read()
-    else:
-        # Python 2.4+
-        p = subprocess.Popen(cmd, shell=True,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout_data, errors = p.communicate()
+    import subprocess
+    p = subprocess.Popen(cmd, shell=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout_data, errors = p.communicate()
     global _ERROR_PRINTED
     if errors and not _ERROR_PRINTED:
         _ERROR_PRINTED = True
@@ -359,9 +392,15 @@ def check_min_version(version, min_version, error_name):
     return True
 
 
+def get_library_version(config_tool):
+    is_pkgconfig = "pkg-config" in config_tool
+    return run_command(config_tool,
+                       "--modversion" if is_pkgconfig else "--version")
+
+
 def get_library_versions():
-    xml2_version = run_command(find_xml2_config(), "--version")
-    xslt_version = run_command(find_xslt_config(), "--version")
+    xml2_version = get_library_version(find_xml2_config())
+    xslt_version = get_library_version(find_xslt_config())
     return xml2_version, xslt_version
 
 
@@ -374,6 +413,10 @@ def flags(option):
         if flag not in flag_list:
             flag_list.append(flag)
     return flag_list
+
+
+def get_xcode_isysroot():
+    return run_command('xcrun', '--show-sdk-path')
 
 XSLT_CONFIG = None
 XML2_CONFIG = None
@@ -448,6 +491,7 @@ OPTION_WITH_CYTHON = has_option('with-cython')
 OPTION_WITH_CYTHON_GDB = has_option('cython-gdb')
 OPTION_WITH_REFNANNY = has_option('with-refnanny')
 OPTION_WITH_COVERAGE = has_option('with-coverage')
+OPTION_WITH_CLINES = has_option('with-clines')
 if OPTION_WITHOUT_CYTHON:
     CYTHON_INSTALLED = False
 OPTION_STATIC = staticbuild or has_option('static')

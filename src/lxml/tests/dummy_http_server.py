@@ -1,5 +1,5 @@
 """
-Simple HTTP request dumper for tests in Python 2.5+.
+Simple HTTP request dumper for tests.
 """
 
 import sys
@@ -36,6 +36,7 @@ def webserver(app, port=0, host=None):
     finally:
         server.shutdown()
         server.server_close()
+    thread.join(timeout=1)
 
 
 try:

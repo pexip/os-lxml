@@ -324,14 +324,12 @@ cdef int moveNodeToDocument(_Document doc, xmlDoc* c_source_doc,
     """
     cdef xmlNode* c_start_node
     cdef xmlNode* c_node
+    cdef xmlDoc* c_doc = doc._c_doc
+    cdef tree.xmlAttr* c_attr
     cdef char* c_name
     cdef _nscache c_ns_cache = [NULL, 0, 0]
-    cdef xmlNs* c_ns
-    cdef xmlNs* c_ns_next
-    cdef xmlNs* c_nsdef
     cdef xmlNs* c_del_ns_list = NULL
-    cdef size_t i, proxy_count = 0
-    cdef bint is_prefixed_attr
+    cdef proxy_count = 0
 
     if not tree._isElementOrXInclude(c_element):
         return 0
@@ -354,39 +352,15 @@ cdef int moveNodeToDocument(_Document doc, xmlDoc* c_source_doc,
 
         # 2) make sure the namespaces of an element and its attributes
         #    are declared in this document (i.e. on the node or its parents)
-        c_node = c_element
+        if c_element.ns is not NULL:
+            _fixCNs(doc, c_start_node, c_element, &c_ns_cache, c_del_ns_list)
+
+        c_node = <xmlNode*>c_element.properties
         while c_node is not NULL:
             if c_node.ns is not NULL:
-                c_ns = NULL
-                is_prefixed_attr = (c_node.type == tree.XML_ATTRIBUTE_NODE and c_node.ns.prefix)
-                for i in range(c_ns_cache.last):
-                    if c_node.ns is c_ns_cache.ns_map[i].old:
-                        if is_prefixed_attr and not c_ns_cache.ns_map[i].new.prefix:
-                            # avoid dropping prefix from attributes
-                            continue
-                        c_ns = c_ns_cache.ns_map[i].new
-                        break
+                _fixCNs(doc, c_start_node, c_node, &c_ns_cache, c_del_ns_list)
+            c_node = c_node.next
 
-                if c_ns:
-                    c_node.ns = c_ns
-                else:
-                    # not in cache or not acceptable
-                    # => find a replacement from this document
-                    try:
-                        c_ns = doc._findOrBuildNodeNs(
-                            c_start_node, c_node.ns.href, c_node.ns.prefix,
-                            c_node.type == tree.XML_ATTRIBUTE_NODE)
-                        c_node.ns = c_ns
-                        _appendToNsCache(&c_ns_cache, c_node.ns, c_ns)
-                    except:
-                        _cleanUpFromNamespaceAdaptation(c_start_node, &c_ns_cache, c_del_ns_list)
-                        raise
-
-            if c_node is c_element:
-                # after the element, continue with its attributes
-                c_node = <xmlNode*>c_element.properties
-            else:
-                c_node = c_node.next
     tree.END_FOR_EACH_FROM(c_element)
 
     # free now unused namespace declarations
@@ -414,6 +388,62 @@ cdef int moveNodeToDocument(_Document doc, xmlDoc* c_source_doc,
         else:
             fixElementDocument(c_start_node, doc, proxy_count)
 
+    return 0
+
+
+cdef void _setTreeDoc(xmlNode* c_node, xmlDoc* c_doc):
+    """Adaptation of 'xmlSetTreeDoc()' that deep-fix the document links iteratively.
+    It avoids https://gitlab.gnome.org/GNOME/libxml2/issues/42
+    """
+    tree.BEGIN_FOR_EACH_FROM(c_node, c_node, 1)
+    if c_node.type == tree.XML_ELEMENT_NODE:
+        c_attr = <tree.xmlAttr*>c_node.properties
+        while c_attr:
+            if c_attr.atype == tree.XML_ATTRIBUTE_ID:
+                tree.xmlRemoveID(c_node.doc, c_attr)
+            c_attr.doc = c_doc
+            _fixDocChildren(c_attr.children, c_doc)
+            c_attr = c_attr.next
+    # Set doc link for all nodes, not only elements.
+    c_node.doc = c_doc
+    tree.END_FOR_EACH_FROM(c_node)
+
+
+cdef inline void _fixDocChildren(xmlNode* c_child, xmlDoc* c_doc):
+    while c_child:
+        c_child.doc = c_doc
+        if c_child.children:
+            _fixDocChildren(c_child.children, c_doc)
+        c_child = c_child.next
+
+
+cdef int _fixCNs(_Document doc, xmlNode* c_start_node, xmlNode* c_node,
+                 _nscache* c_ns_cache, xmlNs* c_del_ns_list) except -1:
+    cdef xmlNs* c_ns = NULL
+    cdef bint is_prefixed_attr = (c_node.type == tree.XML_ATTRIBUTE_NODE and c_node.ns.prefix)
+
+    for ns_map in c_ns_cache.ns_map[:c_ns_cache.last]:
+        if c_node.ns is ns_map.old:
+            if is_prefixed_attr and not ns_map.new.prefix:
+                # avoid dropping prefix from attributes
+                continue
+            c_ns = ns_map.new
+            break
+
+    if c_ns:
+        c_node.ns = c_ns
+    else:
+        # not in cache or not acceptable
+        # => find a replacement from this document
+        try:
+            c_ns = doc._findOrBuildNodeNs(
+                c_start_node, c_node.ns.href, c_node.ns.prefix,
+                c_node.type == tree.XML_ATTRIBUTE_NODE)
+            c_node.ns = c_ns
+            _appendToNsCache(c_ns_cache, c_node.ns, c_ns)
+        except:
+            _cleanUpFromNamespaceAdaptation(c_start_node, c_ns_cache, c_del_ns_list)
+            raise
     return 0
 
 
@@ -460,7 +490,7 @@ cdef inline void _fixThreadDictPtr(const_xmlChar** c_ptr,
                                    tree.xmlDict* c_src_dict,
                                    tree.xmlDict* c_dict) nogil:
     c_str = c_ptr[0]
-    if c_str and tree.xmlDictOwns(c_src_dict, c_str):
+    if c_str and c_src_dict and tree.xmlDictOwns(c_src_dict, c_str):
         # return value can be NULL on memory error, but we don't handle that here
         c_str = tree.xmlDictLookup(c_dict, c_str, -1)
         if c_str:
@@ -552,3 +582,34 @@ cdef void fixThreadDictNamesForDtd(tree.xmlDtd* c_dtd,
             _fixThreadDictPtr(&c_entity.SystemID, c_src_dict, c_dict)
             _fixThreadDictPtr(<const_xmlChar**>&c_entity.content, c_src_dict, c_dict)
         c_node = c_node.next
+
+
+################################################################################
+# adopt an xmlDoc from an external libxml2 document source
+
+cdef _Document _adoptForeignDoc(xmlDoc* c_doc, _BaseParser parser=None, bint is_owned=True):
+    """Convert and wrap an externally produced xmlDoc for use in lxml.
+    Assures that all '_private' pointers are NULL to prevent accidental
+    dereference into lxml proxy objects.
+    """
+    if c_doc is NULL:
+        raise ValueError("Illegal document provided: NULL")
+    if c_doc.type not in (tree.XML_DOCUMENT_NODE, tree.XML_HTML_DOCUMENT_NODE):
+        doc_type = c_doc.type
+        if is_owned:
+            tree.xmlFreeDoc(c_doc)
+        raise ValueError(f"Illegal document provided: expected XML or HTML, found {doc_type}")
+
+    cdef xmlNode* c_node = <xmlNode*>c_doc
+
+    if is_owned:
+        tree.BEGIN_FOR_EACH_FROM(<xmlNode*>c_doc, c_node, 1)
+        c_node._private = NULL
+        tree.END_FOR_EACH_FROM(c_node)
+    else:
+        # create a fresh copy that lxml owns
+        c_doc = tree.xmlCopyDoc(c_doc, 1)
+        if c_doc is NULL:
+            raise MemoryError()
+
+    return _documentFactory(c_doc, parser)

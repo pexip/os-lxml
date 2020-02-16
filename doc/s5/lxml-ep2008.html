@@ -3,14 +3,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.10: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.14: http://docutils.sourceforge.net/" />
 <meta name="version" content="S5 1.1" />
 <title>Implementing XML languages with lxml</title>
 <style type="text/css">
 
 /*
 :Author: David Goodger (goodger@python.org)
-:Id: $Id: html4css1.css 7514 2012-09-14 14:27:12Z milde $
+:Id: $Id: html4css1.css 7952 2016-07-26 18:15:59Z milde $
 :Copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -37,6 +37,14 @@ table.borderless td, table.borderless th {
 
 .hidden {
   display: none }
+
+.subscript {
+  vertical-align: sub;
+  font-size: smaller }
+
+.superscript {
+  vertical-align: super;
+  font-size: smaller }
 
 a.toc-backref {
   text-decoration: none ;
@@ -162,18 +170,23 @@ h2.subtitle {
 hr.docutils {
   width: 75% }
 
-img.align-left, .figure.align-left, object.align-left {
+img.align-left, .figure.align-left, object.align-left, table.align-left {
   clear: left ;
   float: left ;
   margin-right: 1em }
 
-img.align-right, .figure.align-right, object.align-right {
+img.align-right, .figure.align-right, object.align-right, table.align-right {
   clear: right ;
   float: right ;
   margin-left: 1em }
 
 img.align-center, .figure.align-center, object.align-center {
   display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table.align-center {
   margin-left: auto;
   margin-right: auto;
 }
@@ -194,6 +207,15 @@ div.align-right {
 
 /* div.align-center * { */
 /*   text-align: left } */
+
+.align-top    {
+  vertical-align: top }
+
+.align-middle {
+  vertical-align: middle }
+
+.align-bottom {
+  vertical-align: bottom }
 
 ol.simple, ul.simple {
   margin-bottom: 1em }
@@ -313,6 +335,21 @@ table.docutils th.field-name, table.docinfo th.docinfo-name {
   text-align: left ;
   white-space: nowrap ;
   padding-left: 0 }
+
+/* "booktabs" style (no vertical lines) */
+table.docutils.booktabs {
+  border: 0px;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-collapse: collapse;
+}
+table.docutils.booktabs * {
+  border: 0px;
+}
+table.docutils.booktabs th {
+  border-bottom: thin solid;
+  text-align: left;
+}
 
 h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
 h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
@@ -602,7 +639,7 @@ HTML task«</li>
 <li>wrap namespace URI in <tt class="docutils literal"><span class="pre">{...}</span></tt></li>
 <li>append the tag name</li>
 </ul>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tag</span> <span class="o">=</span> <span class="s2">&quot;{http://www.w3.org/the/namespace}tagname&quot;</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tag</span> <span class="o">=</span> <span class="s2">&quot;{http://www.w3.org/the/namespace}tagname&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
 </pre></div>
 </li>
@@ -616,7 +653,7 @@ HTML task«</li>
 <h1>Text content in ElementTree</h1>
 <ul>
 <li><p class="first">uses <tt class="docutils literal">.text</tt> and <tt class="docutils literal">.tail</tt> attributes:</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">fragment_fromstring</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">fragment_fromstring</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="s2">&quot;&lt;div&gt;&lt;p&gt;a paragraph&lt;br&gt;split in two&lt;/p&gt; parts&lt;/div&gt;&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">div</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">br</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -642,7 +679,7 @@ HTML task«</li>
 <h1>Attributes in ElementTree</h1>
 <ul>
 <li><p class="first">uses <tt class="docutils literal">.get()</tt> and <tt class="docutils literal">.set()</tt> methods:</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="s1">&#39;&lt;root a=&quot;the value&quot; b=&quot;of an&quot; c=&quot;attribute&quot;/&gt;&#39;</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
@@ -654,7 +691,7 @@ HTML task«</li>
 </pre></div>
 </li>
 <li><p class="first">or the <tt class="docutils literal">.attrib</tt> dictionary property:</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">attrib</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">attrib</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 <span class="go">[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]</span>
@@ -667,7 +704,7 @@ HTML task«</li>
 <div class="slide" id="tree-iteration-in-lxml-etree-1">
 <h1>Tree iteration in lxml.etree (1)</h1>
 <!-- >>> import collections -->
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span>
 <span class="gp">... </span>  <span class="s2">&quot;&lt;root&gt; &lt;a&gt;&lt;b/&gt;&lt;b/&gt;&lt;/a&gt; &lt;c&gt;&lt;d/&gt;&lt;e&gt;&lt;f/&gt;&lt;/e&gt;&lt;g/&gt;&lt;/c&gt; &lt;/root&gt;&quot;</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">([</span><span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">root</span><span class="p">])</span>   <span class="c1"># children</span>
@@ -693,7 +730,7 @@ HTML task«</li>
 </div>
 <div class="slide" id="tree-iteration-in-lxml-etree-2">
 <h1>Tree iteration in lxml.etree (2)</h1>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span>
 <span class="gp">... </span>  <span class="s2">&quot;&lt;root&gt; &lt;a&gt;&lt;b/&gt;&lt;b/&gt;&lt;/a&gt; &lt;c&gt;&lt;d/&gt;&lt;e&gt;&lt;f/&gt;&lt;/e&gt;&lt;g/&gt;&lt;/c&gt; &lt;/root&gt;&quot;</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tree_walker</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">iterwalk</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">events</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;end&#39;</span><span class="p">))</span>
@@ -722,14 +759,14 @@ HTML task«</li>
 </div>
 <div class="slide" id="path-languages-in-lxml">
 <h1>Path languages in lxml</h1>
-<div class="highlight"><pre><span class="nt">&lt;root&gt;</span>
+<div class="highlight"><pre><span></span><span class="nt">&lt;root&gt;</span>
   <span class="nt">&lt;speech</span> <span class="na">class=</span><span class="s">&#39;dialog&#39;</span><span class="nt">&gt;&lt;p&gt;</span>So be it!<span class="nt">&lt;/p&gt;&lt;/speech&gt;</span>
   <span class="nt">&lt;p&gt;</span>stuff<span class="nt">&lt;/p&gt;</span>
 <span class="nt">&lt;/root&gt;</span>
 </pre></div>
 <ul>
 <li><p class="first">search it with XPath</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">find_paragraphs</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">XPath</span><span class="p">(</span><span class="s2">&quot;//p&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">find_paragraphs</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">XPath</span><span class="p">(</span><span class="s2">&quot;//p&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">paragraphs</span> <span class="o">=</span> <span class="n">find_paragraphs</span><span class="p">(</span><span class="n">xml_tree</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">([</span> <span class="n">p</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paragraphs</span> <span class="p">])</span>
@@ -737,7 +774,7 @@ HTML task«</li>
 </pre></div>
 </li>
 <li><p class="first">search it with CSS selectors</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">find_dialogs</span> <span class="o">=</span> <span class="n">cssselect</span><span class="o">.</span><span class="n">CSSSelector</span><span class="p">(</span><span class="s2">&quot;speech.dialog p&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">find_dialogs</span> <span class="o">=</span> <span class="n">cssselect</span><span class="o">.</span><span class="n">CSSSelector</span><span class="p">(</span><span class="s2">&quot;speech.dialog p&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">paragraphs</span> <span class="o">=</span> <span class="n">find_dialogs</span><span class="p">(</span><span class="n">xml_tree</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">([</span> <span class="n">p</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paragraphs</span> <span class="p">])</span>
@@ -792,16 +829,16 @@ HTML task«</li>
 <h1>Example: parsing from a string</h1>
 <ul>
 <li><p class="first">using the <tt class="docutils literal">fromstring()</tt> function:</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root_element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">some_xml_data</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root_element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">some_xml_data</span><span class="p">)</span>
 </pre></div>
 </li>
 <li><p class="first">using the <tt class="docutils literal">fromstring()</tt> function with a specific parser:</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">HTMLParser</span><span class="p">(</span><span class="n">remove_comments</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">HTMLParser</span><span class="p">(</span><span class="n">remove_comments</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">root_element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">some_html_data</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span>
 </pre></div>
 </li>
 <li><p class="first">or the <tt class="docutils literal">XML()</tt> and <tt class="docutils literal">HTML()</tt> aliases for literals in code:</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root_element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">XML</span><span class="p">(</span><span class="s2">&quot;&lt;root&gt;&lt;child/&gt;&lt;/root&gt;&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root_element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">XML</span><span class="p">(</span><span class="s2">&quot;&lt;root&gt;&lt;child/&gt;&lt;/root&gt;&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">root_element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&lt;p&gt;some&lt;br&gt;paragraph&lt;/p&gt;&quot;</span><span class="p">)</span>
 </pre></div>
 </li>
@@ -870,11 +907,11 @@ HTML task«</li>
 <div class="slide" id="example-generate-xml-1">
 <h1>Example: generate XML (1)</h1>
 <p>The ElementMaker (or <em>E-factory</em>)</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lxml.builder</span> <span class="kn">import</span> <span class="n">ElementMaker</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lxml.builder</span> <span class="kn">import</span> <span class="n">ElementMaker</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">ElementMaker</span><span class="p">(</span><span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;http://www.w3.org/2005/Atom&quot;</span><span class="p">,</span>
 <span class="gp">... </span>                 <span class="n">nsmap</span><span class="o">=</span><span class="p">{</span><span class="bp">None</span> <span class="p">:</span> <span class="s2">&quot;http://www.w3.org/2005/Atom&quot;</span><span class="p">})</span>
 </pre></div>
-<div class="incremental"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">atom</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span>
+<div class="incremental"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">atom</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span>
 <span class="gp">... </span>  <span class="n">A</span><span class="o">.</span><span class="n">author</span><span class="p">(</span> <span class="n">A</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="s2">&quot;Stefan Behnel&quot;</span><span class="p">)</span> <span class="p">),</span>
 <span class="gp">... </span>  <span class="n">A</span><span class="o">.</span><span class="n">entry</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">A</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;News from lxml&quot;</span><span class="p">),</span>
@@ -884,13 +921,13 @@ HTML task«</li>
 <span class="gp">... </span>  <span class="p">)</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
-</div><div class="incremental"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lxml.etree</span> <span class="kn">import</span> <span class="n">tostring</span>
+</div><div class="incremental"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lxml.etree</span> <span class="kn">import</span> <span class="n">tostring</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span> <span class="n">tostring</span><span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="n">pretty_print</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="p">)</span>
 </pre></div>
 </div></div>
 <div class="slide" id="example-generate-xml-2">
 <h1>Example: generate XML (2)</h1>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">atom</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">atom</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span>
 <span class="gp">... </span>  <span class="n">A</span><span class="o">.</span><span class="n">author</span><span class="p">(</span> <span class="n">A</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="s2">&quot;Stefan Behnel&quot;</span><span class="p">)</span> <span class="p">),</span>
 <span class="gp">... </span>  <span class="n">A</span><span class="o">.</span><span class="n">entry</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">A</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;News from lxml&quot;</span><span class="p">),</span>
@@ -900,7 +937,7 @@ HTML task«</li>
 <span class="gp">... </span>  <span class="p">)</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
-<div class="highlight"><pre><span class="nt">&lt;feed</span> <span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2005/Atom&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><span class="nt">&lt;feed</span> <span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2005/Atom&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;author&gt;</span>
     <span class="nt">&lt;name&gt;</span>Stefan Behnel<span class="nt">&lt;/name&gt;</span>
   <span class="nt">&lt;/author&gt;</span>
@@ -915,7 +952,7 @@ HTML task«</li>
 </div>
 <div class="slide" id="be-careful-what-you-type">
 <h1>Be careful what you type!</h1>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">atom</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">atom</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span>
 <span class="gp">... </span>  <span class="n">A</span><span class="o">.</span><span class="n">author</span><span class="p">(</span> <span class="n">A</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="s2">&quot;Stefan Behnel&quot;</span><span class="p">)</span> <span class="p">),</span>
 <span class="gp">... </span>  <span class="n">A</span><span class="o">.</span><span class="n">entry</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">A</span><span class="o">.</span><span class="n">titel</span><span class="p">(</span><span class="s2">&quot;News from lxml&quot;</span><span class="p">),</span>
@@ -925,7 +962,7 @@ HTML task«</li>
 <span class="gp">... </span>  <span class="p">)</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
-<div class="highlight"><pre><span class="nt">&lt;feed</span> <span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2005/Atom&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><span class="nt">&lt;feed</span> <span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2005/Atom&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;author&gt;</span>
     <span class="nt">&lt;name&gt;</span>Stefan Behnel<span class="nt">&lt;/name&gt;</span>
   <span class="nt">&lt;/author&gt;</span>
@@ -941,7 +978,7 @@ HTML task«</li>
 <div class="slide" id="want-more-type-safety">
 <h1>Want more 'type safety'?</h1>
 <p>Write an XML generator <em>module</em> instead:</p>
-<div class="highlight"><pre><span class="c1"># atomgen.py</span>
+<div class="highlight"><pre><span></span><span class="c1"># atomgen.py</span>
 
 <span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
 <span class="kn">from</span> <span class="nn">lxml.builder</span> <span class="kn">import</span> <span class="n">ElementMaker</span>
@@ -965,7 +1002,7 @@ HTML task«</li>
 <h1>The Atom generator module</h1>
 <!-- >>> import sys
 >>> sys.path.insert(0, "ep2008") -->
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">atomgen</span> <span class="kn">as</span> <span class="nn">A</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">atomgen</span> <span class="kn">as</span> <span class="nn">A</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">atom</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span>
 <span class="gp">... </span>  <span class="n">A</span><span class="o">.</span><span class="n">author</span><span class="p">(</span> <span class="n">A</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="s2">&quot;Stefan Behnel&quot;</span><span class="p">)</span> <span class="p">),</span>
@@ -989,18 +1026,18 @@ HTML task«</li>
 <div class="slide" id="mixing-languages-1">
 <h1>Mixing languages (1)</h1>
 <p>Atom can embed <em>serialised</em> HTML</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">lxml.html.builder</span> <span class="kn">as</span> <span class="nn">h</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">lxml.html.builder</span> <span class="kn">as</span> <span class="nn">h</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">html_fragment</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">DIV</span><span class="p">(</span>
 <span class="gp">... </span>  <span class="s2">&quot;this is some</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
 <span class="gp">... </span>  <span class="n">h</span><span class="o">.</span><span class="n">A</span><span class="p">(</span><span class="s2">&quot;HTML&quot;</span><span class="p">,</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;http://w3.org/MarkUp/&quot;</span><span class="p">),</span>
 <span class="gp">... </span>  <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">content&quot;</span><span class="p">)</span>
 </pre></div>
-<div class="incremental"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">serialised_html</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">html_fragment</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
+<div class="incremental"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">serialised_html</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">html_fragment</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">summary</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">serialised_html</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
 </pre></div>
-</div><div class="incremental"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">summary</span><span class="p">))</span>
+</div><div class="incremental"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">summary</span><span class="p">))</span>
 <span class="go">&lt;summary xmlns=&quot;http://www.w3.org/2005/Atom&quot; type=&quot;html&quot;&gt;</span>
 <span class="go">   &amp;lt;div&amp;gt;this is some</span>
 <span class="go">   &amp;lt;a href=&quot;http://w3.org/MarkUp/&quot;&amp;gt;HTML&amp;lt;/a&amp;gt;</span>
@@ -1011,7 +1048,7 @@ HTML task«</li>
 <div class="slide" id="mixing-languages-2">
 <h1>Mixing languages (2)</h1>
 <p>Atom can also embed non-escaped XHTML</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">xhtml_fragment</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">html_fragment</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lxml.html</span> <span class="kn">import</span> <span class="n">html_to_xhtml</span>
@@ -1019,7 +1056,7 @@ HTML task«</li>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">summary</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">xhtml_fragment</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;xhtml&quot;</span><span class="p">)</span>
 </pre></div>
-<div class="incremental"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">pretty_print</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<div class="incremental"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">pretty_print</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
 <span class="go">&lt;summary xmlns=&quot;http://www.w3.org/2005/Atom&quot; type=&quot;xhtml&quot;&gt;</span>
 <span class="go">  &lt;html:div xmlns:html=&quot;http://www.w3.org/1999/xhtml&quot;&gt;this is some</span>
 <span class="go">  &lt;html:a href=&quot;http://w3.org/MarkUp/&quot;&gt;HTML&lt;/html:a&gt;</span>
@@ -1085,14 +1122,14 @@ HTML task«</li>
 <h1>Example: a simple Element class (1)</h1>
 <ul>
 <li><p class="first">define a subclass of ElementBase</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">HonkElement</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">ElementBase</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">HonkElement</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">ElementBase</span><span class="p">):</span>
 <span class="gp">... </span>   <span class="nd">@property</span>
 <span class="gp">... </span>   <span class="k">def</span> <span class="nf">honking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="gp">... </span>      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;honking&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
 </pre></div>
 </li>
 <li><p class="first">let it replace the default Element class</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">lookup</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">ElementDefaultClassLookup</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lookup</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">ElementDefaultClassLookup</span><span class="p">(</span>
 <span class="gp">... </span>                            <span class="n">element</span><span class="o">=</span><span class="n">HonkElement</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">XMLParser</span><span class="p">()</span>
@@ -1105,7 +1142,7 @@ HTML task«</li>
 <h1>Example: a simple Element class (2)</h1>
 <ul>
 <li><p class="first">use the new Element class</p>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">XML</span><span class="p">(</span><span class="s1">&#39;&lt;root&gt;&lt;honk honking=&quot;true&quot;/&gt;&lt;/root&gt;&#39;</span><span class="p">,</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">XML</span><span class="p">(</span><span class="s1">&#39;&lt;root&gt;&lt;honk honking=&quot;true&quot;/&gt;&lt;/root&gt;&#39;</span><span class="p">,</span>
 <span class="gp">... </span>                 <span class="n">parser</span><span class="p">)</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">honking</span>
@@ -1152,7 +1189,7 @@ HTML task«</li>
 <h1>Designing an Atom API</h1>
 <ul>
 <li><p class="first">a feed is a container for entries</p>
-<div class="highlight"><pre><span class="c1"># atom.py</span>
+<div class="highlight"><pre><span></span><span class="c1"># atom.py</span>
 
 <span class="n">ATOM_NAMESPACE</span> <span class="o">=</span> <span class="s2">&quot;http://www.w3.org/2005/Atom&quot;</span>
 <span class="n">_ATOM_NS</span> <span class="o">=</span> <span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">ATOM_NAMESPACE</span>
@@ -1164,7 +1201,7 @@ HTML task«</li>
 </pre></div>
 </li>
 <li><p class="first">it also has a couple of meta-data children, e.g. <tt class="docutils literal">title</tt></p>
-<div class="highlight"><pre><span class="k">class</span> <span class="nc">FeedElement</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">ElementBase</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">FeedElement</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">ElementBase</span><span class="p">):</span>
     <span class="c1"># ...</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1179,7 +1216,7 @@ HTML task«</li>
 <ul class="simple">
 <li>ready-to-use, generic Python object API for XML</li>
 </ul>
-<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">objectify</span>
+<div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">objectify</span>
 
 <span class="o">&gt;&gt;&gt;</span> <span class="n">feed</span> <span class="o">=</span> <span class="n">objectify</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;atom-example.xml&quot;</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">feed</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
@@ -1194,7 +1231,7 @@ HTML task«</li>
 </div>
 <div class="slide" id="still-room-for-more-convenience">
 <h1>Still room for more convenience</h1>
-<div class="highlight"><pre><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
 
 <span class="k">class</span> <span class="nc">FeedElement</span><span class="p">(</span><span class="n">objectify</span><span class="o">.</span><span class="n">ObjectifiedElement</span><span class="p">):</span>
 
@@ -1237,7 +1274,7 @@ HTML task«</li>
 <div class="slide" id="setting-up-the-element-mapping">
 <h1>Setting up the Element mapping</h1>
 <p>Atom has a namespace =&gt; leave the mapping to lxml</p>
-<div class="highlight"><pre><span class="c1"># ...</span>
+<div class="highlight"><pre><span></span><span class="c1"># ...</span>
 <span class="n">_atom_lookup</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">ElementNamespaceClassLookup</span><span class="p">(</span>
                   <span class="n">objectify</span><span class="o">.</span><span class="n">ObjectifyElementClassLookup</span><span class="p">())</span>
 
@@ -1261,7 +1298,7 @@ HTML task«</li>
 </div>
 <div class="slide" id="using-your-new-atom-api">
 <h1>Using your new Atom API</h1>
-<div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">atom</span>
+<div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">atom</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;ep2008/atom-example.xml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feed</span><span class="o">.</span><span class="n">entry</span><span class="p">))</span>

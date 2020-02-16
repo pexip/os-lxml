@@ -25,6 +25,16 @@ if BS_INSTALLED:
             root = self.soupparser.fromstring(html)
             self.assertTrue(root.find('.//input').get('disabled') is not None)
 
+        def test_empty(self):
+            tree = self.soupparser.fromstring('')
+            res = b'''<html></html>'''
+            self.assertEqual(tostring(tree), res)
+
+        def test_text(self):
+            tree = self.soupparser.fromstring('huhu')
+            res = b'''<html>huhu</html>'''
+            self.assertEqual(tostring(tree), res)
+
         def test_body(self):
             html = '''<body><p>test</p></body>'''
             res = b'''<html><body><p>test</p></body></html>'''
@@ -44,6 +54,17 @@ if BS_INSTALLED:
             res = b'<html><head><title>title</title></head><body></body></html>'
             tree = self.soupparser.fromstring(html)
             self.assertEqual(tostring(tree), res)
+
+        def test_comment_hyphen(self):
+            # These are really invalid XML as per specification
+            # https://www.w3.org/TR/REC-xml/#sec-comments
+            html = b'<html><!-- comment -- with double-hyphen --></html>'
+            tree = self.soupparser.fromstring(html)
+            self.assertEqual(tostring(tree), html)
+
+            html = b'<html><!-- comment ends with hyphen ---></html>'
+            tree = self.soupparser.fromstring(html)
+            self.assertEqual(tostring(tree), html)
 
         def test_comment_pi(self):
             html = '''<!-- comment -->

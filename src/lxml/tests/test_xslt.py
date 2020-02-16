@@ -4,7 +4,15 @@
 Test cases related to XSLT processing
 """
 
-import unittest, copy, sys, os.path
+import io
+import sys
+import copy
+import gzip
+import os.path
+import unittest
+import contextlib
+from textwrap import dedent
+from tempfile import NamedTemporaryFile
 
 this_dir = os.path.dirname(__file__)
 if this_dir not in sys.path:
@@ -22,8 +30,8 @@ try:
 except NameError: # Python 3
     basestring = str
 
-from common_imports import etree, BytesIO, HelperTestCase, fileInTestDir
-from common_imports import doctest, _bytes, _str, make_doctest, skipif
+from .common_imports import etree, BytesIO, HelperTestCase, fileInTestDir
+from .common_imports import doctest, _bytes, _str, make_doctest, skipif
 
 class ETreeXSLTTestCase(HelperTestCase):
     """XSLT tests etree"""
@@ -98,102 +106,103 @@ class ETreeXSLTTestCase(HelperTestCase):
 ''',
                           str(res))
 
-    def test_xslt_utf8(self):
+    @contextlib.contextmanager
+    def _xslt_setup(
+            self, encoding='UTF-16', expected_encoding=None,
+            expected="""<?xml version="1.0" encoding="%(ENCODING)s"?><foo>\\uF8D2</foo>"""):
         tree = self.parse(_bytes('<a><b>\\uF8D2</b><c>\\uF8D2</c></a>'
                                  ).decode("unicode_escape"))
         style = self.parse('''\
 <xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output encoding="UTF-8"/>
+  <xsl:output encoding="%(ENCODING)s"/>
   <xsl:template match="/">
     <foo><xsl:value-of select="/a/b/text()" /></foo>
   </xsl:template>
-</xsl:stylesheet>''')
+</xsl:stylesheet>''' % {'ENCODING': encoding})
 
         st = etree.XSLT(style)
         res = st(tree)
-        expected = _bytes('''\
-<?xml version="1.0" encoding="UTF-8"?>
-<foo>\\uF8D2</foo>
-''').decode("unicode_escape")
-        if is_python3:
-            self.assertEqual(expected,
-                              str(bytes(res), 'UTF-8'))
-        else:
-            self.assertEqual(expected,
-                              unicode(str(res), 'UTF-8'))
+        expected = _bytes(dedent(expected).strip()).decode("unicode_escape").replace('\n', '') % {
+            'ENCODING': expected_encoding or encoding,
+        }
+
+        data = [res]
+        yield data
+        self.assertEqual(expected, data[0].replace('\n', ''))
+
+    def test_xslt_utf8(self):
+        with self._xslt_setup(encoding='UTF-8') as res:
+            res[0] = unicode(bytes(res[0]), 'UTF-8')
+            assert 'UTF-8' in res[0]
 
     def test_xslt_encoding(self):
-        tree = self.parse(_bytes('<a><b>\\uF8D2</b><c>\\uF8D2</c></a>'
-                                 ).decode("unicode_escape"))
-        style = self.parse('''\
-<xsl:stylesheet version="1.0"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output encoding="UTF-16"/>
-  <xsl:template match="/">
-    <foo><xsl:value-of select="/a/b/text()" /></foo>
-  </xsl:template>
-</xsl:stylesheet>''')
-
-        st = etree.XSLT(style)
-        res = st(tree)
-        expected = _bytes('''\
-<?xml version="1.0" encoding="UTF-16"?>
-<foo>\\uF8D2</foo>
-''').decode("unicode_escape")
-        if is_python3:
-            self.assertEqual(expected,
-                              str(bytes(res), 'UTF-16'))
-        else:
-            self.assertEqual(expected,
-                              unicode(str(res), 'UTF-16'))
+        with self._xslt_setup() as res:
+            res[0] = unicode(bytes(res[0]), 'UTF-16')
+            assert 'UTF-16' in res[0]
 
     def test_xslt_encoding_override(self):
-        tree = self.parse(_bytes('<a><b>\\uF8D2</b><c>\\uF8D2</c></a>'
-                                 ).decode("unicode_escape"))
-        style = self.parse('''\
-<xsl:stylesheet version="1.0"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output encoding="UTF-8"/>
-  <xsl:template match="/">
-    <foo><xsl:value-of select="/a/b/text()" /></foo>
-  </xsl:template>
-</xsl:stylesheet>''')
+        with self._xslt_setup(encoding='UTF-8', expected_encoding='UTF-16') as res:
+            f = BytesIO()
+            res[0].write(f, encoding='UTF-16')
+            if is_python3:
+                output = str(f.getvalue(), 'UTF-16')
+            else:
+                output = unicode(str(f.getvalue()), 'UTF-16')
+            res[0] = output.replace("'", '"')
 
-        st = etree.XSLT(style)
-        res = st(tree)
-        expected = _bytes("""\
-<?xml version='1.0' encoding='UTF-16'?>\
-<foo>\\uF8D2</foo>""").decode("unicode_escape")
+    def test_xslt_write_output_bytesio(self):
+        with self._xslt_setup() as res:
+            f = BytesIO()
+            res[0].write_output(f)
+            res[0] = f.getvalue().decode('UTF-16')
 
-        f = BytesIO()
-        res.write(f, encoding='UTF-16')
-        if is_python3:
-            result = str(f.getvalue(), 'UTF-16').replace('\n', '')
+    def test_xslt_write_output_failure(self):
+        class Writer(object):
+            def write(self, data):
+                raise ValueError("FAILED!")
+
+        try:
+            with self._xslt_setup() as res:
+                res[0].write_output(Writer())
+        except ValueError as exc:
+            self.assertTrue("FAILED!" in str(exc), exc)
         else:
-            result = unicode(str(f.getvalue()), 'UTF-16').replace('\n', '')
-        self.assertEqual(expected, result)
+            self.assertTrue(False, "exception not raised")
+
+    def test_xslt_write_output_file(self):
+        with self._xslt_setup() as res:
+            f = NamedTemporaryFile(delete=False)
+            try:
+                try:
+                    res[0].write_output(f)
+                finally:
+                    f.close()
+                with io.open(f.name, encoding='UTF-16') as f:
+                    res[0] = f.read()
+            finally:
+                os.unlink(f.name)
+
+    def test_xslt_write_output_file_path(self):
+        with self._xslt_setup() as res:
+            f = NamedTemporaryFile(delete=False)
+            try:
+                try:
+                    res[0].write_output(f.name, compression=9)
+                finally:
+                    f.close()
+                with contextlib.closing(gzip.GzipFile(f.name)) as f:
+                    res[0] = f.read().decode("UTF-16")
+            finally:
+                os.unlink(f.name)
 
     def test_xslt_unicode(self):
-        tree = self.parse(_bytes('<a><b>\\uF8D2</b><c>\\uF8D2</c></a>'
-                                 ).decode("unicode_escape"))
-        style = self.parse('''\
-<xsl:stylesheet version="1.0"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output encoding="UTF-16"/>
-  <xsl:template match="/">
-    <foo><xsl:value-of select="/a/b/text()" /></foo>
-  </xsl:template>
-</xsl:stylesheet>''')
-
-        st = etree.XSLT(style)
-        res = st(tree)
-        expected = _bytes('''\
-<?xml version="1.0"?>
-<foo>\\uF8D2</foo>
-''').decode("unicode_escape")
-        self.assertEqual(expected,
-                          unicode(res))
+        expected = '''
+            <?xml version="1.0"?>
+            <foo>\\uF8D2</foo>
+        '''
+        with self._xslt_setup(expected=expected) as res:
+            res[0] = unicode(res[0])
 
     def test_xslt_unicode_standalone(self):
         tree = self.parse(_bytes('<a><b>\\uF8D2</b><c>\\uF8D2</c></a>'
@@ -247,7 +256,6 @@ class ETreeXSLTTestCase(HelperTestCase):
         st = etree.XSLT(root_node[0])
 
     def test_xslt_broken(self):
-        tree = self.parse('<a/>')
         style = self.parse('''\
 <xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -256,6 +264,15 @@ class ETreeXSLTTestCase(HelperTestCase):
         self.assertRaises(etree.XSLTParseError,
                           etree.XSLT, style)
 
+    def test_xslt_parsing_error_log(self):
+        tree = self.parse('<a/>')
+        style = self.parse('''\
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:foo />
+</xsl:stylesheet>''')
+        self.assertRaises(etree.XSLTParseError,
+                          etree.XSLT, style)
         exc = None
         try:
             etree.XSLT(style)
@@ -266,6 +283,37 @@ class ETreeXSLTTestCase(HelperTestCase):
         self.assertTrue(exc is not None)
         self.assertTrue(len(exc.error_log))
         for error in exc.error_log:
+            self.assertTrue(':ERROR:XSLT:' in str(error))
+
+    def test_xslt_apply_error_log(self):
+        tree = self.parse('<a/>')
+        style = self.parse('''\
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:template match="a">
+        <xsl:copy>
+            <xsl:message terminate="yes">FAIL</xsl:message>
+        </xsl:copy>
+    </xsl:template>
+</xsl:stylesheet>''')
+        self.assertRaises(etree.XSLTApplyError,
+                          etree.XSLT(style), tree)
+
+        transform = etree.XSLT(style)
+        exc = None
+        try:
+            transform(tree)
+        except etree.XSLTApplyError as e:
+            exc = e
+        else:
+            self.assertFalse(True, "XSLT processing should have failed but didn't")
+
+        self.assertTrue(exc is not None)
+        self.assertTrue(len(exc.error_log))
+        self.assertEqual(len(transform.error_log), len(exc.error_log))
+        for error in exc.error_log:
+            self.assertTrue(':ERROR:XSLT:' in str(error))
+        for error in transform.error_log:
             self.assertTrue(':ERROR:XSLT:' in str(error))
 
     def test_xslt_parameters(self):
@@ -1195,7 +1243,7 @@ class ETreeEXSLTTestCase(HelperTestCase):
     <test>
       <xsl:for-each select="regexp:match(
             'http://www.bayes.co.uk/xml/index.xml?/xml/utils/rechecker.xml',
-            '(\w+):\/\/([^/:]+)(:\d*)?([^# ]*)')">
+            '(\\w+):\\/\\/([^/:]+)(:\\d*)?([^# ]*)')">
         <test1><xsl:value-of select="."/></test1>
       </xsl:for-each>
     </test>
@@ -1230,7 +1278,7 @@ class ETreeEXSLTTestCase(HelperTestCase):
   <xsl:template match="/">
     <test>
       <xsl:for-each select="regexp:match(
-            'This is a test string', '(\w+)', 'g')">
+            'This is a test string', '(\\w+)', 'g')">
         <test1><xsl:value-of select="."/></test1>
       </xsl:for-each>
     </test>

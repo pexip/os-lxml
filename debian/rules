@@ -15,8 +15,8 @@ UPSTREAMVER := $(subst lxml-,,$(notdir $(CURDIR)))
 include /usr/share/python3/python.mk
 
 prebuild: prebuild-stamp
-prebuild-stamp: src/lxml/lxml.etree.pyx src/lxml/lxml.objectify.pyx
-#	cython src/lxml/lxml.etree.pyx src/lxml/lxml.objectify.pyx
+prebuild-stamp: src/lxml/etree.pyx src/lxml/objectify.pyx
+#	cython src/lxml/etree.pyx src/lxml/objectify.pyx
 	touch $@
 
 build-arch: build

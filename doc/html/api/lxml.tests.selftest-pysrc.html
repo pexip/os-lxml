@@ -113,7 +113,7 @@ xml.etree.ElementTree.ElementTree" class="py-name" href="#" onclick="return docl
 <a name="L38"></a><tt class="py-lineno">  38</tt>  <tt class="py-line"><tt class="py-comment">#from elementtree import SimpleXMLWriter</tt> </tt>
 <a name="L39"></a><tt class="py-lineno">  39</tt>  <tt class="py-line"> </tt>
 <a name="fix_compatibility"></a><div id="fix_compatibility-def"><a name="L40"></a><tt class="py-lineno">  40</tt> <a class="py-toggle" href="#" id="fix_compatibility-toggle" onclick="return toggle('fix_compatibility');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#fix_compatibility">fix_compatibility</a><tt class="py-op">(</tt><tt class="py-param">xml_data</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="fix_compatibility-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="fix_compatibility-expanded"><a name="L41"></a><tt class="py-lineno">  41</tt>  <tt class="py-line">    <tt class="py-name">xml_data</tt> <tt class="py-op">=</tt> <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">sub</tt><tt class="py-op">(</tt><tt class="py-string">'\s*xmlns:[a-z0-9]+="http://www.w3.org/2001/XInclude"'</tt><tt class="py-op">,</tt> <tt class="py-string">''</tt><tt class="py-op">,</tt> <tt class="py-name">xml_data</tt><tt class="py-op">)</tt> </tt>
+</div><div id="fix_compatibility-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="fix_compatibility-expanded"><a name="L41"></a><tt class="py-lineno">  41</tt>  <tt class="py-line">    <tt class="py-name">xml_data</tt> <tt class="py-op">=</tt> <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">sub</tt><tt class="py-op">(</tt><tt class="py-string">r'\s*xmlns:[a-z0-9]+="http://www.w3.org/2001/XInclude"'</tt><tt class="py-op">,</tt> <tt class="py-string">''</tt><tt class="py-op">,</tt> <tt class="py-name">xml_data</tt><tt class="py-op">)</tt> </tt>
 <a name="L42"></a><tt class="py-lineno">  42</tt>  <tt class="py-line">    <tt class="py-name">xml_data</tt> <tt class="py-op">=</tt> <tt class="py-name">xml_data</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Method lxml.etree._Element.replace()=lxml.etree._Element-class.html#replace"><a title="lxml.etree._Element.replace" class="py-name" href="#" onclick="return doclink('link-14', 'replace', 'link-14');">replace</a></tt><tt class="py-op">(</tt><tt class="py-string">' /&gt;'</tt><tt class="py-op">,</tt> <tt class="py-string">'/&gt;'</tt><tt class="py-op">)</tt> </tt>
 <a name="L43"></a><tt class="py-lineno">  43</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">xml_data</tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">:</tt><tt class="py-op">]</tt> <tt class="py-op">==</tt> <tt class="py-string">'\n'</tt><tt class="py-op">:</tt> </tt>
 <a name="L44"></a><tt class="py-lineno">  44</tt>  <tt class="py-line">        <tt class="py-name">xml_data</tt> <tt class="py-op">=</tt> <tt class="py-name">xml_data</tt><tt class="py-op">[</tt><tt class="py-op">:</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
@@ -160,8 +160,9 @@ lxml.tests.test_xpathevaluator.tag
 xml.etree.ElementTree.Element.tag" class="py-name" href="#" onclick="return doclink('link-26', 'tag', 'link-26');">tag</a></tt> </tt>
 </div><a name="L65"></a><tt class="py-lineno">  65</tt>  <tt class="py-line"> </tt>
 <a name="summarize_list"></a><div id="summarize_list-def"><a name="L66"></a><tt class="py-lineno">  66</tt> <a class="py-toggle" href="#" id="summarize_list-toggle" onclick="return toggle('summarize_list');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#summarize_list">summarize_list</a><tt class="py-op">(</tt><tt class="py-param">seq</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="summarize_list-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="summarize_list-expanded"><a name="L67"></a><tt class="py-lineno">  67</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">list</tt><tt class="py-op">(</tt><tt class="py-name">map</tt><tt class="py-op">(</tt><tt id="link-27" class="py-name" targets="Function lxml.tests.selftest.summarize()=lxml.tests.selftest-module.html#summarize,Function lxml.tests.selftest2.summarize()=lxml.tests.selftest2-module.html#summarize"><a title="lxml.tests.selftest.summarize
-lxml.tests.selftest2.summarize" class="py-name" href="#" onclick="return doclink('link-27', 'summarize', 'link-27');">summarize</a></tt><tt class="py-op">,</tt> <tt class="py-name">seq</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><div id="summarize_list-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="summarize_list-expanded"><a name="L67"></a><tt class="py-lineno">  67</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">list</tt><tt class="py-op">(</tt><tt class="py-name">map</tt><tt class="py-op">(</tt><tt id="link-27" class="py-name" targets="Function lxml.tests.selftest.summarize()=lxml.tests.selftest-module.html#summarize,Function lxml.tests.selftest2.summarize()=lxml.tests.selftest2-module.html#summarize,Function lxml.tests.test_elementpath.summarize()=lxml.tests.test_elementpath-module.html#summarize"><a title="lxml.tests.selftest.summarize
+lxml.tests.selftest2.summarize
+lxml.tests.test_elementpath.summarize" class="py-name" href="#" onclick="return doclink('link-27', 'summarize', 'link-27');">summarize</a></tt><tt class="py-op">,</tt> <tt class="py-name">seq</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
 </div><a name="L68"></a><tt class="py-lineno">  68</tt>  <tt class="py-line"> </tt>
 <a name="normalize_crlf"></a><div id="normalize_crlf-def"><a name="L69"></a><tt class="py-lineno">  69</tt> <a class="py-toggle" href="#" id="normalize_crlf-toggle" onclick="return toggle('normalize_crlf');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#normalize_crlf">normalize_crlf</a><tt class="py-op">(</tt><tt class="py-param">tree</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
 </div><div id="normalize_crlf-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="normalize_crlf-expanded"><a name="L70"></a><tt class="py-lineno">  70</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">tree</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name" targets="Method lxml.etree._Element.getiterator()=lxml.etree._Element-class.html#getiterator,Method lxml.etree._ElementTree.getiterator()=lxml.etree._ElementTree-class.html#getiterator"><a title="lxml.etree._Element.getiterator
@@ -1006,475 +1007,448 @@ xml.etree.ElementTree.Element.tag" class="py-name" href="#" onclick="return docl
 <a name="L825"></a><tt class="py-lineno"> 825</tt>  <tt class="py-line"> </tt>
 <a name="L826"></a><tt class="py-lineno"> 826</tt>  <tt class="py-line"><tt id="link-86" class="py-name" targets="Variable lxml.ElementInclude.XINCLUDE=lxml.ElementInclude-module.html#XINCLUDE,Variable lxml.etree.ErrorDomains.XINCLUDE=lxml.etree.ErrorDomains-class.html#XINCLUDE,Variable lxml.tests.selftest.XINCLUDE=lxml.tests.selftest-module.html#XINCLUDE"><a title="lxml.ElementInclude.XINCLUDE
 lxml.etree.ErrorDomains.XINCLUDE
-lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-86', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
-<a name="L827"></a><tt class="py-lineno"> 827</tt>  <tt class="py-line"> </tt>
-<a name="L828"></a><tt class="py-lineno"> 828</tt>  <tt class="py-line"><tt id="link-87" class="py-name"><a title="lxml.ElementInclude.XINCLUDE
+lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-86', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L827"></a><tt class="py-lineno"> 827</tt>  <tt class="py-line">    <tt class="py-string">"C1.xml"</tt><tt class="py-op">:</tt> <tt class="py-string">"""\</tt> </tt>
+<a name="L828"></a><tt class="py-lineno"> 828</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
+<a name="L829"></a><tt class="py-lineno"> 829</tt>  <tt class="py-line"><tt class="py-string">&lt;document xmlns:xi="http://www.w3.org/2001/XInclude"&gt;</tt> </tt>
+<a name="L830"></a><tt class="py-lineno"> 830</tt>  <tt class="py-line"><tt class="py-string">  &lt;p&gt;120 Mz is adequate for an average home user.&lt;/p&gt;</tt> </tt>
+<a name="L831"></a><tt class="py-lineno"> 831</tt>  <tt class="py-line"><tt class="py-string">  &lt;xi:include href="disclaimer.xml"/&gt;</tt> </tt>
+<a name="L832"></a><tt class="py-lineno"> 832</tt>  <tt class="py-line"><tt class="py-string">&lt;/document&gt;</tt> </tt>
+<a name="L833"></a><tt class="py-lineno"> 833</tt>  <tt class="py-line"><tt class="py-string">"""</tt><tt class="py-op">,</tt> <tt class="py-string">"disclaimer.xml"</tt><tt class="py-op">:</tt> <tt class="py-string">"""\</tt> </tt>
+<a name="L834"></a><tt class="py-lineno"> 834</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
+<a name="L835"></a><tt class="py-lineno"> 835</tt>  <tt class="py-line"><tt class="py-string">&lt;disclaimer&gt;</tt> </tt>
+<a name="L836"></a><tt class="py-lineno"> 836</tt>  <tt class="py-line"><tt class="py-string">  &lt;p&gt;The opinions represented herein represent those of the individual</tt> </tt>
+<a name="L837"></a><tt class="py-lineno"> 837</tt>  <tt class="py-line"><tt class="py-string">  and should not be interpreted as official policy endorsed by this</tt> </tt>
+<a name="L838"></a><tt class="py-lineno"> 838</tt>  <tt class="py-line"><tt class="py-string">  organization.&lt;/p&gt;</tt> </tt>
+<a name="L839"></a><tt class="py-lineno"> 839</tt>  <tt class="py-line"><tt class="py-string">&lt;/disclaimer&gt;</tt> </tt>
+<a name="L840"></a><tt class="py-lineno"> 840</tt>  <tt class="py-line"><tt class="py-string">"""</tt><tt class="py-op">,</tt> </tt>
+<a name="L841"></a><tt class="py-lineno"> 841</tt>  <tt class="py-line">    <tt class="py-string">"C2.xml"</tt><tt class="py-op">:</tt> <tt class="py-string">"""\</tt> </tt>
+<a name="L842"></a><tt class="py-lineno"> 842</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
+<a name="L843"></a><tt class="py-lineno"> 843</tt>  <tt class="py-line"><tt class="py-string">&lt;document xmlns:xi="http://www.w3.org/2001/XInclude"&gt;</tt> </tt>
+<a name="L844"></a><tt class="py-lineno"> 844</tt>  <tt class="py-line"><tt class="py-string">  &lt;p&gt;This document has been accessed</tt> </tt>
+<a name="L845"></a><tt class="py-lineno"> 845</tt>  <tt class="py-line"><tt class="py-string">  &lt;xi:include href="count.txt" parse="text"/&gt; times.&lt;/p&gt;</tt> </tt>
+<a name="L846"></a><tt class="py-lineno"> 846</tt>  <tt class="py-line"><tt class="py-string">&lt;/document&gt;</tt> </tt>
+<a name="L847"></a><tt class="py-lineno"> 847</tt>  <tt class="py-line"><tt class="py-string">"""</tt><tt class="py-op">,</tt> <tt class="py-string">"count.txt"</tt><tt class="py-op">:</tt> <tt class="py-string">"324387"</tt><tt class="py-op">,</tt> <tt class="py-string">"C3.xml"</tt><tt class="py-op">:</tt> <tt class="py-string">"""\</tt> </tt>
+<a name="L848"></a><tt class="py-lineno"> 848</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
+<a name="L849"></a><tt class="py-lineno"> 849</tt>  <tt class="py-line"><tt class="py-string">&lt;document xmlns:xi="http://www.w3.org/2001/XInclude"&gt;</tt> </tt>
+<a name="L850"></a><tt class="py-lineno"> 850</tt>  <tt class="py-line"><tt class="py-string">  &lt;p&gt;The following is the source of the "data.xml" resource:&lt;/p&gt;</tt> </tt>
+<a name="L851"></a><tt class="py-lineno"> 851</tt>  <tt class="py-line"><tt class="py-string">  &lt;example&gt;&lt;xi:include href="data.xml" parse="text"/&gt;&lt;/example&gt;</tt> </tt>
+<a name="L852"></a><tt class="py-lineno"> 852</tt>  <tt class="py-line"><tt class="py-string">&lt;/document&gt;</tt> </tt>
+<a name="L853"></a><tt class="py-lineno"> 853</tt>  <tt class="py-line"><tt class="py-string">"""</tt><tt class="py-op">,</tt> <tt class="py-string">"data.xml"</tt><tt class="py-op">:</tt> <tt class="py-string">"""\</tt> </tt>
+<a name="L854"></a><tt class="py-lineno"> 854</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
+<a name="L855"></a><tt class="py-lineno"> 855</tt>  <tt class="py-line"><tt class="py-string">&lt;data&gt;</tt> </tt>
+<a name="L856"></a><tt class="py-lineno"> 856</tt>  <tt class="py-line"><tt class="py-string">  &lt;item&gt;&lt;![CDATA[Brooks &amp; Shields]]&gt;&lt;/item&gt;</tt> </tt>
+<a name="L857"></a><tt class="py-lineno"> 857</tt>  <tt class="py-line"><tt class="py-string">&lt;/data&gt;</tt> </tt>
+<a name="L858"></a><tt class="py-lineno"> 858</tt>  <tt class="py-line"><tt class="py-string">"""</tt><tt class="py-op">,</tt> </tt>
+<a name="L859"></a><tt class="py-lineno"> 859</tt>  <tt class="py-line">    <tt class="py-string">"C5.xml"</tt><tt class="py-op">:</tt> <tt class="py-string">"""\</tt> </tt>
+<a name="L860"></a><tt class="py-lineno"> 860</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
+<a name="L861"></a><tt class="py-lineno"> 861</tt>  <tt class="py-line"><tt class="py-string">&lt;div xmlns:xi="http://www.w3.org/2001/XInclude"&gt;</tt> </tt>
+<a name="L862"></a><tt class="py-lineno"> 862</tt>  <tt class="py-line"><tt class="py-string">  &lt;xi:include href="example.txt" parse="text"&gt;</tt> </tt>
+<a name="L863"></a><tt class="py-lineno"> 863</tt>  <tt class="py-line"><tt class="py-string">    &lt;xi:fallback&gt;</tt> </tt>
+<a name="L864"></a><tt class="py-lineno"> 864</tt>  <tt class="py-line"><tt class="py-string">      &lt;xi:include href="fallback-example.txt" parse="text"&gt;</tt> </tt>
+<a name="L865"></a><tt class="py-lineno"> 865</tt>  <tt class="py-line"><tt class="py-string">        &lt;xi:fallback&gt;&lt;a href="mailto:bob@example.org"&gt;Report error&lt;/a&gt;&lt;/xi:fallback&gt;</tt> </tt>
+<a name="L866"></a><tt class="py-lineno"> 866</tt>  <tt class="py-line"><tt class="py-string">      &lt;/xi:include&gt;</tt> </tt>
+<a name="L867"></a><tt class="py-lineno"> 867</tt>  <tt class="py-line"><tt class="py-string">    &lt;/xi:fallback&gt;</tt> </tt>
+<a name="L868"></a><tt class="py-lineno"> 868</tt>  <tt class="py-line"><tt class="py-string">  &lt;/xi:include&gt;</tt> </tt>
+<a name="L869"></a><tt class="py-lineno"> 869</tt>  <tt class="py-line"><tt class="py-string">&lt;/div&gt;</tt> </tt>
+<a name="L870"></a><tt class="py-lineno"> 870</tt>  <tt class="py-line"><tt class="py-string">"""</tt><tt class="py-op">,</tt> </tt>
+<a name="L871"></a><tt class="py-lineno"> 871</tt>  <tt class="py-line">    <tt class="py-string">"default.xml"</tt><tt class="py-op">:</tt> <tt class="py-string">"""\</tt> </tt>
+<a name="L872"></a><tt class="py-lineno"> 872</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
+<a name="L873"></a><tt class="py-lineno"> 873</tt>  <tt class="py-line"><tt class="py-string">&lt;document xmlns:xi="http://www.w3.org/2001/XInclude"&gt;</tt> </tt>
+<a name="L874"></a><tt class="py-lineno"> 874</tt>  <tt class="py-line"><tt class="py-string">  &lt;p&gt;Example.&lt;/p&gt;</tt> </tt>
+<a name="L875"></a><tt class="py-lineno"> 875</tt>  <tt class="py-line"><tt class="py-string">  &lt;xi:include href="samples/simple.xml"/&gt;</tt> </tt>
+<a name="L876"></a><tt class="py-lineno"> 876</tt>  <tt class="py-line"><tt class="py-string">&lt;/document&gt;</tt> </tt>
+<a name="L877"></a><tt class="py-lineno"> 877</tt>  <tt class="py-line"><tt class="py-string">"""</tt><tt class="py-op">}</tt> </tt>
+<a name="L878"></a><tt class="py-lineno"> 878</tt>  <tt class="py-line"> </tt>
+<a name="L879"></a><tt class="py-lineno"> 879</tt>  <tt class="py-line"> </tt>
+<a name="xinclude_loader"></a><div id="xinclude_loader-def"><a name="L880"></a><tt class="py-lineno"> 880</tt> <a class="py-toggle" href="#" id="xinclude_loader-toggle" onclick="return toggle('xinclude_loader');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#xinclude_loader">xinclude_loader</a><tt class="py-op">(</tt><tt class="py-param">href</tt><tt class="py-op">,</tt> <tt class="py-param">parse</tt><tt class="py-op">=</tt><tt class="py-string">"xml"</tt><tt class="py-op">,</tt> <tt class="py-param">encoding</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="xinclude_loader-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="xinclude_loader-expanded"><a name="L881"></a><tt class="py-lineno"> 881</tt>  <tt class="py-line">    <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L882"></a><tt class="py-lineno"> 882</tt>  <tt class="py-line">        <tt id="link-87" class="py-name"><a title="lxml.etree.TreeBuilder.data" class="py-name" href="#" onclick="return doclink('link-87', 'data', 'link-1');">data</a></tt> <tt class="py-op">=</tt> <tt id="link-88" class="py-name"><a title="lxml.ElementInclude.XINCLUDE
 lxml.etree.ErrorDomains.XINCLUDE
-lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-87', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt><tt class="py-op">[</tt><tt class="py-string">"C1.xml"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"""\</tt> </tt>
-<a name="L829"></a><tt class="py-lineno"> 829</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
-<a name="L830"></a><tt class="py-lineno"> 830</tt>  <tt class="py-line"><tt class="py-string">&lt;document xmlns:xi="http://www.w3.org/2001/XInclude"&gt;</tt> </tt>
-<a name="L831"></a><tt class="py-lineno"> 831</tt>  <tt class="py-line"><tt class="py-string">  &lt;p&gt;120 Mz is adequate for an average home user.&lt;/p&gt;</tt> </tt>
-<a name="L832"></a><tt class="py-lineno"> 832</tt>  <tt class="py-line"><tt class="py-string">  &lt;xi:include href="disclaimer.xml"/&gt;</tt> </tt>
-<a name="L833"></a><tt class="py-lineno"> 833</tt>  <tt class="py-line"><tt class="py-string">&lt;/document&gt;</tt> </tt>
-<a name="L834"></a><tt class="py-lineno"> 834</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
-<a name="L835"></a><tt class="py-lineno"> 835</tt>  <tt class="py-line"> </tt>
-<a name="L836"></a><tt class="py-lineno"> 836</tt>  <tt class="py-line"><tt id="link-88" class="py-name"><a title="lxml.ElementInclude.XINCLUDE
-lxml.etree.ErrorDomains.XINCLUDE
-lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-88', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt><tt class="py-op">[</tt><tt class="py-string">"disclaimer.xml"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"""\</tt> </tt>
-<a name="L837"></a><tt class="py-lineno"> 837</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
-<a name="L838"></a><tt class="py-lineno"> 838</tt>  <tt class="py-line"><tt class="py-string">&lt;disclaimer&gt;</tt> </tt>
-<a name="L839"></a><tt class="py-lineno"> 839</tt>  <tt class="py-line"><tt class="py-string">  &lt;p&gt;The opinions represented herein represent those of the individual</tt> </tt>
-<a name="L840"></a><tt class="py-lineno"> 840</tt>  <tt class="py-line"><tt class="py-string">  and should not be interpreted as official policy endorsed by this</tt> </tt>
-<a name="L841"></a><tt class="py-lineno"> 841</tt>  <tt class="py-line"><tt class="py-string">  organization.&lt;/p&gt;</tt> </tt>
-<a name="L842"></a><tt class="py-lineno"> 842</tt>  <tt class="py-line"><tt class="py-string">&lt;/disclaimer&gt;</tt> </tt>
-<a name="L843"></a><tt class="py-lineno"> 843</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
-<a name="L844"></a><tt class="py-lineno"> 844</tt>  <tt class="py-line"> </tt>
-<a name="L845"></a><tt class="py-lineno"> 845</tt>  <tt class="py-line"><tt id="link-89" class="py-name"><a title="lxml.ElementInclude.XINCLUDE
-lxml.etree.ErrorDomains.XINCLUDE
-lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-89', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt><tt class="py-op">[</tt><tt class="py-string">"C2.xml"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"""\</tt> </tt>
-<a name="L846"></a><tt class="py-lineno"> 846</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
-<a name="L847"></a><tt class="py-lineno"> 847</tt>  <tt class="py-line"><tt class="py-string">&lt;document xmlns:xi="http://www.w3.org/2001/XInclude"&gt;</tt> </tt>
-<a name="L848"></a><tt class="py-lineno"> 848</tt>  <tt class="py-line"><tt class="py-string">  &lt;p&gt;This document has been accessed</tt> </tt>
-<a name="L849"></a><tt class="py-lineno"> 849</tt>  <tt class="py-line"><tt class="py-string">  &lt;xi:include href="count.txt" parse="text"/&gt; times.&lt;/p&gt;</tt> </tt>
-<a name="L850"></a><tt class="py-lineno"> 850</tt>  <tt class="py-line"><tt class="py-string">&lt;/document&gt;</tt> </tt>
-<a name="L851"></a><tt class="py-lineno"> 851</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
-<a name="L852"></a><tt class="py-lineno"> 852</tt>  <tt class="py-line"> </tt>
-<a name="L853"></a><tt class="py-lineno"> 853</tt>  <tt class="py-line"><tt id="link-90" class="py-name"><a title="lxml.ElementInclude.XINCLUDE
-lxml.etree.ErrorDomains.XINCLUDE
-lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-90', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt><tt class="py-op">[</tt><tt class="py-string">"count.txt"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"324387"</tt> </tt>
-<a name="L854"></a><tt class="py-lineno"> 854</tt>  <tt class="py-line"> </tt>
-<a name="L855"></a><tt class="py-lineno"> 855</tt>  <tt class="py-line"><tt id="link-91" class="py-name"><a title="lxml.ElementInclude.XINCLUDE
-lxml.etree.ErrorDomains.XINCLUDE
-lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-91', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt><tt class="py-op">[</tt><tt class="py-string">"C3.xml"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"""\</tt> </tt>
-<a name="L856"></a><tt class="py-lineno"> 856</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
-<a name="L857"></a><tt class="py-lineno"> 857</tt>  <tt class="py-line"><tt class="py-string">&lt;document xmlns:xi="http://www.w3.org/2001/XInclude"&gt;</tt> </tt>
-<a name="L858"></a><tt class="py-lineno"> 858</tt>  <tt class="py-line"><tt class="py-string">  &lt;p&gt;The following is the source of the "data.xml" resource:&lt;/p&gt;</tt> </tt>
-<a name="L859"></a><tt class="py-lineno"> 859</tt>  <tt class="py-line"><tt class="py-string">  &lt;example&gt;&lt;xi:include href="data.xml" parse="text"/&gt;&lt;/example&gt;</tt> </tt>
-<a name="L860"></a><tt class="py-lineno"> 860</tt>  <tt class="py-line"><tt class="py-string">&lt;/document&gt;</tt> </tt>
-<a name="L861"></a><tt class="py-lineno"> 861</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
-<a name="L862"></a><tt class="py-lineno"> 862</tt>  <tt class="py-line"> </tt>
-<a name="L863"></a><tt class="py-lineno"> 863</tt>  <tt class="py-line"><tt id="link-92" class="py-name"><a title="lxml.ElementInclude.XINCLUDE
-lxml.etree.ErrorDomains.XINCLUDE
-lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-92', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt><tt class="py-op">[</tt><tt class="py-string">"data.xml"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"""\</tt> </tt>
-<a name="L864"></a><tt class="py-lineno"> 864</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
-<a name="L865"></a><tt class="py-lineno"> 865</tt>  <tt class="py-line"><tt class="py-string">&lt;data&gt;</tt> </tt>
-<a name="L866"></a><tt class="py-lineno"> 866</tt>  <tt class="py-line"><tt class="py-string">  &lt;item&gt;&lt;![CDATA[Brooks &amp; Shields]]&gt;&lt;/item&gt;</tt> </tt>
-<a name="L867"></a><tt class="py-lineno"> 867</tt>  <tt class="py-line"><tt class="py-string">&lt;/data&gt;</tt> </tt>
-<a name="L868"></a><tt class="py-lineno"> 868</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
-<a name="L869"></a><tt class="py-lineno"> 869</tt>  <tt class="py-line"> </tt>
-<a name="L870"></a><tt class="py-lineno"> 870</tt>  <tt class="py-line"><tt id="link-93" class="py-name"><a title="lxml.ElementInclude.XINCLUDE
-lxml.etree.ErrorDomains.XINCLUDE
-lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-93', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt><tt class="py-op">[</tt><tt class="py-string">"C5.xml"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"""\</tt> </tt>
-<a name="L871"></a><tt class="py-lineno"> 871</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
-<a name="L872"></a><tt class="py-lineno"> 872</tt>  <tt class="py-line"><tt class="py-string">&lt;div xmlns:xi="http://www.w3.org/2001/XInclude"&gt;</tt> </tt>
-<a name="L873"></a><tt class="py-lineno"> 873</tt>  <tt class="py-line"><tt class="py-string">  &lt;xi:include href="example.txt" parse="text"&gt;</tt> </tt>
-<a name="L874"></a><tt class="py-lineno"> 874</tt>  <tt class="py-line"><tt class="py-string">    &lt;xi:fallback&gt;</tt> </tt>
-<a name="L875"></a><tt class="py-lineno"> 875</tt>  <tt class="py-line"><tt class="py-string">      &lt;xi:include href="fallback-example.txt" parse="text"&gt;</tt> </tt>
-<a name="L876"></a><tt class="py-lineno"> 876</tt>  <tt class="py-line"><tt class="py-string">        &lt;xi:fallback&gt;&lt;a href="mailto:bob@example.org"&gt;Report error&lt;/a&gt;&lt;/xi:fallback&gt;</tt> </tt>
-<a name="L877"></a><tt class="py-lineno"> 877</tt>  <tt class="py-line"><tt class="py-string">      &lt;/xi:include&gt;</tt> </tt>
-<a name="L878"></a><tt class="py-lineno"> 878</tt>  <tt class="py-line"><tt class="py-string">    &lt;/xi:fallback&gt;</tt> </tt>
-<a name="L879"></a><tt class="py-lineno"> 879</tt>  <tt class="py-line"><tt class="py-string">  &lt;/xi:include&gt;</tt> </tt>
-<a name="L880"></a><tt class="py-lineno"> 880</tt>  <tt class="py-line"><tt class="py-string">&lt;/div&gt;</tt> </tt>
-<a name="L881"></a><tt class="py-lineno"> 881</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
-<a name="L882"></a><tt class="py-lineno"> 882</tt>  <tt class="py-line"> </tt>
-<a name="L883"></a><tt class="py-lineno"> 883</tt>  <tt class="py-line"><tt id="link-94" class="py-name"><a title="lxml.ElementInclude.XINCLUDE
-lxml.etree.ErrorDomains.XINCLUDE
-lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-94', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt><tt class="py-op">[</tt><tt class="py-string">"default.xml"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"""\</tt> </tt>
-<a name="L884"></a><tt class="py-lineno"> 884</tt>  <tt class="py-line"><tt class="py-string">&lt;?xml version='1.0'?&gt;</tt> </tt>
-<a name="L885"></a><tt class="py-lineno"> 885</tt>  <tt class="py-line"><tt class="py-string">&lt;document xmlns:xi="http://www.w3.org/2001/XInclude"&gt;</tt> </tt>
-<a name="L886"></a><tt class="py-lineno"> 886</tt>  <tt class="py-line"><tt class="py-string">  &lt;p&gt;Example.&lt;/p&gt;</tt> </tt>
-<a name="L887"></a><tt class="py-lineno"> 887</tt>  <tt class="py-line"><tt class="py-string">  &lt;xi:include href="samples/simple.xml"/&gt;</tt> </tt>
-<a name="L888"></a><tt class="py-lineno"> 888</tt>  <tt class="py-line"><tt class="py-string">&lt;/document&gt;</tt> </tt>
-<a name="L889"></a><tt class="py-lineno"> 889</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
-<a name="L890"></a><tt class="py-lineno"> 890</tt>  <tt class="py-line"> </tt>
-<a name="xinclude_loader"></a><div id="xinclude_loader-def"><a name="L891"></a><tt class="py-lineno"> 891</tt> <a class="py-toggle" href="#" id="xinclude_loader-toggle" onclick="return toggle('xinclude_loader');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#xinclude_loader">xinclude_loader</a><tt class="py-op">(</tt><tt class="py-param">href</tt><tt class="py-op">,</tt> <tt class="py-param">parse</tt><tt class="py-op">=</tt><tt class="py-string">"xml"</tt><tt class="py-op">,</tt> <tt class="py-param">encoding</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="xinclude_loader-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="xinclude_loader-expanded"><a name="L892"></a><tt class="py-lineno"> 892</tt>  <tt class="py-line">    <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
-<a name="L893"></a><tt class="py-lineno"> 893</tt>  <tt class="py-line">        <tt id="link-95" class="py-name"><a title="lxml.etree.TreeBuilder.data" class="py-name" href="#" onclick="return doclink('link-95', 'data', 'link-1');">data</a></tt> <tt class="py-op">=</tt> <tt id="link-96" class="py-name"><a title="lxml.ElementInclude.XINCLUDE
-lxml.etree.ErrorDomains.XINCLUDE
-lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-96', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt><tt class="py-op">[</tt><tt class="py-name">href</tt><tt class="py-op">]</tt> </tt>
-<a name="L894"></a><tt class="py-lineno"> 894</tt>  <tt class="py-line">    <tt class="py-keyword">except</tt> <tt class="py-name">KeyError</tt><tt class="py-op">:</tt> </tt>
-<a name="L895"></a><tt class="py-lineno"> 895</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt class="py-name">IOError</tt><tt class="py-op">(</tt><tt class="py-string">"resource not found"</tt><tt class="py-op">)</tt> </tt>
-<a name="L896"></a><tt class="py-lineno"> 896</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-97" class="py-name" targets="Method lxml.etree._ElementTree.parse()=lxml.etree._ElementTree-class.html#parse,Function lxml.etree.parse()=lxml.etree-module.html#parse,Function lxml.html.ElementSoup.parse()=lxml.html.ElementSoup-module.html#parse,Function lxml.html.html5parser.parse()=lxml.html.html5parser-module.html#parse,Function lxml.html.soupparser.parse()=lxml.html.soupparser-module.html#parse,Function lxml.objectify.parse()=lxml.objectify-module.html#parse,Method lxml.tests.common_imports.HelperTestCase.parse()=lxml.tests.common_imports.HelperTestCase-class.html#parse"><a title="lxml.etree._ElementTree.parse
+lxml.tests.selftest.XINCLUDE" class="py-name" href="#" onclick="return doclink('link-88', 'XINCLUDE', 'link-86');">XINCLUDE</a></tt><tt class="py-op">[</tt><tt class="py-name">href</tt><tt class="py-op">]</tt> </tt>
+<a name="L883"></a><tt class="py-lineno"> 883</tt>  <tt class="py-line">    <tt class="py-keyword">except</tt> <tt class="py-name">KeyError</tt><tt class="py-op">:</tt> </tt>
+<a name="L884"></a><tt class="py-lineno"> 884</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt class="py-name">IOError</tt><tt class="py-op">(</tt><tt class="py-string">"resource not found"</tt><tt class="py-op">)</tt> </tt>
+<a name="L885"></a><tt class="py-lineno"> 885</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-89" class="py-name" targets="Method lxml.etree._ElementTree.parse()=lxml.etree._ElementTree-class.html#parse,Function lxml.etree.parse()=lxml.etree-module.html#parse,Function lxml.html.ElementSoup.parse()=lxml.html.ElementSoup-module.html#parse,Function lxml.html.html5parser.parse()=lxml.html.html5parser-module.html#parse,Function lxml.html.soupparser.parse()=lxml.html.soupparser-module.html#parse,Function lxml.objectify.parse()=lxml.objectify-module.html#parse,Method lxml.tests.common_imports.HelperTestCase.parse()=lxml.tests.common_imports.HelperTestCase-class.html#parse"><a title="lxml.etree._ElementTree.parse
 lxml.etree.parse
 lxml.html.ElementSoup.parse
 lxml.html.html5parser.parse
 lxml.html.soupparser.parse
 lxml.objectify.parse
-lxml.tests.common_imports.HelperTestCase.parse" class="py-name" href="#" onclick="return doclink('link-97', 'parse', 'link-97');">parse</a></tt> <tt class="py-op">==</tt> <tt class="py-string">"xml"</tt><tt class="py-op">:</tt> </tt>
-<a name="L897"></a><tt class="py-lineno"> 897</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-98" class="py-name"><a title="lxml.etree.ElementTree
+lxml.tests.common_imports.HelperTestCase.parse" class="py-name" href="#" onclick="return doclink('link-89', 'parse', 'link-89');">parse</a></tt> <tt class="py-op">==</tt> <tt class="py-string">"xml"</tt><tt class="py-op">:</tt> </tt>
+<a name="L886"></a><tt class="py-lineno"> 886</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-90" class="py-name"><a title="lxml.etree.ElementTree
 xml.etree.ElementTree
-xml.etree.ElementTree.ElementTree" class="py-name" href="#" onclick="return doclink('link-98', 'ElementTree', 'link-9');">ElementTree</a></tt><tt class="py-op">.</tt><tt id="link-99" class="py-name"><a title="lxml.etree.XML
+xml.etree.ElementTree.ElementTree" class="py-name" href="#" onclick="return doclink('link-90', 'ElementTree', 'link-9');">ElementTree</a></tt><tt class="py-op">.</tt><tt id="link-91" class="py-name"><a title="lxml.etree.XML
 lxml.objectify.XML
 lxml.tests.test_objectify.ObjectifyTestCase.XML
-lxml.tests.test_pyclasslookup.PyClassLookupTestCase.XML" class="py-name" href="#" onclick="return doclink('link-99', 'XML', 'link-39');">XML</a></tt><tt class="py-op">(</tt><tt id="link-100" class="py-name"><a title="lxml.etree.TreeBuilder.data" class="py-name" href="#" onclick="return doclink('link-100', 'data', 'link-1');">data</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L898"></a><tt class="py-lineno"> 898</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-101" class="py-name"><a title="lxml.etree.TreeBuilder.data" class="py-name" href="#" onclick="return doclink('link-101', 'data', 'link-1');">data</a></tt> </tt>
-</div><a name="L899"></a><tt class="py-lineno"> 899</tt>  <tt class="py-line"> </tt>
-<a name="xinclude"></a><div id="xinclude-def"><a name="L900"></a><tt class="py-lineno"> 900</tt> <a class="py-toggle" href="#" id="xinclude-toggle" onclick="return toggle('xinclude');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#xinclude">xinclude</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="xinclude-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="xinclude-expanded"><a name="L901"></a><tt class="py-lineno"> 901</tt>  <tt class="py-line">    <tt class="py-docstring">r"""</tt> </tt>
-<a name="L902"></a><tt class="py-lineno"> 902</tt>  <tt class="py-line"><tt class="py-docstring">    Basic inclusion example (XInclude C.1)</tt> </tt>
-<a name="L903"></a><tt class="py-lineno"> 903</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L904"></a><tt class="py-lineno"> 904</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; document = xinclude_loader("C1.xml")</tt> </tt>
-<a name="L905"></a><tt class="py-lineno"> 905</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementInclude.include(document, xinclude_loader)</tt> </tt>
-<a name="L906"></a><tt class="py-lineno"> 906</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(serialize(document)) # C1</tt> </tt>
-<a name="L907"></a><tt class="py-lineno"> 907</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;document&gt;</tt> </tt>
-<a name="L908"></a><tt class="py-lineno"> 908</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;p&gt;120 Mz is adequate for an average home user.&lt;/p&gt;</tt> </tt>
-<a name="L909"></a><tt class="py-lineno"> 909</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;disclaimer&gt;</tt> </tt>
-<a name="L910"></a><tt class="py-lineno"> 910</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;p&gt;The opinions represented herein represent those of the individual</tt> </tt>
-<a name="L911"></a><tt class="py-lineno"> 911</tt>  <tt class="py-line"><tt class="py-docstring">      and should not be interpreted as official policy endorsed by this</tt> </tt>
-<a name="L912"></a><tt class="py-lineno"> 912</tt>  <tt class="py-line"><tt class="py-docstring">      organization.&lt;/p&gt;</tt> </tt>
-<a name="L913"></a><tt class="py-lineno"> 913</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/disclaimer&gt;</tt> </tt>
-<a name="L914"></a><tt class="py-lineno"> 914</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/document&gt;</tt> </tt>
-<a name="L915"></a><tt class="py-lineno"> 915</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L916"></a><tt class="py-lineno"> 916</tt>  <tt class="py-line"><tt class="py-docstring">    Textual inclusion example (XInclude C.2)</tt> </tt>
-<a name="L917"></a><tt class="py-lineno"> 917</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L918"></a><tt class="py-lineno"> 918</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; document = xinclude_loader("C2.xml")</tt> </tt>
-<a name="L919"></a><tt class="py-lineno"> 919</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementInclude.include(document, xinclude_loader)</tt> </tt>
-<a name="L920"></a><tt class="py-lineno"> 920</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(serialize(document)) # C2</tt> </tt>
-<a name="L921"></a><tt class="py-lineno"> 921</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;document&gt;</tt> </tt>
-<a name="L922"></a><tt class="py-lineno"> 922</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;p&gt;This document has been accessed</tt> </tt>
-<a name="L923"></a><tt class="py-lineno"> 923</tt>  <tt class="py-line"><tt class="py-docstring">      324387 times.&lt;/p&gt;</tt> </tt>
-<a name="L924"></a><tt class="py-lineno"> 924</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/document&gt;</tt> </tt>
-<a name="L925"></a><tt class="py-lineno"> 925</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L926"></a><tt class="py-lineno"> 926</tt>  <tt class="py-line"><tt class="py-docstring">    Textual inclusion of XML example (XInclude C.3)</tt> </tt>
-<a name="L927"></a><tt class="py-lineno"> 927</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L928"></a><tt class="py-lineno"> 928</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; document = xinclude_loader("C3.xml")</tt> </tt>
-<a name="L929"></a><tt class="py-lineno"> 929</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementInclude.include(document, xinclude_loader)</tt> </tt>
-<a name="L930"></a><tt class="py-lineno"> 930</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(serialize(document)) # C3</tt> </tt>
-<a name="L931"></a><tt class="py-lineno"> 931</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;document&gt;</tt> </tt>
-<a name="L932"></a><tt class="py-lineno"> 932</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;p&gt;The following is the source of the "data.xml" resource:&lt;/p&gt;</tt> </tt>
-<a name="L933"></a><tt class="py-lineno"> 933</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;example&gt;&amp;lt;?xml version='1.0'?&amp;gt;</tt> </tt>
-<a name="L934"></a><tt class="py-lineno"> 934</tt>  <tt class="py-line"><tt class="py-docstring">    &amp;lt;data&amp;gt;</tt> </tt>
-<a name="L935"></a><tt class="py-lineno"> 935</tt>  <tt class="py-line"><tt class="py-docstring">      &amp;lt;item&amp;gt;&amp;lt;![CDATA[Brooks &amp;amp; Shields]]&amp;gt;&amp;lt;/item&amp;gt;</tt> </tt>
-<a name="L936"></a><tt class="py-lineno"> 936</tt>  <tt class="py-line"><tt class="py-docstring">    &amp;lt;/data&amp;gt;</tt> </tt>
-<a name="L937"></a><tt class="py-lineno"> 937</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/example&gt;</tt> </tt>
-<a name="L938"></a><tt class="py-lineno"> 938</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/document&gt;</tt> </tt>
-<a name="L939"></a><tt class="py-lineno"> 939</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L940"></a><tt class="py-lineno"> 940</tt>  <tt class="py-line"><tt class="py-docstring">##     Fallback example (XInclude C.5)</tt> </tt>
-<a name="L941"></a><tt class="py-lineno"> 941</tt>  <tt class="py-line"><tt class="py-docstring">##     Note! Fallback support is not yet implemented</tt> </tt>
-<a name="L942"></a><tt class="py-lineno"> 942</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L943"></a><tt class="py-lineno"> 943</tt>  <tt class="py-line"><tt class="py-docstring">##     &gt;&gt;&gt; document = xinclude_loader("C5.xml")</tt> </tt>
-<a name="L944"></a><tt class="py-lineno"> 944</tt>  <tt class="py-line"><tt class="py-docstring">##     &gt;&gt;&gt; ElementInclude.include(document, xinclude_loader)</tt> </tt>
-<a name="L945"></a><tt class="py-lineno"> 945</tt>  <tt class="py-line"><tt class="py-docstring">##     Traceback (most recent call last):</tt> </tt>
-<a name="L946"></a><tt class="py-lineno"> 946</tt>  <tt class="py-line"><tt class="py-docstring">##     IOError: resource not found</tt> </tt>
-<a name="L947"></a><tt class="py-lineno"> 947</tt>  <tt class="py-line"><tt class="py-docstring">##     &gt;&gt;&gt; # print(serialize(document)) # C5</tt> </tt>
-<a name="L948"></a><tt class="py-lineno"> 948</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L949"></a><tt class="py-lineno"> 949</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L950"></a><tt class="py-lineno"> 950</tt>  <tt class="py-line"> </tt>
-<a name="xinclude_default"></a><div id="xinclude_default-def"><a name="L951"></a><tt class="py-lineno"> 951</tt> <a class="py-toggle" href="#" id="xinclude_default-toggle" onclick="return toggle('xinclude_default');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#xinclude_default">xinclude_default</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="xinclude_default-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="xinclude_default-expanded"><a name="L952"></a><tt class="py-lineno"> 952</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L953"></a><tt class="py-lineno"> 953</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; document = xinclude_loader("default.xml")</tt> </tt>
-<a name="L954"></a><tt class="py-lineno"> 954</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementInclude.include(document)</tt> </tt>
-<a name="L955"></a><tt class="py-lineno"> 955</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(serialize(document)) # default</tt> </tt>
-<a name="L956"></a><tt class="py-lineno"> 956</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;document&gt;</tt> </tt>
-<a name="L957"></a><tt class="py-lineno"> 957</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;p&gt;Example.&lt;/p&gt;</tt> </tt>
-<a name="L958"></a><tt class="py-lineno"> 958</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;root&gt;</tt> </tt>
-<a name="L959"></a><tt class="py-lineno"> 959</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;element key="value"&gt;text&lt;/element&gt;</tt> </tt>
-<a name="L960"></a><tt class="py-lineno"> 960</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;element&gt;text&lt;/element&gt;tail</tt> </tt>
-<a name="L961"></a><tt class="py-lineno"> 961</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;empty-element/&gt;</tt> </tt>
-<a name="L962"></a><tt class="py-lineno"> 962</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/root&gt;</tt> </tt>
-<a name="L963"></a><tt class="py-lineno"> 963</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/document&gt;</tt> </tt>
-<a name="L964"></a><tt class="py-lineno"> 964</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L965"></a><tt class="py-lineno"> 965</tt>  <tt class="py-line"> </tt>
-<a name="L966"></a><tt class="py-lineno"> 966</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
-<a name="L967"></a><tt class="py-lineno"> 967</tt>  <tt class="py-line"><tt class="py-comment"># xmlwriter</tt> </tt>
-<a name="L968"></a><tt class="py-lineno"> 968</tt>  <tt class="py-line"> </tt>
-<a name="xmlwriter"></a><div id="xmlwriter-def"><a name="L969"></a><tt class="py-lineno"> 969</tt> <a class="py-toggle" href="#" id="xmlwriter-toggle" onclick="return toggle('xmlwriter');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#xmlwriter">xmlwriter</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="xmlwriter-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="xmlwriter-expanded"><a name="L970"></a><tt class="py-lineno"> 970</tt>  <tt class="py-line">    <tt class="py-docstring">r"""</tt> </tt>
-<a name="L971"></a><tt class="py-lineno"> 971</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; file = BytesIO()</tt> </tt>
-<a name="L972"></a><tt class="py-lineno"> 972</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w = SimpleXMLWriter.XMLWriter(file)</tt> </tt>
-<a name="L973"></a><tt class="py-lineno"> 973</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; html = w.start("html")</tt> </tt>
-<a name="L974"></a><tt class="py-lineno"> 974</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; x = w.start("head")</tt> </tt>
-<a name="L975"></a><tt class="py-lineno"> 975</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("title", "my document")</tt> </tt>
-<a name="L976"></a><tt class="py-lineno"> 976</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
-<a name="L977"></a><tt class="py-lineno"> 977</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("meta", name="hello", value="goodbye")</tt> </tt>
-<a name="L978"></a><tt class="py-lineno"> 978</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
-<a name="L979"></a><tt class="py-lineno"> 979</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.end()</tt> </tt>
-<a name="L980"></a><tt class="py-lineno"> 980</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; x = w.start("body")</tt> </tt>
-<a name="L981"></a><tt class="py-lineno"> 981</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("h1", "this is a heading")</tt> </tt>
-<a name="L982"></a><tt class="py-lineno"> 982</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
-<a name="L983"></a><tt class="py-lineno"> 983</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("p", u"this is a paragraph")</tt> </tt>
-<a name="L984"></a><tt class="py-lineno"> 984</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
-<a name="L985"></a><tt class="py-lineno"> 985</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("p", u"reserved characters: &lt;&amp;&gt;")</tt> </tt>
-<a name="L986"></a><tt class="py-lineno"> 986</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
-<a name="L987"></a><tt class="py-lineno"> 987</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("p", u"detta &#228;r ocks&#229; ett stycke")</tt> </tt>
-<a name="L988"></a><tt class="py-lineno"> 988</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
-<a name="L989"></a><tt class="py-lineno"> 989</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.close(html)</tt> </tt>
-<a name="L990"></a><tt class="py-lineno"> 990</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(file.getvalue())</tt> </tt>
-<a name="L991"></a><tt class="py-lineno"> 991</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;html&gt;&lt;head&gt;&lt;title&gt;my document&lt;/title&gt;</tt> </tt>
-<a name="L992"></a><tt class="py-lineno"> 992</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;meta name="hello" value="goodbye" /&gt;</tt> </tt>
-<a name="L993"></a><tt class="py-lineno"> 993</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/head&gt;&lt;body&gt;&lt;h1&gt;this is a heading&lt;/h1&gt;</tt> </tt>
-<a name="L994"></a><tt class="py-lineno"> 994</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;p&gt;this is a paragraph&lt;/p&gt;</tt> </tt>
-<a name="L995"></a><tt class="py-lineno"> 995</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;p&gt;reserved characters: &amp;lt;&amp;amp;&amp;gt;&lt;/p&gt;</tt> </tt>
-<a name="L996"></a><tt class="py-lineno"> 996</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;p&gt;detta &amp;#228;r ocks&amp;#229; ett stycke&lt;/p&gt;</tt> </tt>
-<a name="L997"></a><tt class="py-lineno"> 997</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/body&gt;&lt;/html&gt;</tt> </tt>
-<a name="L998"></a><tt class="py-lineno"> 998</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L999"></a><tt class="py-lineno"> 999</tt>  <tt class="py-line"> </tt>
-<a name="L1000"></a><tt class="py-lineno">1000</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1001"></a><tt class="py-lineno">1001</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">xmlwriter</tt> </tt>
-<a name="L1002"></a><tt class="py-lineno">1002</tt>  <tt class="py-line"> </tt>
-<a name="L1003"></a><tt class="py-lineno">1003</tt>  <tt class="py-line"><tt class="py-comment"># --------------------------------------------------------------------</tt> </tt>
-<a name="L1004"></a><tt class="py-lineno">1004</tt>  <tt class="py-line"><tt class="py-comment"># reported bugs</tt> </tt>
-<a name="L1005"></a><tt class="py-lineno">1005</tt>  <tt class="py-line"> </tt>
-<a name="bug_xmltoolkit21"></a><div id="bug_xmltoolkit21-def"><a name="L1006"></a><tt class="py-lineno">1006</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit21-toggle" onclick="return toggle('bug_xmltoolkit21');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit21">bug_xmltoolkit21</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_xmltoolkit21-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit21-expanded"><a name="L1007"></a><tt class="py-lineno">1007</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L1008"></a><tt class="py-lineno">1008</tt>  <tt class="py-line"><tt class="py-docstring">    marshaller gives obscure errors for non-string values</tt> </tt>
-<a name="L1009"></a><tt class="py-lineno">1009</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1010"></a><tt class="py-lineno">1010</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem = ElementTree.Element(123)</tt> </tt>
-<a name="L1011"></a><tt class="py-lineno">1011</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(elem) # tag</tt> </tt>
-<a name="L1012"></a><tt class="py-lineno">1012</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
-<a name="L1013"></a><tt class="py-lineno">1013</tt>  <tt class="py-line"><tt class="py-docstring">    TypeError: cannot serialize 123 (type int)</tt> </tt>
-<a name="L1014"></a><tt class="py-lineno">1014</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem = ElementTree.Element("elem")</tt> </tt>
-<a name="L1015"></a><tt class="py-lineno">1015</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem.text = 123</tt> </tt>
-<a name="L1016"></a><tt class="py-lineno">1016</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(elem) # text</tt> </tt>
-<a name="L1017"></a><tt class="py-lineno">1017</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
-<a name="L1018"></a><tt class="py-lineno">1018</tt>  <tt class="py-line"><tt class="py-docstring">    TypeError: cannot serialize 123 (type int)</tt> </tt>
-<a name="L1019"></a><tt class="py-lineno">1019</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem = ElementTree.Element("elem")</tt> </tt>
-<a name="L1020"></a><tt class="py-lineno">1020</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem.tail = 123</tt> </tt>
-<a name="L1021"></a><tt class="py-lineno">1021</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(elem) # tail</tt> </tt>
-<a name="L1022"></a><tt class="py-lineno">1022</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
-<a name="L1023"></a><tt class="py-lineno">1023</tt>  <tt class="py-line"><tt class="py-docstring">    TypeError: cannot serialize 123 (type int)</tt> </tt>
-<a name="L1024"></a><tt class="py-lineno">1024</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem = ElementTree.Element("elem")</tt> </tt>
-<a name="L1025"></a><tt class="py-lineno">1025</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem.set(123, "123")</tt> </tt>
-<a name="L1026"></a><tt class="py-lineno">1026</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(elem) # attribute key</tt> </tt>
-<a name="L1027"></a><tt class="py-lineno">1027</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
-<a name="L1028"></a><tt class="py-lineno">1028</tt>  <tt class="py-line"><tt class="py-docstring">    TypeError: cannot serialize 123 (type int)</tt> </tt>
-<a name="L1029"></a><tt class="py-lineno">1029</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem = ElementTree.Element("elem")</tt> </tt>
-<a name="L1030"></a><tt class="py-lineno">1030</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem.set("123", 123)</tt> </tt>
-<a name="L1031"></a><tt class="py-lineno">1031</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(elem) # attribute value</tt> </tt>
-<a name="L1032"></a><tt class="py-lineno">1032</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
-<a name="L1033"></a><tt class="py-lineno">1033</tt>  <tt class="py-line"><tt class="py-docstring">    TypeError: cannot serialize 123 (type int)</tt> </tt>
-<a name="L1034"></a><tt class="py-lineno">1034</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1035"></a><tt class="py-lineno">1035</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1036"></a><tt class="py-lineno">1036</tt>  <tt class="py-line"> </tt>
-<a name="L1037"></a><tt class="py-lineno">1037</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1038"></a><tt class="py-lineno">1038</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit21</tt> </tt>
-<a name="L1039"></a><tt class="py-lineno">1039</tt>  <tt class="py-line"> </tt>
-<a name="bug_xmltoolkit25"></a><div id="bug_xmltoolkit25-def"><a name="L1040"></a><tt class="py-lineno">1040</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit25-toggle" onclick="return toggle('bug_xmltoolkit25');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit25">bug_xmltoolkit25</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_xmltoolkit25-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit25-expanded"><a name="L1041"></a><tt class="py-lineno">1041</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L1042"></a><tt class="py-lineno">1042</tt>  <tt class="py-line"><tt class="py-docstring">    typo in ElementTree.findtext</tt> </tt>
+lxml.tests.test_pyclasslookup.PyClassLookupTestCase.XML" class="py-name" href="#" onclick="return doclink('link-91', 'XML', 'link-39');">XML</a></tt><tt class="py-op">(</tt><tt id="link-92" class="py-name"><a title="lxml.etree.TreeBuilder.data" class="py-name" href="#" onclick="return doclink('link-92', 'data', 'link-1');">data</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L887"></a><tt class="py-lineno"> 887</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-93" class="py-name"><a title="lxml.etree.TreeBuilder.data" class="py-name" href="#" onclick="return doclink('link-93', 'data', 'link-1');">data</a></tt> </tt>
+</div><a name="L888"></a><tt class="py-lineno"> 888</tt>  <tt class="py-line"> </tt>
+<a name="xinclude"></a><div id="xinclude-def"><a name="L889"></a><tt class="py-lineno"> 889</tt> <a class="py-toggle" href="#" id="xinclude-toggle" onclick="return toggle('xinclude');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#xinclude">xinclude</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="xinclude-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="xinclude-expanded"><a name="L890"></a><tt class="py-lineno"> 890</tt>  <tt class="py-line">    <tt class="py-docstring">r"""</tt> </tt>
+<a name="L891"></a><tt class="py-lineno"> 891</tt>  <tt class="py-line"><tt class="py-docstring">    Basic inclusion example (XInclude C.1)</tt> </tt>
+<a name="L892"></a><tt class="py-lineno"> 892</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L893"></a><tt class="py-lineno"> 893</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; document = xinclude_loader("C1.xml")</tt> </tt>
+<a name="L894"></a><tt class="py-lineno"> 894</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementInclude.include(document, xinclude_loader)</tt> </tt>
+<a name="L895"></a><tt class="py-lineno"> 895</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(serialize(document)) # C1</tt> </tt>
+<a name="L896"></a><tt class="py-lineno"> 896</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;document&gt;</tt> </tt>
+<a name="L897"></a><tt class="py-lineno"> 897</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;p&gt;120 Mz is adequate for an average home user.&lt;/p&gt;</tt> </tt>
+<a name="L898"></a><tt class="py-lineno"> 898</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;disclaimer&gt;</tt> </tt>
+<a name="L899"></a><tt class="py-lineno"> 899</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;p&gt;The opinions represented herein represent those of the individual</tt> </tt>
+<a name="L900"></a><tt class="py-lineno"> 900</tt>  <tt class="py-line"><tt class="py-docstring">      and should not be interpreted as official policy endorsed by this</tt> </tt>
+<a name="L901"></a><tt class="py-lineno"> 901</tt>  <tt class="py-line"><tt class="py-docstring">      organization.&lt;/p&gt;</tt> </tt>
+<a name="L902"></a><tt class="py-lineno"> 902</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/disclaimer&gt;</tt> </tt>
+<a name="L903"></a><tt class="py-lineno"> 903</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/document&gt;</tt> </tt>
+<a name="L904"></a><tt class="py-lineno"> 904</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L905"></a><tt class="py-lineno"> 905</tt>  <tt class="py-line"><tt class="py-docstring">    Textual inclusion example (XInclude C.2)</tt> </tt>
+<a name="L906"></a><tt class="py-lineno"> 906</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L907"></a><tt class="py-lineno"> 907</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; document = xinclude_loader("C2.xml")</tt> </tt>
+<a name="L908"></a><tt class="py-lineno"> 908</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementInclude.include(document, xinclude_loader)</tt> </tt>
+<a name="L909"></a><tt class="py-lineno"> 909</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(serialize(document)) # C2</tt> </tt>
+<a name="L910"></a><tt class="py-lineno"> 910</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;document&gt;</tt> </tt>
+<a name="L911"></a><tt class="py-lineno"> 911</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;p&gt;This document has been accessed</tt> </tt>
+<a name="L912"></a><tt class="py-lineno"> 912</tt>  <tt class="py-line"><tt class="py-docstring">      324387 times.&lt;/p&gt;</tt> </tt>
+<a name="L913"></a><tt class="py-lineno"> 913</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/document&gt;</tt> </tt>
+<a name="L914"></a><tt class="py-lineno"> 914</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L915"></a><tt class="py-lineno"> 915</tt>  <tt class="py-line"><tt class="py-docstring">    Textual inclusion of XML example (XInclude C.3)</tt> </tt>
+<a name="L916"></a><tt class="py-lineno"> 916</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L917"></a><tt class="py-lineno"> 917</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; document = xinclude_loader("C3.xml")</tt> </tt>
+<a name="L918"></a><tt class="py-lineno"> 918</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementInclude.include(document, xinclude_loader)</tt> </tt>
+<a name="L919"></a><tt class="py-lineno"> 919</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(serialize(document)) # C3</tt> </tt>
+<a name="L920"></a><tt class="py-lineno"> 920</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;document&gt;</tt> </tt>
+<a name="L921"></a><tt class="py-lineno"> 921</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;p&gt;The following is the source of the "data.xml" resource:&lt;/p&gt;</tt> </tt>
+<a name="L922"></a><tt class="py-lineno"> 922</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;example&gt;&amp;lt;?xml version='1.0'?&amp;gt;</tt> </tt>
+<a name="L923"></a><tt class="py-lineno"> 923</tt>  <tt class="py-line"><tt class="py-docstring">    &amp;lt;data&amp;gt;</tt> </tt>
+<a name="L924"></a><tt class="py-lineno"> 924</tt>  <tt class="py-line"><tt class="py-docstring">      &amp;lt;item&amp;gt;&amp;lt;![CDATA[Brooks &amp;amp; Shields]]&amp;gt;&amp;lt;/item&amp;gt;</tt> </tt>
+<a name="L925"></a><tt class="py-lineno"> 925</tt>  <tt class="py-line"><tt class="py-docstring">    &amp;lt;/data&amp;gt;</tt> </tt>
+<a name="L926"></a><tt class="py-lineno"> 926</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/example&gt;</tt> </tt>
+<a name="L927"></a><tt class="py-lineno"> 927</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/document&gt;</tt> </tt>
+<a name="L928"></a><tt class="py-lineno"> 928</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L929"></a><tt class="py-lineno"> 929</tt>  <tt class="py-line"><tt class="py-docstring">##     Fallback example (XInclude C.5)</tt> </tt>
+<a name="L930"></a><tt class="py-lineno"> 930</tt>  <tt class="py-line"><tt class="py-docstring">##     Note! Fallback support is not yet implemented</tt> </tt>
+<a name="L931"></a><tt class="py-lineno"> 931</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L932"></a><tt class="py-lineno"> 932</tt>  <tt class="py-line"><tt class="py-docstring">##     &gt;&gt;&gt; document = xinclude_loader("C5.xml")</tt> </tt>
+<a name="L933"></a><tt class="py-lineno"> 933</tt>  <tt class="py-line"><tt class="py-docstring">##     &gt;&gt;&gt; ElementInclude.include(document, xinclude_loader)</tt> </tt>
+<a name="L934"></a><tt class="py-lineno"> 934</tt>  <tt class="py-line"><tt class="py-docstring">##     Traceback (most recent call last):</tt> </tt>
+<a name="L935"></a><tt class="py-lineno"> 935</tt>  <tt class="py-line"><tt class="py-docstring">##     IOError: resource not found</tt> </tt>
+<a name="L936"></a><tt class="py-lineno"> 936</tt>  <tt class="py-line"><tt class="py-docstring">##     &gt;&gt;&gt; # print(serialize(document)) # C5</tt> </tt>
+<a name="L937"></a><tt class="py-lineno"> 937</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L938"></a><tt class="py-lineno"> 938</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L939"></a><tt class="py-lineno"> 939</tt>  <tt class="py-line"> </tt>
+<a name="xinclude_default"></a><div id="xinclude_default-def"><a name="L940"></a><tt class="py-lineno"> 940</tt> <a class="py-toggle" href="#" id="xinclude_default-toggle" onclick="return toggle('xinclude_default');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#xinclude_default">xinclude_default</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="xinclude_default-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="xinclude_default-expanded"><a name="L941"></a><tt class="py-lineno"> 941</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L942"></a><tt class="py-lineno"> 942</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; document = xinclude_loader("default.xml")</tt> </tt>
+<a name="L943"></a><tt class="py-lineno"> 943</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementInclude.include(document)</tt> </tt>
+<a name="L944"></a><tt class="py-lineno"> 944</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(serialize(document)) # default</tt> </tt>
+<a name="L945"></a><tt class="py-lineno"> 945</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;document&gt;</tt> </tt>
+<a name="L946"></a><tt class="py-lineno"> 946</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;p&gt;Example.&lt;/p&gt;</tt> </tt>
+<a name="L947"></a><tt class="py-lineno"> 947</tt>  <tt class="py-line"><tt class="py-docstring">      &lt;root&gt;</tt> </tt>
+<a name="L948"></a><tt class="py-lineno"> 948</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;element key="value"&gt;text&lt;/element&gt;</tt> </tt>
+<a name="L949"></a><tt class="py-lineno"> 949</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;element&gt;text&lt;/element&gt;tail</tt> </tt>
+<a name="L950"></a><tt class="py-lineno"> 950</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;empty-element/&gt;</tt> </tt>
+<a name="L951"></a><tt class="py-lineno"> 951</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/root&gt;</tt> </tt>
+<a name="L952"></a><tt class="py-lineno"> 952</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/document&gt;</tt> </tt>
+<a name="L953"></a><tt class="py-lineno"> 953</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L954"></a><tt class="py-lineno"> 954</tt>  <tt class="py-line"> </tt>
+<a name="L955"></a><tt class="py-lineno"> 955</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L956"></a><tt class="py-lineno"> 956</tt>  <tt class="py-line"><tt class="py-comment"># xmlwriter</tt> </tt>
+<a name="L957"></a><tt class="py-lineno"> 957</tt>  <tt class="py-line"> </tt>
+<a name="xmlwriter"></a><div id="xmlwriter-def"><a name="L958"></a><tt class="py-lineno"> 958</tt> <a class="py-toggle" href="#" id="xmlwriter-toggle" onclick="return toggle('xmlwriter');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#xmlwriter">xmlwriter</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="xmlwriter-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="xmlwriter-expanded"><a name="L959"></a><tt class="py-lineno"> 959</tt>  <tt class="py-line">    <tt class="py-docstring">r"""</tt> </tt>
+<a name="L960"></a><tt class="py-lineno"> 960</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; file = BytesIO()</tt> </tt>
+<a name="L961"></a><tt class="py-lineno"> 961</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w = SimpleXMLWriter.XMLWriter(file)</tt> </tt>
+<a name="L962"></a><tt class="py-lineno"> 962</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; html = w.start("html")</tt> </tt>
+<a name="L963"></a><tt class="py-lineno"> 963</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; x = w.start("head")</tt> </tt>
+<a name="L964"></a><tt class="py-lineno"> 964</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("title", "my document")</tt> </tt>
+<a name="L965"></a><tt class="py-lineno"> 965</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
+<a name="L966"></a><tt class="py-lineno"> 966</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("meta", name="hello", value="goodbye")</tt> </tt>
+<a name="L967"></a><tt class="py-lineno"> 967</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
+<a name="L968"></a><tt class="py-lineno"> 968</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.end()</tt> </tt>
+<a name="L969"></a><tt class="py-lineno"> 969</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; x = w.start("body")</tt> </tt>
+<a name="L970"></a><tt class="py-lineno"> 970</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("h1", "this is a heading")</tt> </tt>
+<a name="L971"></a><tt class="py-lineno"> 971</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
+<a name="L972"></a><tt class="py-lineno"> 972</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("p", u"this is a paragraph")</tt> </tt>
+<a name="L973"></a><tt class="py-lineno"> 973</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
+<a name="L974"></a><tt class="py-lineno"> 974</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("p", u"reserved characters: &lt;&amp;&gt;")</tt> </tt>
+<a name="L975"></a><tt class="py-lineno"> 975</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
+<a name="L976"></a><tt class="py-lineno"> 976</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.element("p", u"detta &#228;r ocks&#229; ett stycke")</tt> </tt>
+<a name="L977"></a><tt class="py-lineno"> 977</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.data("\n")</tt> </tt>
+<a name="L978"></a><tt class="py-lineno"> 978</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; w.close(html)</tt> </tt>
+<a name="L979"></a><tt class="py-lineno"> 979</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(file.getvalue())</tt> </tt>
+<a name="L980"></a><tt class="py-lineno"> 980</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;html&gt;&lt;head&gt;&lt;title&gt;my document&lt;/title&gt;</tt> </tt>
+<a name="L981"></a><tt class="py-lineno"> 981</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;meta name="hello" value="goodbye" /&gt;</tt> </tt>
+<a name="L982"></a><tt class="py-lineno"> 982</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/head&gt;&lt;body&gt;&lt;h1&gt;this is a heading&lt;/h1&gt;</tt> </tt>
+<a name="L983"></a><tt class="py-lineno"> 983</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;p&gt;this is a paragraph&lt;/p&gt;</tt> </tt>
+<a name="L984"></a><tt class="py-lineno"> 984</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;p&gt;reserved characters: &amp;lt;&amp;amp;&amp;gt;&lt;/p&gt;</tt> </tt>
+<a name="L985"></a><tt class="py-lineno"> 985</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;p&gt;detta &amp;#228;r ocks&amp;#229; ett stycke&lt;/p&gt;</tt> </tt>
+<a name="L986"></a><tt class="py-lineno"> 986</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/body&gt;&lt;/html&gt;</tt> </tt>
+<a name="L987"></a><tt class="py-lineno"> 987</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L988"></a><tt class="py-lineno"> 988</tt>  <tt class="py-line"> </tt>
+<a name="L989"></a><tt class="py-lineno"> 989</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L990"></a><tt class="py-lineno"> 990</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">xmlwriter</tt> </tt>
+<a name="L991"></a><tt class="py-lineno"> 991</tt>  <tt class="py-line"> </tt>
+<a name="L992"></a><tt class="py-lineno"> 992</tt>  <tt class="py-line"><tt class="py-comment"># --------------------------------------------------------------------</tt> </tt>
+<a name="L993"></a><tt class="py-lineno"> 993</tt>  <tt class="py-line"><tt class="py-comment"># reported bugs</tt> </tt>
+<a name="L994"></a><tt class="py-lineno"> 994</tt>  <tt class="py-line"> </tt>
+<a name="bug_xmltoolkit21"></a><div id="bug_xmltoolkit21-def"><a name="L995"></a><tt class="py-lineno"> 995</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit21-toggle" onclick="return toggle('bug_xmltoolkit21');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit21">bug_xmltoolkit21</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_xmltoolkit21-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit21-expanded"><a name="L996"></a><tt class="py-lineno"> 996</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L997"></a><tt class="py-lineno"> 997</tt>  <tt class="py-line"><tt class="py-docstring">    marshaller gives obscure errors for non-string values</tt> </tt>
+<a name="L998"></a><tt class="py-lineno"> 998</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L999"></a><tt class="py-lineno"> 999</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem = ElementTree.Element(123)</tt> </tt>
+<a name="L1000"></a><tt class="py-lineno">1000</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(elem) # tag</tt> </tt>
+<a name="L1001"></a><tt class="py-lineno">1001</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
+<a name="L1002"></a><tt class="py-lineno">1002</tt>  <tt class="py-line"><tt class="py-docstring">    TypeError: cannot serialize 123 (type int)</tt> </tt>
+<a name="L1003"></a><tt class="py-lineno">1003</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem = ElementTree.Element("elem")</tt> </tt>
+<a name="L1004"></a><tt class="py-lineno">1004</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem.text = 123</tt> </tt>
+<a name="L1005"></a><tt class="py-lineno">1005</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(elem) # text</tt> </tt>
+<a name="L1006"></a><tt class="py-lineno">1006</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
+<a name="L1007"></a><tt class="py-lineno">1007</tt>  <tt class="py-line"><tt class="py-docstring">    TypeError: cannot serialize 123 (type int)</tt> </tt>
+<a name="L1008"></a><tt class="py-lineno">1008</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem = ElementTree.Element("elem")</tt> </tt>
+<a name="L1009"></a><tt class="py-lineno">1009</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem.tail = 123</tt> </tt>
+<a name="L1010"></a><tt class="py-lineno">1010</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(elem) # tail</tt> </tt>
+<a name="L1011"></a><tt class="py-lineno">1011</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
+<a name="L1012"></a><tt class="py-lineno">1012</tt>  <tt class="py-line"><tt class="py-docstring">    TypeError: cannot serialize 123 (type int)</tt> </tt>
+<a name="L1013"></a><tt class="py-lineno">1013</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem = ElementTree.Element("elem")</tt> </tt>
+<a name="L1014"></a><tt class="py-lineno">1014</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem.set(123, "123")</tt> </tt>
+<a name="L1015"></a><tt class="py-lineno">1015</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(elem) # attribute key</tt> </tt>
+<a name="L1016"></a><tt class="py-lineno">1016</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
+<a name="L1017"></a><tt class="py-lineno">1017</tt>  <tt class="py-line"><tt class="py-docstring">    TypeError: cannot serialize 123 (type int)</tt> </tt>
+<a name="L1018"></a><tt class="py-lineno">1018</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem = ElementTree.Element("elem")</tt> </tt>
+<a name="L1019"></a><tt class="py-lineno">1019</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; elem.set("123", 123)</tt> </tt>
+<a name="L1020"></a><tt class="py-lineno">1020</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(elem) # attribute value</tt> </tt>
+<a name="L1021"></a><tt class="py-lineno">1021</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
+<a name="L1022"></a><tt class="py-lineno">1022</tt>  <tt class="py-line"><tt class="py-docstring">    TypeError: cannot serialize 123 (type int)</tt> </tt>
+<a name="L1023"></a><tt class="py-lineno">1023</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1024"></a><tt class="py-lineno">1024</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1025"></a><tt class="py-lineno">1025</tt>  <tt class="py-line"> </tt>
+<a name="L1026"></a><tt class="py-lineno">1026</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L1027"></a><tt class="py-lineno">1027</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit21</tt> </tt>
+<a name="L1028"></a><tt class="py-lineno">1028</tt>  <tt class="py-line"> </tt>
+<a name="bug_xmltoolkit25"></a><div id="bug_xmltoolkit25-def"><a name="L1029"></a><tt class="py-lineno">1029</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit25-toggle" onclick="return toggle('bug_xmltoolkit25');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit25">bug_xmltoolkit25</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_xmltoolkit25-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit25-expanded"><a name="L1030"></a><tt class="py-lineno">1030</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1031"></a><tt class="py-lineno">1031</tt>  <tt class="py-line"><tt class="py-docstring">    typo in ElementTree.findtext</tt> </tt>
+<a name="L1032"></a><tt class="py-lineno">1032</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1033"></a><tt class="py-lineno">1033</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.ElementTree(SAMPLE_XML)</tt> </tt>
+<a name="L1034"></a><tt class="py-lineno">1034</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree.findtext("tag")</tt> </tt>
+<a name="L1035"></a><tt class="py-lineno">1035</tt>  <tt class="py-line"><tt class="py-docstring">    'text'</tt> </tt>
+<a name="L1036"></a><tt class="py-lineno">1036</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree.findtext("section/tag")</tt> </tt>
+<a name="L1037"></a><tt class="py-lineno">1037</tt>  <tt class="py-line"><tt class="py-docstring">    'subtext'</tt> </tt>
+<a name="L1038"></a><tt class="py-lineno">1038</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1039"></a><tt class="py-lineno">1039</tt>  <tt class="py-line"> </tt>
+<a name="bug_xmltoolkit28"></a><div id="bug_xmltoolkit28-def"><a name="L1040"></a><tt class="py-lineno">1040</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit28-toggle" onclick="return toggle('bug_xmltoolkit28');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit28">bug_xmltoolkit28</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_xmltoolkit28-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit28-expanded"><a name="L1041"></a><tt class="py-lineno">1041</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1042"></a><tt class="py-lineno">1042</tt>  <tt class="py-line"><tt class="py-docstring">    .//tag causes exceptions</tt> </tt>
 <a name="L1043"></a><tt class="py-lineno">1043</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1044"></a><tt class="py-lineno">1044</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.ElementTree(SAMPLE_XML)</tt> </tt>
-<a name="L1045"></a><tt class="py-lineno">1045</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree.findtext("tag")</tt> </tt>
-<a name="L1046"></a><tt class="py-lineno">1046</tt>  <tt class="py-line"><tt class="py-docstring">    'text'</tt> </tt>
-<a name="L1047"></a><tt class="py-lineno">1047</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree.findtext("section/tag")</tt> </tt>
-<a name="L1048"></a><tt class="py-lineno">1048</tt>  <tt class="py-line"><tt class="py-docstring">    'subtext'</tt> </tt>
+<a name="L1044"></a><tt class="py-lineno">1044</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.XML("&lt;doc&gt;&lt;table&gt;&lt;tbody/&gt;&lt;/table&gt;&lt;/doc&gt;")</tt> </tt>
+<a name="L1045"></a><tt class="py-lineno">1045</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; summarize_list(tree.findall(".//thead"))</tt> </tt>
+<a name="L1046"></a><tt class="py-lineno">1046</tt>  <tt class="py-line"><tt class="py-docstring">    []</tt> </tt>
+<a name="L1047"></a><tt class="py-lineno">1047</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; summarize_list(tree.findall(".//tbody"))</tt> </tt>
+<a name="L1048"></a><tt class="py-lineno">1048</tt>  <tt class="py-line"><tt class="py-docstring">    ['tbody']</tt> </tt>
 <a name="L1049"></a><tt class="py-lineno">1049</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
 </div><a name="L1050"></a><tt class="py-lineno">1050</tt>  <tt class="py-line"> </tt>
-<a name="bug_xmltoolkit28"></a><div id="bug_xmltoolkit28-def"><a name="L1051"></a><tt class="py-lineno">1051</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit28-toggle" onclick="return toggle('bug_xmltoolkit28');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit28">bug_xmltoolkit28</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_xmltoolkit28-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit28-expanded"><a name="L1052"></a><tt class="py-lineno">1052</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L1053"></a><tt class="py-lineno">1053</tt>  <tt class="py-line"><tt class="py-docstring">    .//tag causes exceptions</tt> </tt>
+<a name="bug_xmltoolkitX1"></a><div id="bug_xmltoolkitX1-def"><a name="L1051"></a><tt class="py-lineno">1051</tt> <a class="py-toggle" href="#" id="bug_xmltoolkitX1-toggle" onclick="return toggle('bug_xmltoolkitX1');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkitX1">bug_xmltoolkitX1</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_xmltoolkitX1-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkitX1-expanded"><a name="L1052"></a><tt class="py-lineno">1052</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1053"></a><tt class="py-lineno">1053</tt>  <tt class="py-line"><tt class="py-docstring">    dump() doesn't flush the output buffer</tt> </tt>
 <a name="L1054"></a><tt class="py-lineno">1054</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
 <a name="L1055"></a><tt class="py-lineno">1055</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.XML("&lt;doc&gt;&lt;table&gt;&lt;tbody/&gt;&lt;/table&gt;&lt;/doc&gt;")</tt> </tt>
-<a name="L1056"></a><tt class="py-lineno">1056</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; summarize_list(tree.findall(".//thead"))</tt> </tt>
-<a name="L1057"></a><tt class="py-lineno">1057</tt>  <tt class="py-line"><tt class="py-docstring">    []</tt> </tt>
-<a name="L1058"></a><tt class="py-lineno">1058</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; summarize_list(tree.findall(".//tbody"))</tt> </tt>
-<a name="L1059"></a><tt class="py-lineno">1059</tt>  <tt class="py-line"><tt class="py-docstring">    ['tbody']</tt> </tt>
-<a name="L1060"></a><tt class="py-lineno">1060</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1061"></a><tt class="py-lineno">1061</tt>  <tt class="py-line"> </tt>
-<a name="bug_xmltoolkitX1"></a><div id="bug_xmltoolkitX1-def"><a name="L1062"></a><tt class="py-lineno">1062</tt> <a class="py-toggle" href="#" id="bug_xmltoolkitX1-toggle" onclick="return toggle('bug_xmltoolkitX1');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkitX1">bug_xmltoolkitX1</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_xmltoolkitX1-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkitX1-expanded"><a name="L1063"></a><tt class="py-lineno">1063</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L1064"></a><tt class="py-lineno">1064</tt>  <tt class="py-line"><tt class="py-docstring">    dump() doesn't flush the output buffer</tt> </tt>
-<a name="L1065"></a><tt class="py-lineno">1065</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1066"></a><tt class="py-lineno">1066</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.XML("&lt;doc&gt;&lt;table&gt;&lt;tbody/&gt;&lt;/table&gt;&lt;/doc&gt;")</tt> </tt>
-<a name="L1067"></a><tt class="py-lineno">1067</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.dump(tree); sys.stdout.write("tail")</tt> </tt>
-<a name="L1068"></a><tt class="py-lineno">1068</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;doc&gt;&lt;table&gt;&lt;tbody /&gt;&lt;/table&gt;&lt;/doc&gt;</tt> </tt>
-<a name="L1069"></a><tt class="py-lineno">1069</tt>  <tt class="py-line"><tt class="py-docstring">    tail</tt> </tt>
-<a name="L1070"></a><tt class="py-lineno">1070</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1071"></a><tt class="py-lineno">1071</tt>  <tt class="py-line"> </tt>
-<a name="L1072"></a><tt class="py-lineno">1072</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1073"></a><tt class="py-lineno">1073</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkitX1</tt> </tt>
-<a name="L1074"></a><tt class="py-lineno">1074</tt>  <tt class="py-line"> </tt>
-<a name="bug_xmltoolkit39"></a><div id="bug_xmltoolkit39-def"><a name="L1075"></a><tt class="py-lineno">1075</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit39-toggle" onclick="return toggle('bug_xmltoolkit39');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit39">bug_xmltoolkit39</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_xmltoolkit39-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit39-expanded"><a name="L1076"></a><tt class="py-lineno">1076</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L1077"></a><tt class="py-lineno">1077</tt>  <tt class="py-line"><tt class="py-docstring">    non-ascii element and attribute names doesn't work</tt> </tt>
-<a name="L1078"></a><tt class="py-lineno">1078</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1079"></a><tt class="py-lineno">1079</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.XML("&lt;?xml version='1.0' encoding='iso-8859-1'?&gt;&lt;t&#228;g /&gt;")</tt> </tt>
-<a name="L1080"></a><tt class="py-lineno">1080</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.tostring(tree, "utf-8")</tt> </tt>
-<a name="L1081"></a><tt class="py-lineno">1081</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;t\\xc3\\xa4g /&gt;'</tt> </tt>
-<a name="L1082"></a><tt class="py-lineno">1082</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1083"></a><tt class="py-lineno">1083</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.XML("&lt;?xml version='1.0' encoding='iso-8859-1'?&gt;&lt;tag &#228;ttr='v&amp;#228;lue' /&gt;")</tt> </tt>
-<a name="L1084"></a><tt class="py-lineno">1084</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree.attrib</tt> </tt>
-<a name="L1085"></a><tt class="py-lineno">1085</tt>  <tt class="py-line"><tt class="py-docstring">    {u'\\xe4ttr': u'v\\xe4lue'}</tt> </tt>
-<a name="L1086"></a><tt class="py-lineno">1086</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.tostring(tree, "utf-8")</tt> </tt>
-<a name="L1087"></a><tt class="py-lineno">1087</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;tag \\xc3\\xa4ttr="v\\xc3\\xa4lue" /&gt;'</tt> </tt>
-<a name="L1088"></a><tt class="py-lineno">1088</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1089"></a><tt class="py-lineno">1089</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.XML("&lt;?xml version='1.0' encoding='iso-8859-1'?&gt;&lt;t&#228;g&gt;text&lt;/t&#228;g&gt;")</tt> </tt>
-<a name="L1090"></a><tt class="py-lineno">1090</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.tostring(tree, "utf-8")</tt> </tt>
-<a name="L1091"></a><tt class="py-lineno">1091</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;t\\xc3\\xa4g&gt;text&lt;/t\\xc3\\xa4g&gt;'</tt> </tt>
-<a name="L1092"></a><tt class="py-lineno">1092</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1093"></a><tt class="py-lineno">1093</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.Element(u"t&#228;g")</tt> </tt>
-<a name="L1094"></a><tt class="py-lineno">1094</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.tostring(tree, "utf-8")</tt> </tt>
-<a name="L1095"></a><tt class="py-lineno">1095</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;t\\xc3\\xa4g /&gt;'</tt> </tt>
-<a name="L1096"></a><tt class="py-lineno">1096</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1097"></a><tt class="py-lineno">1097</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.Element("tag")</tt> </tt>
-<a name="L1098"></a><tt class="py-lineno">1098</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree.set(u"&#228;ttr", u"v&#228;lue")</tt> </tt>
-<a name="L1099"></a><tt class="py-lineno">1099</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.tostring(tree, "utf-8")</tt> </tt>
-<a name="L1100"></a><tt class="py-lineno">1100</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;tag \\xc3\\xa4ttr="v\\xc3\\xa4lue" /&gt;'</tt> </tt>
-<a name="L1101"></a><tt class="py-lineno">1101</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1102"></a><tt class="py-lineno">1102</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1103"></a><tt class="py-lineno">1103</tt>  <tt class="py-line"> </tt>
-<a name="L1104"></a><tt class="py-lineno">1104</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1105"></a><tt class="py-lineno">1105</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit39</tt> </tt>
-<a name="L1106"></a><tt class="py-lineno">1106</tt>  <tt class="py-line"> </tt>
-<a name="bug_xmltoolkit45"></a><div id="bug_xmltoolkit45-def"><a name="L1107"></a><tt class="py-lineno">1107</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit45-toggle" onclick="return toggle('bug_xmltoolkit45');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit45">bug_xmltoolkit45</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_xmltoolkit45-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit45-expanded"><a name="L1108"></a><tt class="py-lineno">1108</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L1109"></a><tt class="py-lineno">1109</tt>  <tt class="py-line"><tt class="py-docstring">    problems parsing mixed unicode/non-ascii html documents</tt> </tt>
-<a name="L1110"></a><tt class="py-lineno">1110</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1111"></a><tt class="py-lineno">1111</tt>  <tt class="py-line"><tt class="py-docstring">    latin-1 text</tt> </tt>
-<a name="L1112"></a><tt class="py-lineno">1112</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
-<a name="L1113"></a><tt class="py-lineno">1113</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;v&#228;lue&lt;/p&gt;")</tt> </tt>
-<a name="L1114"></a><tt class="py-lineno">1114</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
-<a name="L1115"></a><tt class="py-lineno">1115</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;v&amp;#228;lue&lt;/p&gt;'</tt> </tt>
-<a name="L1116"></a><tt class="py-lineno">1116</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1117"></a><tt class="py-lineno">1117</tt>  <tt class="py-line"><tt class="py-docstring">    utf-8 text</tt> </tt>
-<a name="L1118"></a><tt class="py-lineno">1118</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder(encoding="utf-8")</tt> </tt>
-<a name="L1119"></a><tt class="py-lineno">1119</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;v\xc3\xa4lue&lt;/p&gt;")</tt> </tt>
-<a name="L1120"></a><tt class="py-lineno">1120</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
-<a name="L1121"></a><tt class="py-lineno">1121</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;v&amp;#228;lue&lt;/p&gt;'</tt> </tt>
-<a name="L1122"></a><tt class="py-lineno">1122</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1123"></a><tt class="py-lineno">1123</tt>  <tt class="py-line"><tt class="py-docstring">    utf-8 text using meta tag</tt> </tt>
-<a name="L1124"></a><tt class="py-lineno">1124</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
-<a name="L1125"></a><tt class="py-lineno">1125</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;html&gt;&lt;meta http-equiv='Content-Type' content='text/html; charset=utf-8'&gt;&lt;p&gt;v\xc3\xa4lue&lt;/p&gt;&lt;/html&gt;")</tt> </tt>
-<a name="L1126"></a><tt class="py-lineno">1126</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close().find("p"))</tt> </tt>
-<a name="L1127"></a><tt class="py-lineno">1127</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;v&amp;#228;lue&lt;/p&gt;'</tt> </tt>
-<a name="L1128"></a><tt class="py-lineno">1128</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1129"></a><tt class="py-lineno">1129</tt>  <tt class="py-line"><tt class="py-docstring">    latin-1 character references</tt> </tt>
-<a name="L1130"></a><tt class="py-lineno">1130</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
-<a name="L1131"></a><tt class="py-lineno">1131</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;v&amp;#228;lue&lt;/p&gt;")</tt> </tt>
-<a name="L1132"></a><tt class="py-lineno">1132</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
-<a name="L1133"></a><tt class="py-lineno">1133</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;v&amp;#228;lue&lt;/p&gt;'</tt> </tt>
-<a name="L1134"></a><tt class="py-lineno">1134</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1135"></a><tt class="py-lineno">1135</tt>  <tt class="py-line"><tt class="py-docstring">    latin-1 character entities</tt> </tt>
-<a name="L1136"></a><tt class="py-lineno">1136</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
-<a name="L1137"></a><tt class="py-lineno">1137</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;v&amp;auml;lue&lt;/p&gt;")</tt> </tt>
-<a name="L1138"></a><tt class="py-lineno">1138</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
-<a name="L1139"></a><tt class="py-lineno">1139</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;v&amp;#228;lue&lt;/p&gt;'</tt> </tt>
-<a name="L1140"></a><tt class="py-lineno">1140</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1141"></a><tt class="py-lineno">1141</tt>  <tt class="py-line"><tt class="py-docstring">    mixed latin-1 text and unicode entities</tt> </tt>
-<a name="L1142"></a><tt class="py-lineno">1142</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
-<a name="L1143"></a><tt class="py-lineno">1143</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;&amp;#8221;v&#228;lue&amp;#8221;&lt;/p&gt;")</tt> </tt>
-<a name="L1144"></a><tt class="py-lineno">1144</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
-<a name="L1145"></a><tt class="py-lineno">1145</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;&amp;#8221;v&amp;#228;lue&amp;#8221;&lt;/p&gt;'</tt> </tt>
-<a name="L1146"></a><tt class="py-lineno">1146</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1147"></a><tt class="py-lineno">1147</tt>  <tt class="py-line"><tt class="py-docstring">    mixed unicode and latin-1 entities</tt> </tt>
-<a name="L1148"></a><tt class="py-lineno">1148</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
-<a name="L1149"></a><tt class="py-lineno">1149</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;&amp;#8221;v&amp;auml;lue&amp;#8221;&lt;/p&gt;")</tt> </tt>
-<a name="L1150"></a><tt class="py-lineno">1150</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
-<a name="L1151"></a><tt class="py-lineno">1151</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;&amp;#8221;v&amp;#228;lue&amp;#8221;&lt;/p&gt;'</tt> </tt>
-<a name="L1152"></a><tt class="py-lineno">1152</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1153"></a><tt class="py-lineno">1153</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1154"></a><tt class="py-lineno">1154</tt>  <tt class="py-line"> </tt>
-<a name="L1155"></a><tt class="py-lineno">1155</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1156"></a><tt class="py-lineno">1156</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit45</tt> </tt>
-<a name="L1157"></a><tt class="py-lineno">1157</tt>  <tt class="py-line"> </tt>
-<a name="bug_xmltoolkit46"></a><div id="bug_xmltoolkit46-def"><a name="L1158"></a><tt class="py-lineno">1158</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit46-toggle" onclick="return toggle('bug_xmltoolkit46');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit46">bug_xmltoolkit46</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_xmltoolkit46-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit46-expanded"><a name="L1159"></a><tt class="py-lineno">1159</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L1160"></a><tt class="py-lineno">1160</tt>  <tt class="py-line"><tt class="py-docstring">    problems parsing open BR tags</tt> </tt>
-<a name="L1161"></a><tt class="py-lineno">1161</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1162"></a><tt class="py-lineno">1162</tt>  <tt class="py-line"><tt class="py-docstring">   &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
-<a name="L1163"></a><tt class="py-lineno">1163</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;key&lt;br&gt;value&lt;/p&gt;")</tt> </tt>
-<a name="L1164"></a><tt class="py-lineno">1164</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
-<a name="L1165"></a><tt class="py-lineno">1165</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;key&lt;br /&gt;value&lt;/p&gt;'</tt> </tt>
-<a name="L1166"></a><tt class="py-lineno">1166</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1167"></a><tt class="py-lineno">1167</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1168"></a><tt class="py-lineno">1168</tt>  <tt class="py-line"> </tt>
-<a name="L1169"></a><tt class="py-lineno">1169</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1170"></a><tt class="py-lineno">1170</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit46</tt> </tt>
-<a name="L1171"></a><tt class="py-lineno">1171</tt>  <tt class="py-line"> </tt>
-<a name="bug_xmltoolkit54"></a><div id="bug_xmltoolkit54-def"><a name="L1172"></a><tt class="py-lineno">1172</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit54-toggle" onclick="return toggle('bug_xmltoolkit54');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit54">bug_xmltoolkit54</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_xmltoolkit54-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit54-expanded"><a name="L1173"></a><tt class="py-lineno">1173</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L1174"></a><tt class="py-lineno">1174</tt>  <tt class="py-line"><tt class="py-docstring">    problems handling internally defined entities</tt> </tt>
-<a name="L1175"></a><tt class="py-lineno">1175</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1176"></a><tt class="py-lineno">1176</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ElementTree.XML("&lt;!DOCTYPE doc [&lt;!ENTITY ldots '&amp;#x8230;'&gt;]&gt;&lt;doc&gt;&amp;ldots;&lt;/doc&gt;")</tt> </tt>
-<a name="L1177"></a><tt class="py-lineno">1177</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(e)</tt> </tt>
-<a name="L1178"></a><tt class="py-lineno">1178</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;doc&gt;&amp;#33328;&lt;/doc&gt;'</tt> </tt>
-<a name="L1179"></a><tt class="py-lineno">1179</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1180"></a><tt class="py-lineno">1180</tt>  <tt class="py-line"> </tt>
-<a name="L1181"></a><tt class="py-lineno">1181</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1182"></a><tt class="py-lineno">1182</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit54</tt> </tt>
-<a name="L1183"></a><tt class="py-lineno">1183</tt>  <tt class="py-line"> </tt>
-<a name="bug_xmltoolkit55"></a><div id="bug_xmltoolkit55-def"><a name="L1184"></a><tt class="py-lineno">1184</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit55-toggle" onclick="return toggle('bug_xmltoolkit55');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit55">bug_xmltoolkit55</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_xmltoolkit55-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit55-expanded"><a name="L1185"></a><tt class="py-lineno">1185</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L1186"></a><tt class="py-lineno">1186</tt>  <tt class="py-line"><tt class="py-docstring">    make sure we're reporting the first error, not the last</tt> </tt>
-<a name="L1187"></a><tt class="py-lineno">1187</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1188"></a><tt class="py-lineno">1188</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ElementTree.XML("&lt;!DOCTYPE doc SYSTEM 'doc.dtd'&gt;&lt;doc&gt;&amp;ldots;&amp;ndots;&amp;rdots;&lt;/doc&gt;")</tt> </tt>
-<a name="L1189"></a><tt class="py-lineno">1189</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
-<a name="L1190"></a><tt class="py-lineno">1190</tt>  <tt class="py-line"><tt class="py-docstring">    ParseError: undefined entity &amp;ldots;: line 1, column 36</tt> </tt>
-<a name="L1191"></a><tt class="py-lineno">1191</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1192"></a><tt class="py-lineno">1192</tt>  <tt class="py-line"> </tt>
-<a name="L1193"></a><tt class="py-lineno">1193</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1194"></a><tt class="py-lineno">1194</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit55</tt> </tt>
-<a name="L1195"></a><tt class="py-lineno">1195</tt>  <tt class="py-line"> </tt>
-<a name="bug_200708_version"></a><div id="bug_200708_version-def"><a name="L1196"></a><tt class="py-lineno">1196</tt> <a class="py-toggle" href="#" id="bug_200708_version-toggle" onclick="return toggle('bug_200708_version');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_200708_version">bug_200708_version</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_200708_version-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_200708_version-expanded"><a name="L1197"></a><tt class="py-lineno">1197</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L1198"></a><tt class="py-lineno">1198</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; parser = ET.XMLParser()</tt> </tt>
-<a name="L1199"></a><tt class="py-lineno">1199</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; parser.version</tt> </tt>
-<a name="L1200"></a><tt class="py-lineno">1200</tt>  <tt class="py-line"><tt class="py-docstring">    'Expat 2.0.0'</tt> </tt>
-<a name="L1201"></a><tt class="py-lineno">1201</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; parser.feed(open("samples/simple.xml").read())</tt> </tt>
-<a name="L1202"></a><tt class="py-lineno">1202</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(serialize(parser.close()))</tt> </tt>
-<a name="L1203"></a><tt class="py-lineno">1203</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;root&gt;</tt> </tt>
-<a name="L1204"></a><tt class="py-lineno">1204</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;element key="value"&gt;text&lt;/element&gt;</tt> </tt>
-<a name="L1205"></a><tt class="py-lineno">1205</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;element&gt;text&lt;/element&gt;tail</tt> </tt>
-<a name="L1206"></a><tt class="py-lineno">1206</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;empty-element /&gt;</tt> </tt>
-<a name="L1207"></a><tt class="py-lineno">1207</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/root&gt;</tt> </tt>
-<a name="L1208"></a><tt class="py-lineno">1208</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1209"></a><tt class="py-lineno">1209</tt>  <tt class="py-line"> </tt>
-<a name="L1210"></a><tt class="py-lineno">1210</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1211"></a><tt class="py-lineno">1211</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_200708_version</tt> </tt>
-<a name="L1212"></a><tt class="py-lineno">1212</tt>  <tt class="py-line"> </tt>
-<a name="bug_200708_newline"></a><div id="bug_200708_newline-def"><a name="L1213"></a><tt class="py-lineno">1213</tt> <a class="py-toggle" href="#" id="bug_200708_newline-toggle" onclick="return toggle('bug_200708_newline');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_200708_newline">bug_200708_newline</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_200708_newline-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_200708_newline-expanded"><a name="L1214"></a><tt class="py-lineno">1214</tt>  <tt class="py-line">    <tt class="py-docstring">r"""</tt> </tt>
-<a name="L1215"></a><tt class="py-lineno">1215</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1216"></a><tt class="py-lineno">1216</tt>  <tt class="py-line"><tt class="py-docstring">    Preserve newlines in attributes.</tt> </tt>
-<a name="L1217"></a><tt class="py-lineno">1217</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1218"></a><tt class="py-lineno">1218</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ET.Element('SomeTag', text="def _f():\n  return 3\n")</tt> </tt>
-<a name="L1219"></a><tt class="py-lineno">1219</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ET.tostring(e)</tt> </tt>
-<a name="L1220"></a><tt class="py-lineno">1220</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;SomeTag text="def _f():&amp;#10;  return 3&amp;#10;" /&gt;'</tt> </tt>
-<a name="L1221"></a><tt class="py-lineno">1221</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ET.XML(ET.tostring(e)).get("text")</tt> </tt>
-<a name="L1222"></a><tt class="py-lineno">1222</tt>  <tt class="py-line"><tt class="py-docstring">    'def _f():\n  return 3\n'</tt> </tt>
-<a name="L1223"></a><tt class="py-lineno">1223</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ET.tostring(ET.XML(ET.tostring(e)))</tt> </tt>
-<a name="L1224"></a><tt class="py-lineno">1224</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;SomeTag text="def _f():&amp;#10;  return 3&amp;#10;" /&gt;'</tt> </tt>
-<a name="L1225"></a><tt class="py-lineno">1225</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1226"></a><tt class="py-lineno">1226</tt>  <tt class="py-line"> </tt>
-<a name="L1227"></a><tt class="py-lineno">1227</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1228"></a><tt class="py-lineno">1228</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_200708_newline</tt> </tt>
-<a name="L1229"></a><tt class="py-lineno">1229</tt>  <tt class="py-line"> </tt>
-<a name="bug_200709_default_namespace"></a><div id="bug_200709_default_namespace-def"><a name="L1230"></a><tt class="py-lineno">1230</tt> <a class="py-toggle" href="#" id="bug_200709_default_namespace-toggle" onclick="return toggle('bug_200709_default_namespace');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_200709_default_namespace">bug_200709_default_namespace</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="bug_200709_default_namespace-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_200709_default_namespace-expanded"><a name="L1231"></a><tt class="py-lineno">1231</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1056"></a><tt class="py-lineno">1056</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.dump(tree); sys.stdout.write("tail")</tt> </tt>
+<a name="L1057"></a><tt class="py-lineno">1057</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;doc&gt;&lt;table&gt;&lt;tbody /&gt;&lt;/table&gt;&lt;/doc&gt;</tt> </tt>
+<a name="L1058"></a><tt class="py-lineno">1058</tt>  <tt class="py-line"><tt class="py-docstring">    tail</tt> </tt>
+<a name="L1059"></a><tt class="py-lineno">1059</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1060"></a><tt class="py-lineno">1060</tt>  <tt class="py-line"> </tt>
+<a name="L1061"></a><tt class="py-lineno">1061</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L1062"></a><tt class="py-lineno">1062</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkitX1</tt> </tt>
+<a name="L1063"></a><tt class="py-lineno">1063</tt>  <tt class="py-line"> </tt>
+<a name="bug_xmltoolkit39"></a><div id="bug_xmltoolkit39-def"><a name="L1064"></a><tt class="py-lineno">1064</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit39-toggle" onclick="return toggle('bug_xmltoolkit39');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit39">bug_xmltoolkit39</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_xmltoolkit39-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit39-expanded"><a name="L1065"></a><tt class="py-lineno">1065</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1066"></a><tt class="py-lineno">1066</tt>  <tt class="py-line"><tt class="py-docstring">    non-ascii element and attribute names doesn't work</tt> </tt>
+<a name="L1067"></a><tt class="py-lineno">1067</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1068"></a><tt class="py-lineno">1068</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.XML("&lt;?xml version='1.0' encoding='iso-8859-1'?&gt;&lt;t&#228;g /&gt;")</tt> </tt>
+<a name="L1069"></a><tt class="py-lineno">1069</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.tostring(tree, "utf-8")</tt> </tt>
+<a name="L1070"></a><tt class="py-lineno">1070</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;t\\xc3\\xa4g /&gt;'</tt> </tt>
+<a name="L1071"></a><tt class="py-lineno">1071</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1072"></a><tt class="py-lineno">1072</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.XML("&lt;?xml version='1.0' encoding='iso-8859-1'?&gt;&lt;tag &#228;ttr='v&amp;#228;lue' /&gt;")</tt> </tt>
+<a name="L1073"></a><tt class="py-lineno">1073</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree.attrib</tt> </tt>
+<a name="L1074"></a><tt class="py-lineno">1074</tt>  <tt class="py-line"><tt class="py-docstring">    {u'\\xe4ttr': u'v\\xe4lue'}</tt> </tt>
+<a name="L1075"></a><tt class="py-lineno">1075</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.tostring(tree, "utf-8")</tt> </tt>
+<a name="L1076"></a><tt class="py-lineno">1076</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;tag \\xc3\\xa4ttr="v\\xc3\\xa4lue" /&gt;'</tt> </tt>
+<a name="L1077"></a><tt class="py-lineno">1077</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1078"></a><tt class="py-lineno">1078</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.XML("&lt;?xml version='1.0' encoding='iso-8859-1'?&gt;&lt;t&#228;g&gt;text&lt;/t&#228;g&gt;")</tt> </tt>
+<a name="L1079"></a><tt class="py-lineno">1079</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.tostring(tree, "utf-8")</tt> </tt>
+<a name="L1080"></a><tt class="py-lineno">1080</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;t\\xc3\\xa4g&gt;text&lt;/t\\xc3\\xa4g&gt;'</tt> </tt>
+<a name="L1081"></a><tt class="py-lineno">1081</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1082"></a><tt class="py-lineno">1082</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.Element(u"t&#228;g")</tt> </tt>
+<a name="L1083"></a><tt class="py-lineno">1083</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.tostring(tree, "utf-8")</tt> </tt>
+<a name="L1084"></a><tt class="py-lineno">1084</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;t\\xc3\\xa4g /&gt;'</tt> </tt>
+<a name="L1085"></a><tt class="py-lineno">1085</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1086"></a><tt class="py-lineno">1086</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree = ElementTree.Element("tag")</tt> </tt>
+<a name="L1087"></a><tt class="py-lineno">1087</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; tree.set(u"&#228;ttr", u"v&#228;lue")</tt> </tt>
+<a name="L1088"></a><tt class="py-lineno">1088</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ElementTree.tostring(tree, "utf-8")</tt> </tt>
+<a name="L1089"></a><tt class="py-lineno">1089</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;tag \\xc3\\xa4ttr="v\\xc3\\xa4lue" /&gt;'</tt> </tt>
+<a name="L1090"></a><tt class="py-lineno">1090</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1091"></a><tt class="py-lineno">1091</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1092"></a><tt class="py-lineno">1092</tt>  <tt class="py-line"> </tt>
+<a name="L1093"></a><tt class="py-lineno">1093</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L1094"></a><tt class="py-lineno">1094</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit39</tt> </tt>
+<a name="L1095"></a><tt class="py-lineno">1095</tt>  <tt class="py-line"> </tt>
+<a name="bug_xmltoolkit45"></a><div id="bug_xmltoolkit45-def"><a name="L1096"></a><tt class="py-lineno">1096</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit45-toggle" onclick="return toggle('bug_xmltoolkit45');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit45">bug_xmltoolkit45</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_xmltoolkit45-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit45-expanded"><a name="L1097"></a><tt class="py-lineno">1097</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1098"></a><tt class="py-lineno">1098</tt>  <tt class="py-line"><tt class="py-docstring">    problems parsing mixed unicode/non-ascii html documents</tt> </tt>
+<a name="L1099"></a><tt class="py-lineno">1099</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1100"></a><tt class="py-lineno">1100</tt>  <tt class="py-line"><tt class="py-docstring">    latin-1 text</tt> </tt>
+<a name="L1101"></a><tt class="py-lineno">1101</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
+<a name="L1102"></a><tt class="py-lineno">1102</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;v&#228;lue&lt;/p&gt;")</tt> </tt>
+<a name="L1103"></a><tt class="py-lineno">1103</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
+<a name="L1104"></a><tt class="py-lineno">1104</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;v&amp;#228;lue&lt;/p&gt;'</tt> </tt>
+<a name="L1105"></a><tt class="py-lineno">1105</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1106"></a><tt class="py-lineno">1106</tt>  <tt class="py-line"><tt class="py-docstring">    utf-8 text</tt> </tt>
+<a name="L1107"></a><tt class="py-lineno">1107</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder(encoding="utf-8")</tt> </tt>
+<a name="L1108"></a><tt class="py-lineno">1108</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;v\xc3\xa4lue&lt;/p&gt;")</tt> </tt>
+<a name="L1109"></a><tt class="py-lineno">1109</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
+<a name="L1110"></a><tt class="py-lineno">1110</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;v&amp;#228;lue&lt;/p&gt;'</tt> </tt>
+<a name="L1111"></a><tt class="py-lineno">1111</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1112"></a><tt class="py-lineno">1112</tt>  <tt class="py-line"><tt class="py-docstring">    utf-8 text using meta tag</tt> </tt>
+<a name="L1113"></a><tt class="py-lineno">1113</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
+<a name="L1114"></a><tt class="py-lineno">1114</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;html&gt;&lt;meta http-equiv='Content-Type' content='text/html; charset=utf-8'&gt;&lt;p&gt;v\xc3\xa4lue&lt;/p&gt;&lt;/html&gt;")</tt> </tt>
+<a name="L1115"></a><tt class="py-lineno">1115</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close().find("p"))</tt> </tt>
+<a name="L1116"></a><tt class="py-lineno">1116</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;v&amp;#228;lue&lt;/p&gt;'</tt> </tt>
+<a name="L1117"></a><tt class="py-lineno">1117</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1118"></a><tt class="py-lineno">1118</tt>  <tt class="py-line"><tt class="py-docstring">    latin-1 character references</tt> </tt>
+<a name="L1119"></a><tt class="py-lineno">1119</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
+<a name="L1120"></a><tt class="py-lineno">1120</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;v&amp;#228;lue&lt;/p&gt;")</tt> </tt>
+<a name="L1121"></a><tt class="py-lineno">1121</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
+<a name="L1122"></a><tt class="py-lineno">1122</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;v&amp;#228;lue&lt;/p&gt;'</tt> </tt>
+<a name="L1123"></a><tt class="py-lineno">1123</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1124"></a><tt class="py-lineno">1124</tt>  <tt class="py-line"><tt class="py-docstring">    latin-1 character entities</tt> </tt>
+<a name="L1125"></a><tt class="py-lineno">1125</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
+<a name="L1126"></a><tt class="py-lineno">1126</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;v&amp;auml;lue&lt;/p&gt;")</tt> </tt>
+<a name="L1127"></a><tt class="py-lineno">1127</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
+<a name="L1128"></a><tt class="py-lineno">1128</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;v&amp;#228;lue&lt;/p&gt;'</tt> </tt>
+<a name="L1129"></a><tt class="py-lineno">1129</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1130"></a><tt class="py-lineno">1130</tt>  <tt class="py-line"><tt class="py-docstring">    mixed latin-1 text and unicode entities</tt> </tt>
+<a name="L1131"></a><tt class="py-lineno">1131</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
+<a name="L1132"></a><tt class="py-lineno">1132</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;&amp;#8221;v&#228;lue&amp;#8221;&lt;/p&gt;")</tt> </tt>
+<a name="L1133"></a><tt class="py-lineno">1133</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
+<a name="L1134"></a><tt class="py-lineno">1134</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;&amp;#8221;v&amp;#228;lue&amp;#8221;&lt;/p&gt;'</tt> </tt>
+<a name="L1135"></a><tt class="py-lineno">1135</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1136"></a><tt class="py-lineno">1136</tt>  <tt class="py-line"><tt class="py-docstring">    mixed unicode and latin-1 entities</tt> </tt>
+<a name="L1137"></a><tt class="py-lineno">1137</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
+<a name="L1138"></a><tt class="py-lineno">1138</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;&amp;#8221;v&amp;auml;lue&amp;#8221;&lt;/p&gt;")</tt> </tt>
+<a name="L1139"></a><tt class="py-lineno">1139</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
+<a name="L1140"></a><tt class="py-lineno">1140</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;&amp;#8221;v&amp;#228;lue&amp;#8221;&lt;/p&gt;'</tt> </tt>
+<a name="L1141"></a><tt class="py-lineno">1141</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1142"></a><tt class="py-lineno">1142</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1143"></a><tt class="py-lineno">1143</tt>  <tt class="py-line"> </tt>
+<a name="L1144"></a><tt class="py-lineno">1144</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L1145"></a><tt class="py-lineno">1145</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit45</tt> </tt>
+<a name="L1146"></a><tt class="py-lineno">1146</tt>  <tt class="py-line"> </tt>
+<a name="bug_xmltoolkit46"></a><div id="bug_xmltoolkit46-def"><a name="L1147"></a><tt class="py-lineno">1147</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit46-toggle" onclick="return toggle('bug_xmltoolkit46');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit46">bug_xmltoolkit46</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_xmltoolkit46-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit46-expanded"><a name="L1148"></a><tt class="py-lineno">1148</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1149"></a><tt class="py-lineno">1149</tt>  <tt class="py-line"><tt class="py-docstring">    problems parsing open BR tags</tt> </tt>
+<a name="L1150"></a><tt class="py-lineno">1150</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1151"></a><tt class="py-lineno">1151</tt>  <tt class="py-line"><tt class="py-docstring">   &gt;&gt;&gt; p = HTMLTreeBuilder.TreeBuilder()</tt> </tt>
+<a name="L1152"></a><tt class="py-lineno">1152</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; p.feed("&lt;p&gt;key&lt;br&gt;value&lt;/p&gt;")</tt> </tt>
+<a name="L1153"></a><tt class="py-lineno">1153</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(p.close())</tt> </tt>
+<a name="L1154"></a><tt class="py-lineno">1154</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;p&gt;key&lt;br /&gt;value&lt;/p&gt;'</tt> </tt>
+<a name="L1155"></a><tt class="py-lineno">1155</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1156"></a><tt class="py-lineno">1156</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1157"></a><tt class="py-lineno">1157</tt>  <tt class="py-line"> </tt>
+<a name="L1158"></a><tt class="py-lineno">1158</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L1159"></a><tt class="py-lineno">1159</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit46</tt> </tt>
+<a name="L1160"></a><tt class="py-lineno">1160</tt>  <tt class="py-line"> </tt>
+<a name="bug_xmltoolkit54"></a><div id="bug_xmltoolkit54-def"><a name="L1161"></a><tt class="py-lineno">1161</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit54-toggle" onclick="return toggle('bug_xmltoolkit54');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit54">bug_xmltoolkit54</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_xmltoolkit54-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit54-expanded"><a name="L1162"></a><tt class="py-lineno">1162</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1163"></a><tt class="py-lineno">1163</tt>  <tt class="py-line"><tt class="py-docstring">    problems handling internally defined entities</tt> </tt>
+<a name="L1164"></a><tt class="py-lineno">1164</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1165"></a><tt class="py-lineno">1165</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ElementTree.XML("&lt;!DOCTYPE doc [&lt;!ENTITY ldots '&amp;#x8230;'&gt;]&gt;&lt;doc&gt;&amp;ldots;&lt;/doc&gt;")</tt> </tt>
+<a name="L1166"></a><tt class="py-lineno">1166</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(e)</tt> </tt>
+<a name="L1167"></a><tt class="py-lineno">1167</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;doc&gt;&amp;#33328;&lt;/doc&gt;'</tt> </tt>
+<a name="L1168"></a><tt class="py-lineno">1168</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1169"></a><tt class="py-lineno">1169</tt>  <tt class="py-line"> </tt>
+<a name="L1170"></a><tt class="py-lineno">1170</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L1171"></a><tt class="py-lineno">1171</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit54</tt> </tt>
+<a name="L1172"></a><tt class="py-lineno">1172</tt>  <tt class="py-line"> </tt>
+<a name="bug_xmltoolkit55"></a><div id="bug_xmltoolkit55-def"><a name="L1173"></a><tt class="py-lineno">1173</tt> <a class="py-toggle" href="#" id="bug_xmltoolkit55-toggle" onclick="return toggle('bug_xmltoolkit55');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_xmltoolkit55">bug_xmltoolkit55</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_xmltoolkit55-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_xmltoolkit55-expanded"><a name="L1174"></a><tt class="py-lineno">1174</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1175"></a><tt class="py-lineno">1175</tt>  <tt class="py-line"><tt class="py-docstring">    make sure we're reporting the first error, not the last</tt> </tt>
+<a name="L1176"></a><tt class="py-lineno">1176</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1177"></a><tt class="py-lineno">1177</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ElementTree.XML("&lt;!DOCTYPE doc SYSTEM 'doc.dtd'&gt;&lt;doc&gt;&amp;ldots;&amp;ndots;&amp;rdots;&lt;/doc&gt;")</tt> </tt>
+<a name="L1178"></a><tt class="py-lineno">1178</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
+<a name="L1179"></a><tt class="py-lineno">1179</tt>  <tt class="py-line"><tt class="py-docstring">    ParseError: undefined entity &amp;ldots;: line 1, column 36</tt> </tt>
+<a name="L1180"></a><tt class="py-lineno">1180</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1181"></a><tt class="py-lineno">1181</tt>  <tt class="py-line"> </tt>
+<a name="L1182"></a><tt class="py-lineno">1182</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L1183"></a><tt class="py-lineno">1183</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_xmltoolkit55</tt> </tt>
+<a name="L1184"></a><tt class="py-lineno">1184</tt>  <tt class="py-line"> </tt>
+<a name="bug_200708_version"></a><div id="bug_200708_version-def"><a name="L1185"></a><tt class="py-lineno">1185</tt> <a class="py-toggle" href="#" id="bug_200708_version-toggle" onclick="return toggle('bug_200708_version');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_200708_version">bug_200708_version</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_200708_version-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_200708_version-expanded"><a name="L1186"></a><tt class="py-lineno">1186</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1187"></a><tt class="py-lineno">1187</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; parser = ET.XMLParser()</tt> </tt>
+<a name="L1188"></a><tt class="py-lineno">1188</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; parser.version</tt> </tt>
+<a name="L1189"></a><tt class="py-lineno">1189</tt>  <tt class="py-line"><tt class="py-docstring">    'Expat 2.0.0'</tt> </tt>
+<a name="L1190"></a><tt class="py-lineno">1190</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; parser.feed(open("samples/simple.xml").read())</tt> </tt>
+<a name="L1191"></a><tt class="py-lineno">1191</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; print(serialize(parser.close()))</tt> </tt>
+<a name="L1192"></a><tt class="py-lineno">1192</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;root&gt;</tt> </tt>
+<a name="L1193"></a><tt class="py-lineno">1193</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;element key="value"&gt;text&lt;/element&gt;</tt> </tt>
+<a name="L1194"></a><tt class="py-lineno">1194</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;element&gt;text&lt;/element&gt;tail</tt> </tt>
+<a name="L1195"></a><tt class="py-lineno">1195</tt>  <tt class="py-line"><tt class="py-docstring">       &lt;empty-element /&gt;</tt> </tt>
+<a name="L1196"></a><tt class="py-lineno">1196</tt>  <tt class="py-line"><tt class="py-docstring">    &lt;/root&gt;</tt> </tt>
+<a name="L1197"></a><tt class="py-lineno">1197</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1198"></a><tt class="py-lineno">1198</tt>  <tt class="py-line"> </tt>
+<a name="L1199"></a><tt class="py-lineno">1199</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L1200"></a><tt class="py-lineno">1200</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_200708_version</tt> </tt>
+<a name="L1201"></a><tt class="py-lineno">1201</tt>  <tt class="py-line"> </tt>
+<a name="bug_200708_newline"></a><div id="bug_200708_newline-def"><a name="L1202"></a><tt class="py-lineno">1202</tt> <a class="py-toggle" href="#" id="bug_200708_newline-toggle" onclick="return toggle('bug_200708_newline');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_200708_newline">bug_200708_newline</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_200708_newline-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_200708_newline-expanded"><a name="L1203"></a><tt class="py-lineno">1203</tt>  <tt class="py-line">    <tt class="py-docstring">r"""</tt> </tt>
+<a name="L1204"></a><tt class="py-lineno">1204</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1205"></a><tt class="py-lineno">1205</tt>  <tt class="py-line"><tt class="py-docstring">    Preserve newlines in attributes.</tt> </tt>
+<a name="L1206"></a><tt class="py-lineno">1206</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1207"></a><tt class="py-lineno">1207</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ET.Element('SomeTag', text="def _f():\n  return 3\n")</tt> </tt>
+<a name="L1208"></a><tt class="py-lineno">1208</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ET.tostring(e)</tt> </tt>
+<a name="L1209"></a><tt class="py-lineno">1209</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;SomeTag text="def _f():&amp;#10;  return 3&amp;#10;" /&gt;'</tt> </tt>
+<a name="L1210"></a><tt class="py-lineno">1210</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ET.XML(ET.tostring(e)).get("text")</tt> </tt>
+<a name="L1211"></a><tt class="py-lineno">1211</tt>  <tt class="py-line"><tt class="py-docstring">    'def _f():\n  return 3\n'</tt> </tt>
+<a name="L1212"></a><tt class="py-lineno">1212</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; ET.tostring(ET.XML(ET.tostring(e)))</tt> </tt>
+<a name="L1213"></a><tt class="py-lineno">1213</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;SomeTag text="def _f():&amp;#10;  return 3&amp;#10;" /&gt;'</tt> </tt>
+<a name="L1214"></a><tt class="py-lineno">1214</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1215"></a><tt class="py-lineno">1215</tt>  <tt class="py-line"> </tt>
+<a name="L1216"></a><tt class="py-lineno">1216</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L1217"></a><tt class="py-lineno">1217</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_200708_newline</tt> </tt>
+<a name="L1218"></a><tt class="py-lineno">1218</tt>  <tt class="py-line"> </tt>
+<a name="bug_200709_default_namespace"></a><div id="bug_200709_default_namespace-def"><a name="L1219"></a><tt class="py-lineno">1219</tt> <a class="py-toggle" href="#" id="bug_200709_default_namespace-toggle" onclick="return toggle('bug_200709_default_namespace');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="lxml.tests.selftest-module.html#bug_200709_default_namespace">bug_200709_default_namespace</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="bug_200709_default_namespace-collapsed" style="display:none;" pad="++++" indent="++++"></div><div id="bug_200709_default_namespace-expanded"><a name="L1220"></a><tt class="py-lineno">1220</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L1221"></a><tt class="py-lineno">1221</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1222"></a><tt class="py-lineno">1222</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ET.Element("{default}elem")</tt> </tt>
+<a name="L1223"></a><tt class="py-lineno">1223</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; s = ET.SubElement(e, "{default}elem")</tt> </tt>
+<a name="L1224"></a><tt class="py-lineno">1224</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(e, default_namespace="default") # 1</tt> </tt>
+<a name="L1225"></a><tt class="py-lineno">1225</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;elem xmlns="default"&gt;&lt;elem /&gt;&lt;/elem&gt;'</tt> </tt>
+<a name="L1226"></a><tt class="py-lineno">1226</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1227"></a><tt class="py-lineno">1227</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ET.Element("{default}elem")</tt> </tt>
+<a name="L1228"></a><tt class="py-lineno">1228</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; s = ET.SubElement(e, "{default}elem")</tt> </tt>
+<a name="L1229"></a><tt class="py-lineno">1229</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; s = ET.SubElement(e, "{not-default}elem")</tt> </tt>
+<a name="L1230"></a><tt class="py-lineno">1230</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(e, default_namespace="default") # 2</tt> </tt>
+<a name="L1231"></a><tt class="py-lineno">1231</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;elem xmlns="default" xmlns:ns1="not-default"&gt;&lt;elem /&gt;&lt;ns1:elem /&gt;&lt;/elem&gt;'</tt> </tt>
 <a name="L1232"></a><tt class="py-lineno">1232</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
 <a name="L1233"></a><tt class="py-lineno">1233</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ET.Element("{default}elem")</tt> </tt>
 <a name="L1234"></a><tt class="py-lineno">1234</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; s = ET.SubElement(e, "{default}elem")</tt> </tt>
-<a name="L1235"></a><tt class="py-lineno">1235</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(e, default_namespace="default") # 1</tt> </tt>
-<a name="L1236"></a><tt class="py-lineno">1236</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;elem xmlns="default"&gt;&lt;elem /&gt;&lt;/elem&gt;'</tt> </tt>
-<a name="L1237"></a><tt class="py-lineno">1237</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1238"></a><tt class="py-lineno">1238</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ET.Element("{default}elem")</tt> </tt>
-<a name="L1239"></a><tt class="py-lineno">1239</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; s = ET.SubElement(e, "{default}elem")</tt> </tt>
-<a name="L1240"></a><tt class="py-lineno">1240</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; s = ET.SubElement(e, "{not-default}elem")</tt> </tt>
-<a name="L1241"></a><tt class="py-lineno">1241</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(e, default_namespace="default") # 2</tt> </tt>
-<a name="L1242"></a><tt class="py-lineno">1242</tt>  <tt class="py-line"><tt class="py-docstring">    '&lt;elem xmlns="default" xmlns:ns1="not-default"&gt;&lt;elem /&gt;&lt;ns1:elem /&gt;&lt;/elem&gt;'</tt> </tt>
-<a name="L1243"></a><tt class="py-lineno">1243</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1244"></a><tt class="py-lineno">1244</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; e = ET.Element("{default}elem")</tt> </tt>
-<a name="L1245"></a><tt class="py-lineno">1245</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; s = ET.SubElement(e, "{default}elem")</tt> </tt>
-<a name="L1246"></a><tt class="py-lineno">1246</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; s = ET.SubElement(e, "elem") # unprefixed name</tt> </tt>
-<a name="L1247"></a><tt class="py-lineno">1247</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(e, default_namespace="default") # 3</tt> </tt>
-<a name="L1248"></a><tt class="py-lineno">1248</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
-<a name="L1249"></a><tt class="py-lineno">1249</tt>  <tt class="py-line"><tt class="py-docstring">    ValueError: cannot use non-qualified names with default_namespace option</tt> </tt>
-<a name="L1250"></a><tt class="py-lineno">1250</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L1251"></a><tt class="py-lineno">1251</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-</div><a name="L1252"></a><tt class="py-lineno">1252</tt>  <tt class="py-line"> </tt>
-<a name="L1253"></a><tt class="py-lineno">1253</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
-<a name="L1254"></a><tt class="py-lineno">1254</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_200709_default_namespace</tt> </tt>
-<a name="L1255"></a><tt class="py-lineno">1255</tt>  <tt class="py-line"> </tt>
-<a name="L1256"></a><tt class="py-lineno">1256</tt>  <tt class="py-line"><tt class="py-comment"># --------------------------------------------------------------------</tt> </tt>
-<a name="L1257"></a><tt class="py-lineno">1257</tt>  <tt class="py-line"> </tt>
-<a name="L1258"></a><tt class="py-lineno">1258</tt>  <tt class="py-line"><tt class="py-keyword">if</tt> <tt class="py-name">__name__</tt> <tt class="py-op">==</tt> <tt class="py-string">"__main__"</tt><tt class="py-op">:</tt> </tt>
-<a name="L1259"></a><tt class="py-lineno">1259</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">doctest</tt><tt class="py-op">,</tt> <tt id="link-102" class="py-name" targets="Module lxml.tests.selftest=lxml.tests.selftest-module.html"><a title="lxml.tests.selftest" class="py-name" href="#" onclick="return doclink('link-102', 'selftest', 'link-102');">selftest</a></tt> </tt>
-<a name="L1260"></a><tt class="py-lineno">1260</tt>  <tt class="py-line">    <tt class="py-name">failed</tt><tt class="py-op">,</tt> <tt class="py-name">tested</tt> <tt class="py-op">=</tt> <tt class="py-name">doctest</tt><tt class="py-op">.</tt><tt class="py-name">testmod</tt><tt class="py-op">(</tt><tt id="link-103" class="py-name"><a title="lxml.tests.selftest" class="py-name" href="#" onclick="return doclink('link-103', 'selftest', 'link-102');">selftest</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L1261"></a><tt class="py-lineno">1261</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"%d tests ok."</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">tested</tt> <tt class="py-op">-</tt> <tt class="py-name">failed</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
-<a name="L1262"></a><tt class="py-lineno">1262</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">failed</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
-<a name="L1263"></a><tt class="py-lineno">1263</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"%d tests failed. Exiting with non-zero return code."</tt> <tt class="py-op">%</tt> <tt class="py-name">failed</tt><tt class="py-op">)</tt> </tt>
-<a name="L1264"></a><tt class="py-lineno">1264</tt>  <tt class="py-line">        <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">exit</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
-<a name="L1265"></a><tt class="py-lineno">1265</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<a name="L1235"></a><tt class="py-lineno">1235</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; s = ET.SubElement(e, "elem") # unprefixed name</tt> </tt>
+<a name="L1236"></a><tt class="py-lineno">1236</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; serialize(e, default_namespace="default") # 3</tt> </tt>
+<a name="L1237"></a><tt class="py-lineno">1237</tt>  <tt class="py-line"><tt class="py-docstring">    Traceback (most recent call last):</tt> </tt>
+<a name="L1238"></a><tt class="py-lineno">1238</tt>  <tt class="py-line"><tt class="py-docstring">    ValueError: cannot use non-qualified names with default_namespace option</tt> </tt>
+<a name="L1239"></a><tt class="py-lineno">1239</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L1240"></a><tt class="py-lineno">1240</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+</div><a name="L1241"></a><tt class="py-lineno">1241</tt>  <tt class="py-line"> </tt>
+<a name="L1242"></a><tt class="py-lineno">1242</tt>  <tt class="py-line"><tt class="py-comment"># doesn't work with lxml.etree</tt> </tt>
+<a name="L1243"></a><tt class="py-lineno">1243</tt>  <tt class="py-line"><tt class="py-keyword">del</tt> <tt class="py-name">bug_200709_default_namespace</tt> </tt>
+<a name="L1244"></a><tt class="py-lineno">1244</tt>  <tt class="py-line"> </tt>
+<a name="L1245"></a><tt class="py-lineno">1245</tt>  <tt class="py-line"><tt class="py-comment"># --------------------------------------------------------------------</tt> </tt>
+<a name="L1246"></a><tt class="py-lineno">1246</tt>  <tt class="py-line"> </tt>
+<a name="L1247"></a><tt class="py-lineno">1247</tt>  <tt class="py-line"><tt class="py-keyword">if</tt> <tt class="py-name">__name__</tt> <tt class="py-op">==</tt> <tt class="py-string">"__main__"</tt><tt class="py-op">:</tt> </tt>
+<a name="L1248"></a><tt class="py-lineno">1248</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">doctest</tt><tt class="py-op">,</tt> <tt id="link-94" class="py-name" targets="Module lxml.tests.selftest=lxml.tests.selftest-module.html"><a title="lxml.tests.selftest" class="py-name" href="#" onclick="return doclink('link-94', 'selftest', 'link-94');">selftest</a></tt> </tt>
+<a name="L1249"></a><tt class="py-lineno">1249</tt>  <tt class="py-line">    <tt class="py-name">failed</tt><tt class="py-op">,</tt> <tt class="py-name">tested</tt> <tt class="py-op">=</tt> <tt class="py-name">doctest</tt><tt class="py-op">.</tt><tt class="py-name">testmod</tt><tt class="py-op">(</tt><tt id="link-95" class="py-name"><a title="lxml.tests.selftest" class="py-name" href="#" onclick="return doclink('link-95', 'selftest', 'link-94');">selftest</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L1250"></a><tt class="py-lineno">1250</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"%d tests ok."</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">tested</tt> <tt class="py-op">-</tt> <tt class="py-name">failed</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L1251"></a><tt class="py-lineno">1251</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">failed</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L1252"></a><tt class="py-lineno">1252</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"%d tests failed. Exiting with non-zero return code."</tt> <tt class="py-op">%</tt> <tt class="py-name">failed</tt><tt class="py-op">)</tt> </tt>
+<a name="L1253"></a><tt class="py-lineno">1253</tt>  <tt class="py-line">        <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">exit</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L1254"></a><tt class="py-lineno">1254</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
 // -->
@@ -1513,7 +1487,7 @@ expandto(location.href);
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Fri Dec 23 19:00:53 2016
+    on Thu Feb 28 20:36:14 2019
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

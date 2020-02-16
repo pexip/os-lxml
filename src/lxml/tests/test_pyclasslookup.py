@@ -5,7 +5,7 @@ Tests specific to the Python based class lookup.
 """
 
 
-import unittest, operator, os.path, sys
+import unittest, os.path, sys
 
 this_dir = os.path.dirname(__file__)
 if this_dir not in sys.path:
@@ -334,6 +334,15 @@ class PyClassLookupTestCase(HelperTestCase):
         root = self.XML(xml_str)
         self.assertNotEqual(None, el_class.PREV)
         self.assertEqual(root[0][1].getprevious().tag, el_class.PREV)
+
+    def test_comments_fallback(self):
+        def return_none(*args):
+            return None
+
+        self._setClassLookup(return_none)
+        el = self.XML('<a><!-- hello world --></a>')
+        self.assertEqual(el[0].tag, self.etree.Comment)
+        self.assertEqual(el[0].text, " hello world ")
 
 
 def test_suite():

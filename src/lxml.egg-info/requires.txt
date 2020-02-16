@@ -9,4 +9,4 @@ html5lib
 BeautifulSoup4
 
 [source]
-Cython>=0.20
+Cython>=0.29.1

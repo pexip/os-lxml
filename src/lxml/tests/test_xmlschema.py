@@ -64,6 +64,33 @@ class ETreeXMLSchemaTestCase(HelperTestCase):
         self.assertTrue(schema.error_log.filter_types(
             etree.ErrorTypes.SCHEMAV_ELEMENT_CONTENT))
 
+    def test_xmlschema_error_log_path(self):
+        """We don't have a guarantee that there will always be a path
+        for a _LogEntry object (or even a node for which to determina
+        a path), but at least when this test was created schema validation
+        errors always got a node and an XPath value. If that ever changes,
+        we can modify this test to something like:
+            self.assertTrue(error_path is None or tree_path == error_path)
+        That way, we can at least verify that if we did get a path value
+        it wasn't bogus.
+        """
+        tree = self.parse('<a><b>42</b><b>dada</b></a>')
+        schema = self.parse('''
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="a" type="AType"/>
+  <xsd:complexType name="AType">
+    <xsd:sequence>
+      <xsd:element name="b" type="xsd:integer" maxOccurs="2"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
+''')
+        schema = etree.XMLSchema(schema)
+        schema.validate(tree)
+        tree_path = tree.getpath(tree.findall('b')[1])
+        error_path = schema.error_log[0].path
+        self.assertTrue(tree_path == error_path)
+
     def test_xmlschema_default_attributes(self):
         schema = self.parse('''
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -231,6 +258,23 @@ class ETreeXMLSchemaTestCase(HelperTestCase):
 
         self.assertEqual([('end', 'b'), ('end', 'a')],
                           events)
+
+    def test_xmlschema_iterparse_incomplete(self):
+        schema = self.parse('''
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="a" type="AType"/>
+  <xsd:complexType name="AType">
+    <xsd:sequence>
+      <xsd:element name="b" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
+''')
+        schema = etree.XMLSchema(schema)
+        xml = BytesIO('<a><b></b></a>')
+        event, element = next(iter(etree.iterparse(xml, schema=schema)))
+        self.assertEqual('end', event)
+        self.assertEqual('b', element.tag)
 
     def test_xmlschema_iterparse_fail(self):
         schema = self.parse('''

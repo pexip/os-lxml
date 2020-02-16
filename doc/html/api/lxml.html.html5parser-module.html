@@ -138,8 +138,8 @@ An interface to html5lib that mimics the lxml.html interface.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="document_fromstring"></a><span class="summary-sig-name">document_fromstring</span>(<span class="summary-sig-arg">html</span>,
-        <span class="summary-sig-arg">guess_charset</span>=<span class="summary-sig-default">True</span>,
+          <td><span class="summary-sig"><a href="lxml.html.html5parser-module.html#document_fromstring" class="summary-sig-name">document_fromstring</a>(<span class="summary-sig-arg">html</span>,
+        <span class="summary-sig-arg">guess_charset</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">parser</span>=<span class="summary-sig-default">None</span>)</span><br />
       Parse a whole document into a string.</td>
           <td align="right" valign="top">
@@ -159,7 +159,7 @@ An interface to html5lib that mimics the lxml.html interface.
         <tr>
           <td><span class="summary-sig"><a href="lxml.html.html5parser-module.html#fragments_fromstring" class="summary-sig-name">fragments_fromstring</a>(<span class="summary-sig-arg">html</span>,
         <span class="summary-sig-arg">no_leading_text</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">guess_charset</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">guess_charset</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">parser</span>=<span class="summary-sig-default">None</span>)</span><br />
       Parses several HTML elements, returning a list of elements.</td>
           <td align="right" valign="top">
@@ -179,7 +179,7 @@ An interface to html5lib that mimics the lxml.html interface.
         <tr>
           <td><span class="summary-sig"><a href="lxml.html.html5parser-module.html#fragment_fromstring" class="summary-sig-name">fragment_fromstring</a>(<span class="summary-sig-arg">html</span>,
         <span class="summary-sig-arg">create_parent</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">guess_charset</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">guess_charset</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">parser</span>=<span class="summary-sig-default">None</span>)</span><br />
       Parses a single HTML element; it is an error if there is more than
 one element, or if anything but whitespace precedes or follows the
@@ -200,7 +200,7 @@ element.</td>
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="lxml.html.html5parser-module.html#fromstring" class="summary-sig-name">fromstring</a>(<span class="summary-sig-arg">html</span>,
-        <span class="summary-sig-arg">guess_charset</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">guess_charset</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">parser</span>=<span class="summary-sig-default">None</span>)</span><br />
       Parse the html, returning a single element/document.</td>
           <td align="right" valign="top">
@@ -218,8 +218,8 @@ element.</td>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="parse"></a><span class="summary-sig-name">parse</span>(<span class="summary-sig-arg">filename_url_or_file</span>,
-        <span class="summary-sig-arg">guess_charset</span>=<span class="summary-sig-default">True</span>,
+          <td><span class="summary-sig"><a href="lxml.html.html5parser-module.html#parse" class="summary-sig-name">parse</a>(<span class="summary-sig-arg">filename_url_or_file</span>,
+        <span class="summary-sig-arg">guess_charset</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">parser</span>=<span class="summary-sig-default">None</span>)</span><br />
       Parse a filename, URL, or file-like object into an HTML document
 tree.  Note: this returns a tree, not an element.  Use
@@ -307,6 +307,30 @@ tree.  Note: this returns a tree, not an element.  Use
   </td>
 </tr>
 </table>
+<a name="document_fromstring"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">document_fromstring</span>(<span class="sig-arg">html</span>,
+        <span class="sig-arg">guess_charset</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">parser</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="lxml.html.html5parser-pysrc.html#document_fromstring">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Parse a whole document into a string.</p>
+<p>If <code class="link">guess_charset</code> is true, or if the input is not Unicode but a
+byte string, the <code class="link">chardet</code> library will perform charset guessing
+on the string.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="fragments_fromstring"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -316,7 +340,7 @@ tree.  Note: this returns a tree, not an element.  Use
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">fragments_fromstring</span>(<span class="sig-arg">html</span>,
         <span class="sig-arg">no_leading_text</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">guess_charset</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">guess_charset</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">parser</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -328,9 +352,8 @@ tree.  Note: this returns a tree, not an element.  Use
 <p>The first item in the list may be a string.  If no_leading_text is true,
 then it will be an error if there is leading text, and it will always be
 a list of only elements.</p>
-<p>If <code class="link">guess_charset</code> is <code class="link">True</code> and the text was not unicode but a
-bytestring, the <code class="link">chardet</code> library will perform charset guessing on the
-string.</p>
+<p>If <code class="link">guess_charset</code> is true, the <code class="link">chardet</code> library will perform charset
+guessing on the string.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -344,7 +367,7 @@ string.</p>
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">fragment_fromstring</span>(<span class="sig-arg">html</span>,
         <span class="sig-arg">create_parent</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">guess_charset</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">guess_charset</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">parser</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -355,9 +378,11 @@ string.</p>
   <p>Parses a single HTML element; it is an error if there is more than
 one element, or if anything but whitespace precedes or follows the
 element.</p>
-<p>If create_parent is true (or is a tag name) then a parent node
+<p>If 'create_parent' is true (or is a tag name) then a parent node
 will be created to encapsulate the HTML in a single element.  In
 this case, leading or trailing text is allowed.</p>
+<p>If <code class="link">guess_charset</code> is true, the <code class="link">chardet</code> library will perform charset
+guessing on the string.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -370,7 +395,7 @@ this case, leading or trailing text is allowed.</p>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">fromstring</span>(<span class="sig-arg">html</span>,
-        <span class="sig-arg">guess_charset</span>=<span class="sig-default">True</span>,
+        <span class="sig-arg">guess_charset</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">parser</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -381,7 +406,39 @@ this case, leading or trailing text is allowed.</p>
   <p>Parse the html, returning a single element/document.</p>
 <p>This tries to minimally parse the chunk of text, without knowing if it
 is a fragment or a document.</p>
-<p>base_url will set the document's base_url attribute (and the tree's docinfo.URL)</p>
+<p>'base_url' will set the document's base_url attribute (and the tree's
+docinfo.URL)</p>
+<p>If <code class="link">guess_charset</code> is true, or if the input is not Unicode but a
+byte string, the <code class="link">chardet</code> library will perform charset guessing
+on the string.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="parse"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">parse</span>(<span class="sig-arg">filename_url_or_file</span>,
+        <span class="sig-arg">guess_charset</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">parser</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="lxml.html.html5parser-pysrc.html#parse">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Parse a filename, URL, or file-like object into an HTML document
+tree.  Note: this returns a tree, not an element.  Use
+<tt class="rst-docutils literal"><span class="pre">parse(...).getroot()</span></tt> to get the document root.</p>
+<p>If <tt class="rst-docutils literal">guess_charset</tt> is true, the <tt class="rst-docutils literal">useChardet</tt> option is passed into
+html5lib to enable character detection.  This option is on by default
+when parsing from URLs, off by default when parsing from file(-like)
+objects (which tend to return Unicode more often than not), and on by
+default when parsing from a file path (which is read in binary mode).</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -419,7 +476,7 @@ is a fragment or a document.</p>
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Fri Dec 23 19:00:53 2016
+    on Thu Feb 28 20:36:14 2019
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -61,11 +61,11 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module etree</h1><p class="nomargin-top"></p>
-The <tt class="rst-rst-rst-docutils literal rst-rst-docutils literal rst-docutils literal">lxml.etree</tt> module implements the extended ElementTree API for XML.
+The <tt class="rst-docutils literal">lxml.etree</tt> module implements the extended ElementTree API for XML.
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        3.7.0
+        4.3.2
       </p>
 </div><!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
@@ -207,7 +207,7 @@ Special XPath class that supports the ElementTree {uri} notation for namespaces.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.etree.ElementBase-class.html" class="summary-name">ElementBase</a><br />
-      ElementBase(<a href="#id1"><span class="rst-rst-problematic rst-problematic" id="rst-rst-id2">*</span></a>children, attrib=None, nsmap=None, <a href="#id3"><span class="rst-rst-problematic rst-problematic" id="rst-rst-id4">**</span></a>_extra)
+      ElementBase(<a href="#id1"><span class="rst-problematic" id="rst-rst-id2">*</span></a>children, attrib=None, nsmap=None, <a href="#id3"><span class="rst-problematic" id="rst-rst-id4">**</span></a>_extra)
     </td>
   </tr>
 <tr class="private">
@@ -317,7 +317,7 @@ Iterates over the text content of a subtree.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.etree.HTMLParser-class.html" class="summary-name">HTMLParser</a><br />
-      HTMLParser(self, encoding=None, remove_blank_text=False,                    remove_comments=False, remove_pis=False, strip_cdata=True,                    no_network=True, target=None, schema: XMLSchema =None,                    recover=True, compact=True, collect_ids=True)
+      HTMLParser(self, encoding=None, remove_blank_text=False,                    remove_comments=False, remove_pis=False, strip_cdata=True,                    no_network=True, target=None, schema: XMLSchema =None,                    recover=True, compact=True, collect_ids=True, huge_tree=False)
     </td>
   </tr>
 <tr class="private">
@@ -325,7 +325,7 @@ Iterates over the text content of a subtree.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.etree.HTMLPullParser-class.html" class="summary-name" onclick="show_private();">HTMLPullParser</a><br />
-      HTMLPullParser(self, events=None, <a href="#id1"><span class="rst-rst-problematic rst-problematic" id="rst-rst-id2">*</span></a>, tag=None, base_url=None, <a href="#id3"><span class="rst-rst-problematic rst-problematic" id="rst-rst-id4">**</span></a>kwargs)
+      HTMLPullParser(self, events=None, <a href="#id1"><span class="rst-problematic" id="rst-rst-id2">*</span></a>, tag=None, base_url=None, <a href="#id3"><span class="rst-problematic" id="rst-rst-id4">**</span></a>kwargs)
     </td>
   </tr>
 <tr>
@@ -550,7 +550,7 @@ XInclude processor.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.etree.XMLParser-class.html" class="summary-name">XMLParser</a><br />
-      XMLParser(self, encoding=None, attribute_defaults=False, dtd_validation=False, load_dtd=False, no_network=True, ns_clean=False, recover=False, schema: XMLSchema =None, remove_blank_text=False, resolve_entities=True, remove_comments=False, remove_pis=False, strip_cdata=True, collect_ids=True, target=None, compact=True)
+      XMLParser(self, encoding=None, attribute_defaults=False, dtd_validation=False, load_dtd=False, no_network=True, ns_clean=False, recover=False, schema: XMLSchema =None, huge_tree=False, remove_blank_text=False, resolve_entities=True, remove_comments=False, remove_pis=False, strip_cdata=True, collect_ids=True, target=None, compact=True)
     </td>
   </tr>
 <tr class="private">
@@ -558,7 +558,7 @@ XInclude processor.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.etree.XMLPullParser-class.html" class="summary-name" onclick="show_private();">XMLPullParser</a><br />
-      XMLPullParser(self, events=None, <a href="#id1"><span class="rst-rst-problematic rst-problematic" id="rst-rst-id2">*</span></a>, tag=None, <a href="#id3"><span class="rst-rst-problematic rst-problematic" id="rst-rst-id4">**</span></a>kwargs)
+      XMLPullParser(self, events=None, <a href="#id1"><span class="rst-problematic" id="rst-rst-id2">*</span></a>, tag=None, <a href="#id3"><span class="rst-problematic" id="rst-rst-id4">**</span></a>kwargs)
     </td>
   </tr>
 <tr>
@@ -745,7 +745,7 @@ Create an XPath evaluator for an element.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="lxml.etree._Attrib-class.html" class="summary-name" onclick="show_private();">_Attrib</a><br />
-      A dict-like proxy for the <tt class="rst-rst-docutils literal rst-docutils literal">Element.attrib</tt> property.
+      A dict-like proxy for the <tt class="rst-docutils literal">Element.attrib</tt> property.
     </td>
   </tr>
 <tr class="private">
@@ -929,7 +929,8 @@ A dictionary-like proxy class that mapps ID attributes to elements.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="lxml.etree._XSLTResultTree-class.html" class="summary-name" onclick="show_private();">_XSLTResultTree</a>
+        <a href="lxml.etree._XSLTResultTree-class.html" class="summary-name" onclick="show_private();">_XSLTResultTree</a><br />
+      The result of an XSLT evaluation.
     </td>
   </tr>
 <tr class="private">
@@ -1260,6 +1261,25 @@ values.</td>
         <span class="summary-sig-arg">regexp</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">smart_strings</span>=<span class="summary-sig-default">True</span>)</span><br />
       Creates an XPath evaluator for an ElementTree or an Element.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="lxml.etree-module.html#adopt_external_document" class="summary-sig-name" onclick="show_private();">adopt_external_document</a>(<span class="summary-sig-arg">capsule</span>,
+        <span class="summary-sig-arg">parser</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Unpack a libxml2 document pointer from a PyCapsule and wrap it in an
+lxml ElementTree object.</td>
           <td align="right" valign="top">
             
             
@@ -1677,35 +1697,35 @@ standard Python logging package.</td>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="LIBXML_COMPILED_VERSION"></a><span class="summary-name">LIBXML_COMPILED_VERSION</span> = <code title="(2, 9, 3)"><code class="variable-group">(</code>2<code class="variable-op">, </code>9<code class="variable-op">, </code>3<code class="variable-group">)</code></code>
+        <a name="LIBXML_COMPILED_VERSION"></a><span class="summary-name">LIBXML_COMPILED_VERSION</span> = <code title="(2, 9, 4)"><code class="variable-group">(</code>2<code class="variable-op">, </code>9<code class="variable-op">, </code>4<code class="variable-group">)</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="LIBXML_VERSION"></a><span class="summary-name">LIBXML_VERSION</span> = <code title="(2, 9, 3)"><code class="variable-group">(</code>2<code class="variable-op">, </code>9<code class="variable-op">, </code>3<code class="variable-group">)</code></code>
+        <a name="LIBXML_VERSION"></a><span class="summary-name">LIBXML_VERSION</span> = <code title="(2, 9, 4)"><code class="variable-group">(</code>2<code class="variable-op">, </code>9<code class="variable-op">, </code>4<code class="variable-group">)</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="LIBXSLT_COMPILED_VERSION"></a><span class="summary-name">LIBXSLT_COMPILED_VERSION</span> = <code title="(1, 1, 28)"><code class="variable-group">(</code>1<code class="variable-op">, </code>1<code class="variable-op">, </code>28<code class="variable-group">)</code></code>
+        <a name="LIBXSLT_COMPILED_VERSION"></a><span class="summary-name">LIBXSLT_COMPILED_VERSION</span> = <code title="(1, 1, 29)"><code class="variable-group">(</code>1<code class="variable-op">, </code>1<code class="variable-op">, </code>29<code class="variable-group">)</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="LIBXSLT_VERSION"></a><span class="summary-name">LIBXSLT_VERSION</span> = <code title="(1, 1, 28)"><code class="variable-group">(</code>1<code class="variable-op">, </code>1<code class="variable-op">, </code>28<code class="variable-group">)</code></code>
+        <a name="LIBXSLT_VERSION"></a><span class="summary-name">LIBXSLT_VERSION</span> = <code title="(1, 1, 29)"><code class="variable-group">(</code>1<code class="variable-op">, </code>1<code class="variable-op">, </code>29<code class="variable-group">)</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="LXML_VERSION"></a><span class="summary-name">LXML_VERSION</span> = <code title="(3, 7, 0, 0)"><code class="variable-group">(</code>3<code class="variable-op">, </code>7<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">)</code></code>
+        <a name="LXML_VERSION"></a><span class="summary-name">LXML_VERSION</span> = <code title="(4, 3, 2, 0)"><code class="variable-group">(</code>4<code class="variable-op">, </code>3<code class="variable-op">, </code>2<code class="variable-op">, </code>0<code class="variable-group">)</code></code>
     </td>
   </tr>
 <tr class="private">
@@ -1720,30 +1740,30 @@ standard Python logging package.</td>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="lxml.etree-module.html#__pyx_capi__" class="summary-name" onclick="show_private();">__pyx_capi__</a> = <code title="{'appendChild': &lt;capsule object &quot;void (struct LxmlElement *, struct Lx\
-mlElement *)&quot; at 0x7f51d71d9960&gt;,
+        <a href="lxml.etree-module.html#__pyx_capi__" class="summary-name" onclick="show_private();">__pyx_capi__</a> = <code title="{'adoptExternalDocument': &lt;capsule object &quot;struct LxmlElementTree *(xm\
+lDoc *, PyObject *, int)&quot; at 0x7f6cd29a50c0&gt;,
+ 'appendChild': &lt;capsule object &quot;void (struct LxmlElement *, struct Lx\
+mlElement *)&quot; at 0x7f6cd29a58a0&gt;,
  'appendChildToElement': &lt;capsule object &quot;int (struct LxmlElement *, s\
-truct LxmlElement *)&quot; at 0x7f51d71d9990&gt;,
+truct LxmlElement *)&quot; at 0x7f6cd29a58d0&gt;,
  'attributeValue': &lt;capsule object &quot;PyObject *(xmlNode *, xmlAttr *)&quot; \
-at 0x7f51d71d9630&gt;,
- 'attributeValueFromNsName': &lt;capsule object &quot;PyObject *(xmlNode *, co\
-nst xmlChar *, const xmlChar *)&quot; at 0x7f51d71d9660&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">appendChild</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;void (struct L<code class="variable-ellipsis">...</code></code>
+at 0x7f6cd29a5570&gt;,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">adoptExternalDocument</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;stru<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="lxml.etree-module.html#__test__" class="summary-name" onclick="show_private();">__test__</a> = <code title="{u'XML (line 3167)': u'''XML(text, parser=None, base_url=None)
+        <a href="lxml.etree-module.html#__test__" class="summary-name" onclick="show_private();">__test__</a> = <code title="{u'FunctionNamespace (line 207)': u'''FunctionNamespace(ns_uri)
 
-    Parses an XML document or fragment from a string constant.
-    Returns the root node (or the result returned by a parser target).
-    This function can be used to embed &quot;XML literals&quot; in Python code,
-    like in
+    Retrieve the function namespace object associated with the given
+    URI.
 
-       &gt;&gt;&gt; root = XML(&quot;&lt;root&gt;&lt;test/&gt;&lt;/root&gt;&quot;)
-..."><code class="variable-group">{</code><code class="variable-quote">u'</code><code class="variable-string">XML (line 3167)</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">u'</code><code class="variable-string">XML(text, parser=None, base_</code><code class="variable-ellipsis">...</code></code>
+    Creates a new one if it does not yet exist. A function namespace
+    can only be used to register extension functions.
+
+..."><code class="variable-group">{</code><code class="variable-quote">u'</code><code class="variable-string">FunctionNamespace (line 207)</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">u'</code><code class="variable-string">FunctionNamespa</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr class="private">
@@ -1843,6 +1863,17 @@ functions.</p>
 URI.</p>
 <p>Creates a new one if it does not yet exist. A function namespace
 can only be used to register extension functions.</p>
+<p>Usage:</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>ns_functions = FunctionNamespace(<span class="py-string">&quot;http://schema.org/Movie&quot;</span>)</pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>@ns_functions  <span class="py-comment"># uses function name</span>
+<span class="py-more">... </span><span class="py-keyword">def</span> <span class="py-defname">add2</span>(x):
+<span class="py-more">... </span>    return x + 2</pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>@ns_functions(<span class="py-string">&quot;add3&quot;</span>)  <span class="py-comment"># uses explicit name</span>
+<span class="py-more">... </span><span class="py-keyword">def</span> <span class="py-defname">add_three</span>(x):
+<span class="py-more">... </span>    return x + 3</pre>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1963,6 +1994,47 @@ and XPath variables provided as keyword arguments.</p>
 can be disabled with the 'regexp' boolean keyword (defaults to
 True).  Smart strings will be returned for string results unless
 you pass <tt class="rst-docutils literal">smart_strings=False</tt>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="adopt_external_document"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">adopt_external_document</span>(<span class="sig-arg">capsule</span>,
+        <span class="sig-arg">parser</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Unpack a libxml2 document pointer from a PyCapsule and wrap it in an
+lxml ElementTree object.</p>
+<p>This allows external libraries to build XML/HTML trees using libxml2
+and then pass them efficiently into lxml for further processing.</p>
+<p>If a <tt class="rst-docutils literal">parser</tt> is provided, it will be used for configuring the
+lxml document.  No parsing will be done.</p>
+<p>The capsule must have the name <tt class="rst-docutils literal">&quot;libxml2:xmlDoc&quot;</tt> and its pointer
+value must reference a correct libxml2 document of type <tt class="rst-docutils literal">xmlDoc*</tt>.
+The creator of the capsule must take care to correctly clean up the
+document using an appropriate capsule destructor.  By default, the
+libxml2 document will be copied to let lxml safely own the memory
+of the internal tree that it uses.</p>
+<p>If the capsule context is non-NULL, it must point to a C string that
+can be compared using <tt class="rst-docutils literal">strcmp()</tt>.  If the context string equals
+<tt class="rst-docutils literal">&quot;destructor:xmlFreeDoc&quot;</tt>, the libxml2 document will not be copied
+but the capsule invalidated instead by clearing its destructor and
+name.  That way, lxml takes ownership of the libxml2 document in memory
+without creating a copy first, and the capsule destructor will not be
+called.  The document will then eventually be cleaned up by lxml using
+the libxml2 API function <tt class="rst-docutils literal">xmlFreeDoc()</tt> once it is no longer used.</p>
+<p>If no copy is made, later modifications of the tree outside of lxml
+should not be attempted after transferring the ownership.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -2203,7 +2275,7 @@ strip_attributes(root_element,
 subtree.  This will remove the elements and their entire subtree,
 including all their attributes, text content and descendants.  It
 will also remove the tail text of the element unless you
-explicitly set the <tt class="rst-rst-docutils literal rst-docutils literal">with_tail</tt> keyword argument option to False.</p>
+explicitly set the <tt class="rst-docutils literal">with_tail</tt> keyword argument option to False.</p>
 <p>Tag names can contain wildcards as in <a href="lxml.etree._Element-class.html#iter" class="link">_Element.iter</a>.</p>
 <p>Note that this will not delete the element (or ElementTree root
 element) that you passed even if it matches.  It will only treat
@@ -2291,9 +2363,9 @@ behaviour can be configured with the keyword arguments 'encoding'
 encoding to a non UTF-8 compatible encoding will enable a
 declaration by default.</p>
 <p>You can also serialise to a Unicode string without declaration by
-passing the <tt class="rst-docutils literal">unicode</tt> function as encoding (or <tt class="rst-docutils literal">str</tt> in Py3),
-or the name 'unicode'.  This changes the return value from a byte
-string to an unencoded unicode string.</p>
+passing the name <tt class="rst-docutils literal">'unicode'</tt> as encoding (or the <tt class="rst-docutils literal">str</tt> function
+in Py3 or <tt class="rst-docutils literal">unicode</tt> in Py2).  This changes the return value from
+a byte string to an unencoded unicode string.</p>
 <p>The keyword argument 'pretty_print' (bool) enables formatted XML.</p>
 <p>The keyword argument 'method' selects the output method: 'xml',
 'html', plain 'text' (text content without tags) or 'c14n'.
@@ -2371,7 +2443,7 @@ on the tail text of children, which will always be serialised.</p>
   <dl class="fields">
   </dl>
 <div class="fields">      <p><strong>Deprecated:</strong>
-        use <tt class="rst-rst-docutils literal rst-docutils literal">tostring(el, <span class="pre">encoding='unicode')</span></tt> instead.
+        use <tt class="rst-docutils literal">tostring(el, <span class="pre">encoding='unicode')</span></tt> instead.
       </p>
 </div></td></tr></table>
 </div>
@@ -2431,14 +2503,14 @@ function will only set the global error log of the current thread.</p>
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">appendChild</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;void (struct LxmlElement *, struct Lx<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-mlElement *)&quot; at 0x7f51d71d9960&gt;<code class="variable-op">,</code>
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">adoptExternalDocument</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;struct LxmlElementTree *(xm<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+lDoc *, PyObject *, int)&quot; at 0x7f6cd29a50c0&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">appendChild</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;void (struct LxmlElement *, struct Lx<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+mlElement *)&quot; at 0x7f6cd29a58a0&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">appendChildToElement</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;int (struct LxmlElement *, s<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-truct LxmlElement *)&quot; at 0x7f51d71d9990&gt;<code class="variable-op">,</code>
+truct LxmlElement *)&quot; at 0x7f6cd29a58d0&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">attributeValue</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;PyObject *(xmlNode *, xmlAttr *)&quot; <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-at 0x7f51d71d9630&gt;<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">attributeValueFromNsName</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;capsule object &quot;PyObject *(xmlNode *, co<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-nst xmlChar *, const xmlChar *)&quot; at 0x7f51d71d9660&gt;<code class="variable-op">,</code>
+at 0x7f6cd29a5570&gt;<code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -2457,14 +2529,14 @@ nst xmlChar *, const xmlChar *)&quot; at 0x7f51d71d9660&gt;<code class="variable
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">u'</code><code class="variable-string">XML (line 3167)</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">u'''</code><code class="variable-string">XML(text, parser=None, base_url=None)</code>
+<code class="variable-group">{</code><code class="variable-quote">u'</code><code class="variable-string">FunctionNamespace (line 207)</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">u'''</code><code class="variable-string">FunctionNamespace(ns_uri)</code>
 <code class="variable-string"></code>
-<code class="variable-string">    Parses an XML document or fragment from a string constant.</code>
-<code class="variable-string">    Returns the root node (or the result returned by a parser target).</code>
-<code class="variable-string">    This function can be used to embed &quot;XML literals&quot; in Python code,</code>
-<code class="variable-string">    like in</code>
+<code class="variable-string">    Retrieve the function namespace object associated with the given</code>
+<code class="variable-string">    URI.</code>
 <code class="variable-string"></code>
-<code class="variable-string">       &gt;&gt;&gt; root = XML(&quot;&lt;root&gt;&lt;test/&gt;&lt;/root&gt;&quot;)</code>
+<code class="variable-string">    Creates a new one if it does not yet exist. A function namespace</code>
+<code class="variable-string">    can only be used to register extension functions.</code>
+<code class="variable-string"></code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -2504,7 +2576,7 @@ nst xmlChar *, const xmlChar *)&quot; at 0x7f51d71d9660&gt;<code class="variable
   <tr>
     <td align="left" class="footer">
     Generated by Epydoc 3.0.1
-    on Fri Dec 23 19:00:53 2016
+    on Thu Feb 28 20:36:14 2019
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
