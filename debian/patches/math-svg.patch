@@ -1,0 +1,69 @@
+From a105ab8dc262ec6735977c25c13f0bdfcdec72a7 Mon Sep 17 00:00:00 2001
+From: Stefan Behnel <stefan_ml@behnel.de>
+Date: Thu, 26 Nov 2020 09:20:52 +0100
+Subject: [PATCH] Prevent combinations of <math/svg> and <style> to sneak
+ JavaScript through the HTML cleaner.
+
+---
+ src/lxml/html/clean.py             | 22 ++++++++++++++--------
+ src/lxml/html/tests/test_clean.py  | 10 ++++++++++
+ src/lxml/html/tests/test_clean.txt | 18 +++++++++++++++---
+ 4 files changed, 50 insertions(+), 11 deletions(-)
+
+diff --git a/src/lxml/html/clean.py b/src/lxml/html/clean.py
+index 7b51981d7..0fa1544c4 100644
+--- a/src/lxml/html/clean.py
++++ b/src/lxml/html/clean.py
+@@ -61,12 +61,15 @@
+ 
+ # This is an IE-specific construct you can have in a stylesheet to
+ # run some Javascript:
+-_css_javascript_re = re.compile(
+-    r'expression\s*\(.*?\)', re.S|re.I)
++_replace_css_javascript = re.compile(
++    r'expression\s*\(.*?\)', re.S|re.I).sub
+ 
+ # Do I have to worry about @\nimport?
+-_css_import_re = re.compile(
+-    r'@\s*import', re.I)
++_replace_css_import = re.compile(
++    r'@\s*import', re.I).sub
++
++_looks_like_tag_content = re.compile(
++    r'</?[a-zA-Z]+|\son[a-zA-Z]+\s*=', re.ASCII).search
+ 
+ # All kinds of schemes besides just javascript: that can cause
+ # execution:
+@@ -304,8 +307,8 @@ def __call__(self, doc):
+             if not self.inline_style:
+                 for el in _find_styled_elements(doc):
+                     old = el.get('style')
+-                    new = _css_javascript_re.sub('', old)
+-                    new = _css_import_re.sub('', new)
++                    new = _replace_css_javascript('', old)
++                    new = _replace_css_import('', new)
+                     if self._has_sneaky_javascript(new):
+                         # Something tricky is going on...
+                         del el.attrib['style']
+@@ -317,9 +320,9 @@ def __call__(self, doc):
+                         el.drop_tree()
+                         continue
+                     old = el.text or ''
+-                    new = _css_javascript_re.sub('', old)
++                    new = _replace_css_javascript('', old)
+                     # The imported CSS can do anything; we just can't allow:
+-                    new = _css_import_re.sub('', old)
++                    new = _replace_css_import('', new)
+                     if self._has_sneaky_javascript(new):
+                         # Something tricky is going on...
+                         el.text = '/* deleted */'
+@@ -539,6 +542,9 @@ def _has_sneaky_javascript(self, style):
+         if '</noscript' in style:
+             # e.g. '<noscript><style><a title="</noscript><img src=x onerror=alert(1)>">'
+             return True
++        if _looks_like_tag_content(style):
++            # e.g. '<math><style><img src=x onerror=alert(1)></style></math>'
++            return True
+         return False
+ 
+     def clean_html(self, html):

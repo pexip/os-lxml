@@ -25,19 +25,19 @@ build: build-stamp build3-stamp
 build-stamp: $(PYVERS:%=build-python%) $(PYVERS:%=dbg-build-python%)
 	touch $@
 build-python%: prebuild
-	python$* setup.py build
+	python$* setup.py build --with-cython
 	touch $@
 dbg-build-python%: prebuild
-	python$*-dbg setup.py build
+	python$*-dbg setup.py build --with-cython
 	touch $@
 
 build3-stamp: $(PY3VERS:%=build3-python%) $(PY3VERS:%=dbg-build3-python%)
 	touch $@
 build3-python%: prebuild
-	python$* setup.py build
+	python$* setup.py build --with-cython
 	touch $@
 dbg-build3-python%: prebuild
-	python$*-dbg setup.py build
+	python$*-dbg setup.py build --with-cython
 	touch $@
 
 clean:
