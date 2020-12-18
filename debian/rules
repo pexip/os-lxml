@@ -22,7 +22,7 @@ prebuild-stamp: src/lxml/etree.pyx src/lxml/objectify.pyx
 build-arch: build
 build-indep: build
 build: build-stamp build3-stamp
-build-stamp: $(PYVERS:%=build-python%) $(PYVERS:%=dbg-build-python%)
+build-stamp: $(PYVERS:%=build-python%) $(PYVERS:%=dbg-build-python%) $(PYVERS:%=check-python%)
 	touch $@
 build-python%: prebuild
 	python$* setup.py build --with-cython
@@ -31,7 +31,7 @@ dbg-build-python%: prebuild
 	python$*-dbg setup.py build --with-cython
 	touch $@
 
-build3-stamp: $(PY3VERS:%=build3-python%) $(PY3VERS:%=dbg-build3-python%)
+build3-stamp: $(PY3VERS:%=build3-python%) $(PY3VERS:%=dbg-build3-python%) $(PY3VERS:%=check-python%)
 	touch $@
 build3-python%: prebuild
 	python$* setup.py build --with-cython
@@ -40,10 +40,17 @@ dbg-build3-python%: prebuild
 	python$*-dbg setup.py build --with-cython
 	touch $@
 
+check-python%:
+	python$* setup.py build_ext -i
+	-python$* test.py -vv
+	#python$*-dbg setup.py build_ext -i
+	#-python$*-dbg test.py -vv
+	touch $@
+
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build*-stamp build*-python* dbg-build*-python* prebuild-stamp
+	rm -f build*-stamp build*-python* dbg-build*-python* prebuild-stamp check-python*
 	rm -rf build dist __pycache__
 #	rm -f src/lxml/lxml.etree_api.h src/lxml/lxml.etree.c \
 #	      src/lxml/lxml.etree.h src/lxml/lxml.objectify.c
