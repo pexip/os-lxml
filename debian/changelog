@@ -1,3 +1,18 @@
+lxml (4.3.2-1+deb10u2pexip1) pexip; urgency=medium
+
+  * New upstream release
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Tue, 22 Dec 2020 11:03:00 +0000
+
+lxml (4.3.2-1+deb10u2) buster-security; urgency=medium
+
+  * Enable the test suite (non-fatal).
+  * math-svg.patch: update expected results for the test suite.
+  * Fix regression in Python 2 in the last part of CVE-2020-27783.
+    Closes: #977387.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 18 Dec 2020 10:05:56 +0100
+
 lxml (4.3.2-1+deb10u1pexip1) pexip; urgency=medium
 
   * New upstream release

@@ -4,17 +4,19 @@ Date: Thu, 26 Nov 2020 09:20:52 +0100
 Subject: [PATCH] Prevent combinations of <math/svg> and <style> to sneak
  JavaScript through the HTML cleaner.
 
+* A vulnerability (CVE-2020-27783) was discovered in the HTML Cleaner by Yaniv Nizry,
+  which allowed JavaScript to pass through.  The cleaner now removes more sneaky
+  "style" content.
 ---
+ CHANGES.txt                        | 11 +++++++++++
  src/lxml/html/clean.py             | 22 ++++++++++++++--------
  src/lxml/html/tests/test_clean.py  | 10 ++++++++++
  src/lxml/html/tests/test_clean.txt | 18 +++++++++++++++---
  4 files changed, 50 insertions(+), 11 deletions(-)
 
-diff --git a/src/lxml/html/clean.py b/src/lxml/html/clean.py
-index 7b51981d7..0fa1544c4 100644
 --- a/src/lxml/html/clean.py
 +++ b/src/lxml/html/clean.py
-@@ -61,12 +61,15 @@
+@@ -61,12 +61,15 @@ __all__ = ['clean_html', 'clean', 'Clean
  
  # This is an IE-specific construct you can have in a stylesheet to
  # run some Javascript:
@@ -34,7 +36,7 @@ index 7b51981d7..0fa1544c4 100644
  
  # All kinds of schemes besides just javascript: that can cause
  # execution:
-@@ -304,8 +307,8 @@ def __call__(self, doc):
+@@ -292,8 +295,8 @@ class Cleaner(object):
              if not self.inline_style:
                  for el in _find_styled_elements(doc):
                      old = el.get('style')
@@ -45,7 +47,7 @@ index 7b51981d7..0fa1544c4 100644
                      if self._has_sneaky_javascript(new):
                          # Something tricky is going on...
                          del el.attrib['style']
-@@ -317,9 +320,9 @@ def __call__(self, doc):
+@@ -305,9 +308,9 @@ class Cleaner(object):
                          el.drop_tree()
                          continue
                      old = el.text or ''
@@ -57,7 +59,7 @@ index 7b51981d7..0fa1544c4 100644
                      if self._has_sneaky_javascript(new):
                          # Something tricky is going on...
                          el.text = '/* deleted */'
-@@ -539,6 +542,9 @@ def _has_sneaky_javascript(self, style):
+@@ -512,6 +515,9 @@ class Cleaner(object):
          if '</noscript' in style:
              # e.g. '<noscript><style><a title="</noscript><img src=x onerror=alert(1)>">'
              return True
@@ -67,3 +69,50 @@ index 7b51981d7..0fa1544c4 100644
          return False
  
      def clean_html(self, html):
+--- a/src/lxml/html/tests/test_clean.py
++++ b/src/lxml/html/tests/test_clean.py
+@@ -78,6 +78,16 @@ class CleanerTest(unittest.TestCase):
+             b'<noscript><style>/* deleted */</style></noscript>',
+             lxml.html.tostring(clean_html(s)))
+ 
++    def test_sneaky_js_in_math_style(self):
++        # This gets parsed as <math> -> <style>"..."</style>
++        # thus passing any tag/script/whatever content through into the output.
++        html = '<math><style><img src=x onerror=alert(1)></style></math>'
++        s = lxml.html.fragment_fromstring(html)
++
++        self.assertEqual(
++            b'<math><style>/* deleted */</style></math>',
++            lxml.html.tostring(clean_html(s)))
++
+ 
+ def test_suite():
+     suite = unittest.TestSuite()
+--- a/src/lxml/html/tests/test_clean.txt
++++ b/src/lxml/html/tests/test_clean.txt
+@@ -104,7 +104,11 @@
+ >>> print(Cleaner(page_structure=False, safe_attrs_only=False).clean_html(doc))
+ <html>
+   <head>
+-    <style>/* deleted */</style>
++    <style>
++      body {background-image: url()};
++      div {background-image: url()};
++      div {color: };
++    </style>
+   </head>
+   <body>
+     <a href="">a link</a>
+@@ -168,7 +172,11 @@
+     <link rel="alternate" type="text/rss" src="evil-rss">
+     <link rel="alternate" type="text/rss" href="http://example.com">
+     <link rel="stylesheet" type="text/rss" href="http://example.com">
+-    <style>/* deleted */</style>
++    <style>
++      body {background-image: url()};
++      div {background-image: url()};
++      div {color: };
++    </style>
+   </head>
+   <body>
+     <a href="">a link</a>
