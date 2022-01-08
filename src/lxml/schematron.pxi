@@ -32,7 +32,7 @@ cdef class Schematron(_Validator):
 
       >>> schematron = Schematron(XML('''
       ... <schema xmlns="http://www.ascc.net/xml/schematron" >
-      ...   <pattern name="id is the only permited attribute name">
+      ...   <pattern name="id is the only permitted attribute name">
       ...     <rule context="*">
       ...       <report test="@*[not(name()='id')]">Attribute
       ...         <name path="@*[not(name()='id')]"/> is forbidden<name/>
@@ -95,7 +95,9 @@ cdef class Schematron(_Validator):
                 filename = file
             filename = _encodeFilename(filename)
             with self._error_log:
+                orig_loader = _register_document_loader()
                 parser_ctxt = schematron.xmlSchematronNewParserCtxt(_cstr(filename))
+                _reset_document_loader(orig_loader)
         else:
             raise SchematronParseError, u"No tree or file given"
 
@@ -107,7 +109,9 @@ cdef class Schematron(_Validator):
 
         try:
             with self._error_log:
+                orig_loader = _register_document_loader()
                 self._c_schema = schematron.xmlSchematronParse(parser_ctxt)
+                _reset_document_loader(orig_loader)
         finally:
             schematron.xmlSchematronFreeParserCtxt(parser_ctxt)
 

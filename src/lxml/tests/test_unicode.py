@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import unittest
 import sys
-import os.path
 
-this_dir = os.path.dirname(__file__)
-if this_dir not in sys.path:
-    sys.path.insert(0, this_dir)  # needed for Py3
-
-from common_imports import StringIO, etree, SillyFileLike, HelperTestCase
-from common_imports import _str, _bytes, _chr
+from .common_imports import StringIO, etree, HelperTestCase, _str, _bytes, _chr
 
 try:
     unicode
@@ -155,7 +151,7 @@ class UnicodeTestCase(HelperTestCase):
         self.assertEqual(uni, el.text)
 
 ##     def test_parse_fileobject_unicode(self):
-##         # parse unicode from unamed file object (not support by ElementTree)
+##         # parse unicode from unnamed file object (not supported by ElementTree)
 ##         f = SillyFileLike(uxml)
 ##         root = etree.parse(f).getroot()
 ##         self.assertEqual(unicode(etree.tostring(root, 'UTF-8'), 'UTF-8'),

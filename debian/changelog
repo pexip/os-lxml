@@ -1,4 +1,4 @@
-lxml (4.3.2-1+deb10u4) buster-security; urgency=high
+lxml (4.6.3+dfsg-0.1+deb11u1) bullseye-security; urgency=high
 
   * Non-maintainer upload by the Security Team.
   * Cleaner: Prevent "@import" from re-occurring in the CSS after
@@ -6,33 +6,87 @@ lxml (4.3.2-1+deb10u4) buster-security; urgency=high
   * Cleaner: Remove SVG image data URLs since they can embed script content
     (CVE-2021-43818) (Closes: #1001885)
 
- -- Salvatore Bonaccorso <carnil@debian.org>  Wed, 12 Jan 2022 17:58:11 +0100
+ -- Salvatore Bonaccorso <carnil@debian.org>  Sat, 08 Jan 2022 15:06:02 +0100
 
-lxml (4.3.2-1+deb10u3) buster-security; urgency=medium
+lxml (4.6.3+dfsg-0.1) unstable; urgency=medium
 
-  * Non-maintainer upload by the LTS Team.
-  * CVE-2021-28957 (Closes: #985643)
-    Due to missing input sanitization, XSS is possible for the HTML5
-    formatcion attribute.
+  * Non-maintainer upload
+  * Repack upstream to drop non-free and unused file (Closes: #988717)
+  * Build and ship documentation (Closes: #799334)
 
- -- Thorsten Alteholz <debian@alteholz.de>  Tue, 23 Mar 2021 19:03:02 +0100
+ -- Paul Gevers <elbrus@debian.org>  Sat, 26 Jun 2021 19:40:37 +0200
 
-lxml (4.3.2-1+deb10u2) buster-security; urgency=medium
+lxml (4.6.3-1) unstable; urgency=high
 
-  * Enable the test suite (non-fatal).
-  * math-svg.patch: update expected results for the test suite.
-  * Fix regression in Python 2 in the last part of CVE-2020-27783.
-    Closes: #977387.
+  * New upstream version.
+    - A vulnerability (CVE-2021-28957) was discovered in the HTML Cleaner,
+      which allowed JavaScript to pass through. The cleaner now removes the
+      HTML5 formaction attribute. 
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 18 Dec 2020 10:05:56 +0100
+ -- Matthias Klose <doko@debian.org>  Mon, 22 Mar 2021 14:31:55 +0100
 
-lxml (4.3.2-1+deb10u1) buster-security; urgency=medium
+lxml (4.6.2-1) unstable; urgency=medium
 
-  * CVE-2020-27783
-  * Backport a105ab8dc262ec6735977c25c13f0bdfcdec72a7 for similar issue
-  * Pass --with-cython to make sure the C parts get actually rebuilt
+  * New upstream version.
+  * Bump standards version.
 
- -- Moritz Mühlenhoff <jmm@debian.org>  Thu, 26 Nov 2020 19:32:59 +0100
+ -- Matthias Klose <doko@debian.org>  Mon, 07 Dec 2020 18:22:48 +0100
+
+lxml (4.6.1-1) unstable; urgency=medium
+
+  * New upstream version.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 22 Oct 2020 18:02:16 +0200
+
+lxml (4.5.2-1) unstable; urgency=medium
+
+  * New upstream version.
+  * Stop building python2 packages.
+  * Bump debhelper version.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 17 Jul 2020 11:05:52 +0200
+
+lxml (4.5.0-1) unstable; urgency=medium
+
+  * New upstream version.
+  * Bump standards version.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 18 Feb 2020 16:57:26 +0100
+
+lxml (4.4.2-1) unstable; urgency=medium
+
+  * New upstream version.
+  * python-lxml-dbg: Depend on python2-dbg instead of python-dbg.
+  * Bump standards version.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 09 Jan 2020 13:55:11 +0100
+
+lxml (4.4.1-1) unstable; urgency=medium
+
+  * New upstream version.
+  * Bump standards version.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 15 Aug 2019 19:27:20 +0200
+
+lxml (4.3.4-1) unstable; urgency=medium
+
+  * New upstream version.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 24 Jun 2019 13:18:04 +0200
+
+lxml (4.3.3-2) unstable; urgency=medium
+
+  * python-lxml-doc: Recommend python3-lxml instead of python-lxml.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 22 May 2019 14:42:58 +0200
+
+lxml (4.3.3-1) unstable; urgency=medium
+
+  * New upstream version.
+    - Fix leak of output buffer and unclosed files in
+      ``_XSLTResultTree.write_output()``.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 10 Apr 2019 10:49:36 +0200
 
 lxml (4.3.2-1) unstable; urgency=medium
 

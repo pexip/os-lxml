@@ -4,6 +4,8 @@
 Test cases related to XSLT processing
 """
 
+from __future__ import absolute_import
+
 import io
 import sys
 import copy
@@ -12,11 +14,7 @@ import os.path
 import unittest
 import contextlib
 from textwrap import dedent
-from tempfile import NamedTemporaryFile
-
-this_dir = os.path.dirname(__file__)
-if this_dir not in sys.path:
-    sys.path.insert(0, this_dir) # needed for Py3
+from tempfile import NamedTemporaryFile, mkdtemp
 
 is_python3 = sys.version_info[0] >= 3
 
@@ -30,8 +28,10 @@ try:
 except NameError: # Python 3
     basestring = str
 
-from .common_imports import etree, BytesIO, HelperTestCase, fileInTestDir
-from .common_imports import doctest, _bytes, _str, make_doctest, skipif
+from .common_imports import (
+    etree, BytesIO, HelperTestCase, fileInTestDir, _bytes, make_doctest, skipif
+)
+
 
 class ETreeXSLTTestCase(HelperTestCase):
     """XSLT tests etree"""
@@ -109,7 +109,7 @@ class ETreeXSLTTestCase(HelperTestCase):
     @contextlib.contextmanager
     def _xslt_setup(
             self, encoding='UTF-16', expected_encoding=None,
-            expected="""<?xml version="1.0" encoding="%(ENCODING)s"?><foo>\\uF8D2</foo>"""):
+            expected='<?xml version="1.0" encoding="%(ENCODING)s"?><foo>\\uF8D2</foo>'):
         tree = self.parse(_bytes('<a><b>\\uF8D2</b><c>\\uF8D2</c></a>'
                                  ).decode("unicode_escape"))
         style = self.parse('''\
@@ -191,10 +191,49 @@ class ETreeXSLTTestCase(HelperTestCase):
                     res[0].write_output(f.name, compression=9)
                 finally:
                     f.close()
-                with contextlib.closing(gzip.GzipFile(f.name)) as f:
+                with gzip.GzipFile(f.name) as f:
                     res[0] = f.read().decode("UTF-16")
             finally:
                 os.unlink(f.name)
+
+    def test_xslt_write_output_file_path_urlescaped(self):
+        # libxml2 should not unescape file paths.
+        with self._xslt_setup() as res:
+            f = NamedTemporaryFile(prefix='tmp%2e', suffix='.xml.gz', delete=False)
+            try:
+                try:
+                    res[0].write_output(f.name, compression=3)
+                finally:
+                    f.close()
+                with gzip.GzipFile(f.name) as f:
+                    res[0] = f.read().decode("UTF-16")
+            finally:
+                os.unlink(f.name)
+
+    def test_xslt_write_output_file_path_urlescaped_plus(self):
+        with self._xslt_setup() as res:
+            f = NamedTemporaryFile(prefix='p+%2e', suffix='.xml.gz', delete=False)
+            try:
+                try:
+                    res[0].write_output(f.name, compression=1)
+                finally:
+                    f.close()
+                with gzip.GzipFile(f.name) as f:
+                    res[0] = f.read().decode("UTF-16")
+            finally:
+                os.unlink(f.name)
+
+    def test_xslt_write_output_file_oserror(self):
+        with self._xslt_setup(expected='') as res:
+            tempdir = mkdtemp()
+            try:
+                res[0].write_output(os.path.join(tempdir, 'missing_subdir', 'out.xml'))
+            except IOError:
+                res[0] = ''
+            else:
+                self.fail("IOError not raised")
+            finally:
+                os.rmdir(tempdir)
 
     def test_xslt_unicode(self):
         expected = '''
@@ -1935,6 +1974,42 @@ class ETreeXSLTExtElementTestCase(HelperTestCase):
         self.assertEqual(
             b'<p style="color:red">This is *-arbitrary-* text in a paragraph</p>\n',
             etree.tostring(result))
+
+    def test_extensions_nsmap(self):
+        tree = self.parse("""\
+<root>
+  <inner xmlns:sha256="http://www.w3.org/2001/04/xmlenc#sha256">
+    <data>test</data>
+  </inner>
+</root>
+""")
+        style = self.parse("""\
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:my="extns" extension-element-prefixes="my" version="1.0">
+  <xsl:template match="node()|@*">
+    <xsl:copy>
+      <xsl:apply-templates select="node()|@*"/>
+    </xsl:copy>
+  </xsl:template>
+
+  <xsl:template match="data">
+    <my:show-nsmap/>
+  </xsl:template>
+</xsl:stylesheet>
+""")
+        class MyExt(etree.XSLTExtension):
+            def execute(self, context, self_node, input_node, output_parent):
+                output_parent.text = str(input_node.nsmap)
+
+        extensions = {('extns', 'show-nsmap'): MyExt()}
+
+        result = tree.xslt(style, extensions=extensions)
+        self.assertEqual(etree.tostring(result, pretty_print=True), b"""\
+<root>
+  <inner xmlns:sha256="http://www.w3.org/2001/04/xmlenc#sha256">{'sha256': 'http://www.w3.org/2001/04/xmlenc#sha256'}
+  </inner>
+</root>
+""")
+
 
 
 class Py3XSLTTestCase(HelperTestCase):

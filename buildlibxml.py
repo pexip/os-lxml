@@ -344,36 +344,15 @@ def cmmi(configure_cmd, build_dir, multicore=None, **call_setup):
 
 def configure_darwin_env(env_setup):
     import platform
-    # check target architectures on MacOS-X (ppc, i386, x86_64)
+    # configure target architectures on MacOS-X (x86_64 only, by default)
     major_version, minor_version = tuple(map(int, platform.mac_ver()[0].split('.')[:2]))
     if major_version > 7:
-        # Check to see if ppc is supported (XCode4 drops ppc support)
-        include_ppc = True
-        if os.path.exists('/usr/bin/xcodebuild'):
-            pipe = subprocess.Popen(['/usr/bin/xcodebuild', '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out, _ = pipe.communicate()
-            xcode_version = (out.decode('utf8').splitlines() or [''])[0]
-            # Also parse only first digit, because 3.2.1 can't be parsed nicely
-            if (xcode_version.startswith('Xcode') and
-                version.StrictVersion(xcode_version.split()[1]) >= version.StrictVersion('4.0')):
-                include_ppc = False
-        arch_string = ""
-        if include_ppc:
-            arch_string = "-arch ppc "
-        if minor_version < 6:
-            env_default = {
-                'CFLAGS': arch_string + "-arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -O2",
-                'LDFLAGS': arch_string + "-arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk",
-                'MACOSX_DEPLOYMENT_TARGET': "10.3"
-            }
-        else:
-            env_default = {
-                'CFLAGS': arch_string + "-arch i386 -arch x86_64 -O2",
-                'LDFLAGS': arch_string + "-arch i386 -arch x86_64",
-                'MACOSX_DEPLOYMENT_TARGET': "10.6"
-            }
-        env = os.environ.copy()
-        env_default.update(env)
+        env_default = {
+            'CFLAGS': "-arch x86_64 -O2",
+            'LDFLAGS': "-arch x86_64",
+            'MACOSX_DEPLOYMENT_TARGET': "10.6"
+        }
+        env_default.update(os.environ)
         env_setup['env'] = env_default
 
 
@@ -392,7 +371,28 @@ def build_libxml2xslt(download_dir, build_dir,
     libxml2_dir  = unpack_tarball(download_libxml2(download_dir, libxml2_version), build_dir)
     libxslt_dir  = unpack_tarball(download_libxslt(download_dir, libxslt_version), build_dir)
     prefix = os.path.join(os.path.abspath(build_dir), 'libxml2')
+    lib_dir = os.path.join(prefix, 'lib')
     safe_mkdir(prefix)
+
+    lib_names = ['libxml2', 'libexslt', 'libxslt', 'iconv', 'libz']
+    existing_libs = {
+        lib: os.path.join(lib_dir, filename)
+        for lib in lib_names
+        for filename in os.listdir(lib_dir)
+        if lib in filename and filename.endswith('.a')
+    } if os.path.isdir(lib_dir) else {}
+
+    def has_current_lib(name, build_dir, _build_all_following=[False]):
+        if _build_all_following[0]:
+            return False  # a dependency was rebuilt => rebuilt this lib as well
+        lib_file = existing_libs.get(name)
+        found = lib_file and os.path.getmtime(lib_file) > os.path.getmtime(build_dir)
+        if found:
+            print("Found pre-built '%s'" % name)
+        else:
+            # also rebuild all following libs (which may depend on this one)
+            _build_all_following[0] = True
+        return found
 
     call_setup = {}
     if sys.platform == 'darwin':
@@ -409,10 +409,12 @@ def build_libxml2xslt(download_dir, build_dir,
         './configure',
         '--prefix=%s' % prefix,
     ]
-    cmmi(zlib_configure_cmd, zlib_dir, multicore, **call_setup)
+    if not has_current_lib("libz", zlib_dir):
+        cmmi(zlib_configure_cmd, zlib_dir, multicore, **call_setup)
 
     # build libiconv
-    cmmi(configure_cmd, libiconv_dir, multicore, **call_setup)
+    if not has_current_lib("iconv", libiconv_dir):
+        cmmi(configure_cmd, libiconv_dir, multicore, **call_setup)
 
     # build libxml2
     libxml2_configure_cmd = configure_cmd + [
@@ -432,7 +434,8 @@ def build_libxml2xslt(download_dir, build_dir,
             libxml2_configure_cmd.append('--enable-rebuild-docs=no')
     except Exception:
         pass # this isn't required, so ignore any errors
-    cmmi(libxml2_configure_cmd, libxml2_dir, multicore, **call_setup)
+    if not has_current_lib("libxml2", libxml2_dir):
+        cmmi(libxml2_configure_cmd, libxml2_dir, multicore, **call_setup)
 
     # build libxslt
     libxslt_configure_cmd = configure_cmd + [
@@ -440,13 +443,13 @@ def build_libxml2xslt(download_dir, build_dir,
         '--with-libxml-prefix=%s' % prefix,
         '--without-crypto',
     ]
-    cmmi(libxslt_configure_cmd, libxslt_dir, multicore, **call_setup)
+    if not (has_current_lib("libxslt", libxslt_dir) and has_current_lib("libexslt", libxslt_dir)):
+        cmmi(libxslt_configure_cmd, libxslt_dir, multicore, **call_setup)
 
     # collect build setup for lxml
     xslt_config = os.path.join(prefix, 'bin', 'xslt-config')
     xml2_config = os.path.join(prefix, 'bin', 'xml2-config')
 
-    lib_dir = os.path.join(prefix, 'lib')
     static_include_dirs.extend([
             os.path.join(prefix, 'include'),
             os.path.join(prefix, 'include', 'libxml2'),
@@ -456,7 +459,7 @@ def build_libxml2xslt(download_dir, build_dir,
 
     listdir = os.listdir(lib_dir)
     static_binaries += [os.path.join(lib_dir, filename)
-        for lib in ['libxml2', 'libexslt', 'libxslt', 'iconv', 'libz']
+        for lib in lib_names
         for filename in listdir
         if lib in filename and filename.endswith('.a')]
 

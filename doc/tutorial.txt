@@ -638,6 +638,42 @@ ASCII:
 
 Note that pretty printing appends a newline at the end.
 
+For more fine-grained control over the pretty-printing, you can add
+whitespace indentation to the tree before serialising it, using the
+``indent()`` function (added in lxml 4.5):
+
+.. sourcecode:: pycon
+
+   >>> root = etree.XML('<root><a><b/>\n</a></root>')
+   >>> print(etree.tostring(root))
+   <root><a><b/>
+   </a></root>
+
+   >>> etree.indent(root)
+   >>> print(etree.tostring(root))
+   <root>
+     <a>
+       <b/>
+     </a>
+   </root>
+
+   >>> root.text
+   '\n  '
+   >>> root[0].text
+   '\n    '
+
+   >>> etree.indent(root, space="    ")
+   >>> print(etree.tostring(root))
+   <root>
+       <a>
+           <b/>
+       </a>
+   </root>
+
+   >>> etree.indent(root, space="\t")
+   >>> etree.tostring(root)
+   '<root>\n\t<a>\n\t\t<b/>\n\t</a>\n</root>'
+
 In lxml 2.0 and later (as well as ElementTree 1.3), the serialisation
 functions can do more than XML serialisation.  You can serialise to
 HTML or extract the text content by passing the ``method`` keyword:
@@ -1004,7 +1040,10 @@ that the Element has been parsed completely.
 It also allows you to ``.clear()`` or modify the content of an Element to
 save memory. So if you parse a large tree and you want to keep memory
 usage small, you should clean up parts of the tree that you no longer
-need:
+need. The ``keep_tail=True`` argument to ``.clear()`` makes sure that
+(tail) text content that follows the current element will not be touched.
+It is highly discouraged to modify any content that the parser may not
+have completely read through yet.
 
 .. sourcecode:: pycon
 
@@ -1016,7 +1055,7 @@ need:
     ...         print(element.text)
     ...     elif element.tag == 'a':
     ...         print("** cleaning up the subtree")
-    ...         element.clear()
+    ...         element.clear(keep_tail=True)
     data
     ** cleaning up the subtree
     None
@@ -1041,7 +1080,7 @@ for data extraction.
 
     >>> for _, element in etree.iterparse(xml_file, tag='a'):
     ...     print('%s -- %s' % (element.findtext('b'), element[1].text))
-    ...     element.clear()
+    ...     element.clear(keep_tail=True)
     ABC -- abc
     MORE DATA -- more data
     XYZ -- xyz
