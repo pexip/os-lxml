@@ -1,3 +1,7 @@
 CVE-2020-27783.patch
 math-svg.patch
 fix-lack-of-re-ASCII-in-python2.patch
+
+CVE-2021-28957.patch
+Cleaner-Prevent-import-from-re-occurring-in-the-CSS-.patch
+Cleaner-Remove-SVG-image-data-URLs-since-they-can-em.patch
