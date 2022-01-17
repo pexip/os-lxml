@@ -1,3 +1,19 @@
+lxml (4.3.2-1+deb10u4pexip1) pexip; urgency=medium
+
+  * New upstream release
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Mon, 17 Jan 2022 11:03:43 +0000
+
+lxml (4.3.2-1+deb10u4) buster-security; urgency=high
+
+  * Non-maintainer upload by the Security Team.
+  * Cleaner: Prevent "@import" from re-occurring in the CSS after
+    replacements, e.g. "@@importimport" (CVE-2021-43818) (Closes: #1001885)
+  * Cleaner: Remove SVG image data URLs since they can embed script content
+    (CVE-2021-43818) (Closes: #1001885)
+
+ -- Salvatore Bonaccorso <carnil@debian.org>  Wed, 12 Jan 2022 17:58:11 +0100
+
 lxml (4.3.2-1+deb10u3pexip1) pexip; urgency=medium
 
   * New upstream version
