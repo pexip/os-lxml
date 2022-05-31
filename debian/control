@@ -16,7 +16,7 @@ Build-Depends: debhelper (>= 9),
 X-Python-Version: all
 Standards-Version: 4.3.0
 Homepage: http://lxml.de/
-XS-Pexip-Upstream: http://ftp.debian.org/debian/ buster
+XS-Pexip-Upstream: http://deb.debian.org/debian/ bullseye
 
 Package: python-lxml
 Architecture: any
