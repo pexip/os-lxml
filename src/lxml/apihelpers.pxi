@@ -236,6 +236,24 @@ cdef int _setNodeNamespaces(xmlNode* c_node, _Document doc,
     return 0
 
 
+cdef dict _build_nsmap(xmlNode* c_node):
+    """
+    Namespace prefix->URI mapping known in the context of this Element.
+    This includes all namespace declarations of the parents.
+    """
+    cdef xmlNs* c_ns
+    nsmap = {}
+    while c_node is not NULL and c_node.type == tree.XML_ELEMENT_NODE:
+        c_ns = c_node.nsDef
+        while c_ns is not NULL:
+            prefix = funicodeOrNone(c_ns.prefix)
+            if prefix not in nsmap:
+                nsmap[prefix] = funicodeOrNone(c_ns.href)
+            c_ns = c_ns.next
+        c_node = c_node.parent
+    return nsmap
+
+
 cdef _iter_nsmap(nsmap):
     """
     Create a reproducibly ordered iterable from an nsmap mapping.
@@ -244,6 +262,10 @@ cdef _iter_nsmap(nsmap):
     The difference to _iter_attrib() is that None doesn't sort with strings
     in Py3.x.
     """
+    if python.PY_VERSION_HEX >= 0x03060000:
+        # dicts are insertion-ordered in Py3.6+ => keep the user provided order.
+        if isinstance(nsmap, dict):
+            return nsmap.items()
     if len(nsmap) <= 1:
         return nsmap.items()
     # nsmap will usually be a plain unordered dict => avoid type checking overhead
@@ -270,14 +292,12 @@ cdef _iter_attrib(attrib):
     Create a reproducibly ordered iterable from an attrib mapping.
     Tries to preserve an existing order and sorts if it assumes no order.
     """
-    # attrib will usually be a plain unordered dict
-    if type(attrib) is dict:
-        return sorted(attrib.items())
-    elif isinstance(attrib, (_Attrib, OrderedDict)):
+    # dicts are insertion-ordered in Py3.6+ => keep the user provided order.
+    if python.PY_VERSION_HEX >= 0x03060000 and isinstance(attrib, dict) or (
+            isinstance(attrib, (_Attrib, OrderedDict))):
         return attrib.items()
-    else:
-        # assume it's an unordered mapping of some kind
-        return sorted(attrib.items())
+    # assume it's an unordered mapping of some kind
+    return sorted(attrib.items())
 
 
 cdef _initNodeAttributes(xmlNode* c_node, _Document doc, attrib, dict extra):
@@ -292,8 +312,12 @@ cdef _initNodeAttributes(xmlNode* c_node, _Document doc, attrib, dict extra):
     is_html = doc._parser._for_html
     seen = set()
     if extra:
-        for name, value in sorted(extra.items()):
-            _addAttributeToNode(c_node, doc, is_html, name, value, seen)
+        if python.PY_VERSION_HEX >= 0x03060000:
+            for name, value in extra.items():
+                _addAttributeToNode(c_node, doc, is_html, name, value, seen)
+        else:
+            for name, value in sorted(extra.items()):
+                _addAttributeToNode(c_node, doc, is_html, name, value, seen)
     if attrib:
         for name, value in _iter_attrib(attrib):
             _addAttributeToNode(c_node, doc, is_html, name, value, seen)
@@ -641,6 +665,19 @@ cdef inline bint _hasText(xmlNode* c_node):
 
 cdef inline bint _hasTail(xmlNode* c_node):
     return c_node is not NULL and _textNodeOrSkip(c_node.next) is not NULL
+
+cdef inline bint _hasNonWhitespaceTail(xmlNode* c_node):
+    return _hasNonWhitespaceText(c_node, tail=True)
+
+cdef bint _hasNonWhitespaceText(xmlNode* c_node, bint tail=False):
+    c_text_node = c_node and _textNodeOrSkip(c_node.next if tail else c_node.children)
+    if c_text_node is NULL:
+        return False
+    while c_text_node is not NULL:
+        if c_text_node.content[0] != c'\0' and not _collectText(c_text_node).isspace():
+            return True
+        c_text_node = _textNodeOrSkip(c_text_node.next)
+    return False
 
 cdef _collectText(xmlNode* c_node):
     u"""Collect all text nodes and return them as a unicode string.
@@ -1131,6 +1168,8 @@ cdef int _deleteSlice(_Document doc, xmlNode* c_node,
     while c_node is not NULL and c < count:
         for i in range(step):
             c_next = next_element(c_next)
+            if c_next is NULL:
+                break
         _removeNode(doc, c_node)
         c += 1
         c_node = c_next
@@ -1160,7 +1199,7 @@ cdef int _replaceSlice(_Element parent, xmlNode* c_node,
     if not isinstance(elements, (list, tuple)):
         elements = list(elements)
 
-    if step > 1:
+    if step != 1 or not left_to_right:
         # *replacing* children stepwise with list => check size!
         seqlength = len(elements)
         if seqlength != slicelength:
@@ -1196,6 +1235,8 @@ cdef int _replaceSlice(_Element parent, xmlNode* c_node,
     while c_node is not NULL and c < slicelength:
         for i in range(step):
             c_next = next_element(c_next)
+            if c_next is NULL:
+                break
         _removeNode(parent._doc, c_node)
         c += 1
         c_node = c_next
@@ -1221,7 +1262,11 @@ cdef int _replaceSlice(_Element parent, xmlNode* c_node,
                 slicelength -= 1
                 for i in range(1, step):
                     c_node = next_element(c_node)
+                    if c_node is NULL:
+                        break
             break
+    else:
+        c_node = c_orig_neighbour
 
     if left_to_right:
         # adjust step size after removing slice as we are not stepping
@@ -1247,6 +1292,8 @@ cdef int _replaceSlice(_Element parent, xmlNode* c_node,
                 slicelength -= 1
                 for i in range(step):
                     c_node = next_element(c_node)
+                    if c_node is NULL:
+                        break
                 if c_node is NULL:
                     break
         else:
@@ -1372,7 +1419,7 @@ cdef bint isutf8l(const_xmlChar* s, size_t length):
     """
     Search for non-ASCII characters in the string, knowing its length in advance.
     """
-    cdef int i
+    cdef unsigned int i
     cdef unsigned long non_ascii_mask
     cdef const unsigned long *lptr = <const unsigned long*> s
 
@@ -1506,27 +1553,34 @@ cdef strrepr(s):
     return s.encode('unicode-escape') if python.IS_PYTHON2 else s
 
 
+cdef enum:
+    NO_FILE_PATH = 0
+    ABS_UNIX_FILE_PATH = 1
+    ABS_WIN_FILE_PATH = 2
+    REL_FILE_PATH = 3
+
+
 cdef bint _isFilePath(const_xmlChar* c_path):
     u"simple heuristic to see if a path is a filename"
     cdef xmlChar c
     # test if it looks like an absolute Unix path or a Windows network path
     if c_path[0] == c'/':
-        return 1
+        return ABS_UNIX_FILE_PATH
 
     # test if it looks like an absolute Windows path or URL
     if c'a' <= c_path[0] <= c'z' or c'A' <= c_path[0] <= c'Z':
         c_path += 1
         if c_path[0] == c':' and c_path[1] in b'\0\\':
-            return 1  # C: or C:\...
+            return ABS_WIN_FILE_PATH  # C: or C:\...
 
         # test if it looks like a URL with scheme://
         while c'a' <= c_path[0] <= c'z' or c'A' <= c_path[0] <= c'Z':
             c_path += 1
         if c_path[0] == c':' and c_path[1] == c'/' and c_path[2] == c'/':
-            return 0
+            return NO_FILE_PATH
 
     # assume it's a relative path
-    return 1
+    return REL_FILE_PATH
 
 cdef object _encodeFilename(object filename):
     u"""Make sure a filename is 8-bit encoded (or None).

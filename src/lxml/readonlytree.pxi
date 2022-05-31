@@ -290,6 +290,17 @@ cdef class _ReadOnlyElementProxy(_ReadOnlyProxy):
                 return funicode(self._c_node.ns.prefix)
         return None
 
+    @property
+    def nsmap(self):
+        """Namespace prefix->URI mapping known in the context of this
+        Element.  This includes all namespace declarations of the
+        parents.
+
+        Note that changing the returned dict has no effect on the Element.
+        """
+        self._assertNode()
+        return _build_nsmap(self._c_node)
+
     def get(self, key, default=None):
         u"""Gets an element attribute.
         """

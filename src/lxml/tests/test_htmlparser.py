@@ -4,15 +4,13 @@
 HTML parser test cases for etree
 """
 
+from __future__ import absolute_import
+
 import unittest
 import tempfile, os, os.path, sys
 
-this_dir = os.path.dirname(__file__)
-if this_dir not in sys.path:
-    sys.path.insert(0, this_dir) # needed for Py3
-
-from common_imports import etree, html, StringIO, BytesIO, fileInTestDir, _bytes, _str
-from common_imports import SillyFileLike, HelperTestCase, write_to_file, next
+from .common_imports import etree, html, BytesIO, fileInTestDir, _bytes, _str
+from .common_imports import SillyFileLike, HelperTestCase, write_to_file
 
 try:
     unicode
@@ -73,6 +71,7 @@ class HtmlParserTestCase(HelperTestCase):
             <html><body id="bodyID"><p id="pID"></p></body></html>
         ''', parser=parser)
         self.assertEqual(len(html.xpath('//p[@id="pID"]')), 1)
+        self.assertEqual(len(html.findall('.//p[@id="pID"]')), 1)
 
     def test_html_ids_no_collect_ids(self):
         parser = self.etree.HTMLParser(recover=False, collect_ids=False)
@@ -81,6 +80,7 @@ class HtmlParserTestCase(HelperTestCase):
             <html><body id="bodyID"><p id="pID"></p></body></html>
         ''', parser=parser)
         self.assertEqual(len(html.xpath('//p[@id="pID"]')), 1)
+        self.assertEqual(len(html.findall('.//p[@id="pID"]')), 1)
 
     def test_module_HTML_pretty_print(self):
         element = self.etree.HTML(self.html_str)
@@ -254,9 +254,8 @@ class HtmlParserTestCase(HelperTestCase):
         filename = tempfile.mktemp(suffix=".html")
         write_to_file(filename, self.html_str, 'wb')
         try:
-            f = open(filename, 'rb')
-            tree = self.etree.parse(f, parser)
-            f.close()
+            with open(filename, 'rb') as f:
+                tree = self.etree.parse(f, parser)
             self.assertEqual(self.etree.tostring(tree.getroot(), method="html"),
                              self.html_str)
         finally:
@@ -313,6 +312,21 @@ class HtmlParserTestCase(HelperTestCase):
         self.assertEqual(
             [('end', root[0][0]), ('end', root[0]), ('end', root[1][0]),
              ('end', root[1]), ('end', root)],
+            events)
+
+    def test_html_iterparse_tag(self):
+        iterparse = self.etree.iterparse
+        f = BytesIO(
+            '<html><head><title>TITLE</title><body><p>P</p></body></html>')
+
+        iterator = iterparse(f, html=True, tag=["p", "title"])
+        self.assertEqual(None, iterator.root)
+
+        events = list(iterator)
+        root = iterator.root
+        self.assertTrue(root is not None)
+        self.assertEqual(
+            [('end', root[0][0]), ('end', root[1][0])],
             events)
 
     def test_html_iterparse_stop_short(self):

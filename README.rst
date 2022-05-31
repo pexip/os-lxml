@@ -15,7 +15,7 @@ Support the project
 
 lxml has been downloaded from the `Python Package Index`_
 millions of times and is also available directly in many package
-distributions, e.g. for Linux or MacOS-X.
+distributions, e.g. for Linux or macOS.
 
 .. _`Python Package Index`: https://pypi.python.org/pypi/lxml
 
@@ -25,15 +25,25 @@ with it and linking to the project website.
 
 If you are using lxml for your work and feel like giving a bit of
 your own benefit back to support the project, consider sending us
-money through PayPal that we can use for fixing bugs in the software
-and improving its features and documentation.  Please read the Legal
-Notice below, at the bottom of this page.  Thank you for your support.
+money through GitHub Sponsors, Tidelift or PayPal that we can use
+to buy us free time for the maintenance of this great library, to
+fix bugs in the software, review and integrate code contributions,
+to improve its features and documentation, or to just take a deep
+breath and have a cup of tea every once in a while.
+Please read the Legal Notice below, at the bottom of this page.
+Thank you for your support.
 
 .. class:: center
 
+  Support lxml through `GitHub Sponsors <https://github.com/users/scoder/sponsorship>`_
+
+  via a `Tidelift subscription <https://tidelift.com/subscription/pkg/pypi-lxml>`_
+
+  or via PayPal:
+
   |Donate|_
 
-.. _Donate: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=R56JE3VCPDA9N
+.. _`Donate`: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=R56JE3VCPDA9N
 
 Please `contact Stefan Behnel <http://consulting.behnel.de/>`_
 for other ways to support the lxml project,
@@ -45,13 +55,25 @@ fast Python XML processing.
             :height: 47
             :alt: Donate to the lxml project
 
-.. _`doc/main.txt`: http://lxml.de/
+.. _`doc/main.txt`: https://github.com/lxml/lxml/blob/master/doc/main.txt
 .. _`INSTALL.txt`: http://lxml.de/installation.html
 
 `Travis-CI <https://travis-ci.org/>`_ and `AppVeyor <https://www.appveyor.com/>`_
 support the lxml project with their build and CI servers.
 Jetbrains supports the lxml project by donating free licenses of their
 `PyCharm IDE <https://www.jetbrains.com/pycharm/>`_.
+Another supporter of the lxml project is
+`COLOGNE Webdesign <https://www.colognewebdesign.de/>`_.
+
+
+Project income report
+---------------------
+
+* Total project income in 2019: EUR 717.52  (59.79 € / month)
+
+  - Tidelift: EUR 360.30
+  - Paypal: EUR 157.22
+  - other: EUR 200.00
 
 
 Legal Notice for Donations

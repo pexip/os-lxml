@@ -2,6 +2,268 @@
 lxml changelog
 ==============
 
+4.6.3 (2021-03-21)
+==================
+
+Bugs fixed
+----------
+
+* A vulnerability (CVE-2021-28957) was discovered in the HTML Cleaner by Kevin Chung,
+  which allowed JavaScript to pass through.  The cleaner now removes the HTML5
+  ``formaction`` attribute.
+
+
+4.6.2 (2020-11-26)
+==================
+
+Bugs fixed
+----------
+
+* A vulnerability (CVE-2020-27783) was discovered in the HTML Cleaner by Yaniv Nizry,
+  which allowed JavaScript to pass through.  The cleaner now removes more sneaky
+  "style" content.
+
+
+4.6.1 (2020-10-18)
+==================
+
+Bugs fixed
+----------
+
+* A vulnerability was discovered in the HTML Cleaner by Yaniv Nizry, which allowed
+  JavaScript to pass through.  The cleaner now removes more sneaky "style" content.
+
+
+4.6.0 (2020-10-17)
+==================
+
+Features added
+--------------
+
+* GH#310: ``lxml.html.InputGetter`` supports ``__len__()`` to count the number of input fields.
+  Patch by Aidan Woolley.
+
+* ``lxml.html.InputGetter`` has a new ``.items()`` method to ease processing all input fields.
+
+* ``lxml.html.InputGetter.keys()`` now returns the field names in document order.
+
+* GH-309: The API documentation is now generated using ``sphinx-apidoc``.
+  Patch by Chris Mayo.
+
+Bugs fixed
+----------
+
+* LP#1869455: C14N 2.0 serialisation failed for unprefixed attributes
+  when a default namespace was defined.
+
+* ``TreeBuilder.close()`` raised ``AssertionError`` in some error cases where it
+  should have raised ``XMLSyntaxError``.  It now raises a combined exception to
+  keep up backwards compatibility, while switching to ``XMLSyntaxError`` as an
+  interface.
+
+
+4.5.2 (2020-07-09)
+==================
+
+Bugs fixed
+----------
+
+* ``Cleaner()`` now validates that only known configuration options can be set.
+
+* LP#1882606: ``Cleaner.clean_html()`` discarded comments and PIs regardless of the
+  corresponding configuration option, if ``remove_unknown_tags`` was set.
+
+* LP#1880251: Instead of globally overwriting the document loader in libxml2, lxml now
+  sets it per parser run, which improves the interoperability with other users of libxml2
+  such as libxmlsec.
+
+* LP#1881960: Fix build in CPython 3.10 by using Cython 0.29.21.
+
+* The setup options "--with-xml2-config" and "--with-xslt-config" were accidentally renamed
+  to "--xml2-config" and "--xslt-config" in 4.5.1 and are now available again.
+
+
+4.5.1 (2020-05-19)
+==================
+
+Bugs fixed
+----------
+
+* LP#1570388: Fix failures when serialising documents larger than 2GB in some cases.
+
+* LP#1865141, GH#298: ``QName`` values were not accepted by the ``el.iter()`` method.
+  Patch by xmo-odoo.
+
+* LP#1863413, GH#297: The build failed to detect libraries on Linux that are only
+  configured via pkg-config.
+  Patch by Hugh McMaster.
+
+
+4.5.0 (2020-01-29)
+==================
+
+Features added
+--------------
+
+* A new function ``indent()`` was added to insert tail whitespace for pretty-printing
+  an XML tree.
+
+Bugs fixed
+----------
+
+* LP#1857794: Tail text of nodes that get removed from a document using item
+  deletion disappeared silently instead of sticking with the node that was removed.
+
+Other changes
+-------------
+
+* MacOS builds are 64-bit-only by default.
+  Set CFLAGS and LDFLAGS explicitly to override it.
+
+* Linux/MacOS Binary wheels now use libxml2 2.9.10 and libxslt 1.1.34.
+
+* LP#1840234: The package version number is now available as ``lxml.__version__``.
+
+
+4.4.3 (2020-01-28)
+==================
+
+Bugs fixed
+----------
+
+* LP#1844674: ``itertext()`` was missing tail text of comments and PIs since 4.4.0.
+
+
+4.4.2 (2019-11-25)
+==================
+
+Bugs fixed
+----------
+
+* LP#1835708: ``ElementInclude`` incorrectly rejected repeated non-recursive
+  includes as recursive.
+  Patch by Rainer Hausdorf.
+
+
+4.4.1 (2019-08-11)
+==================
+
+Bugs fixed
+----------
+
+* LP#1838252: The order of an OrderedDict was lost in 4.4.0 when passing it as
+  attrib mapping during element creation.
+
+* LP#1838521: The package metadata now lists the supported Python versions.
+
+
+4.4.0 (2019-07-27)
+==================
+
+Features added
+--------------
+
+* ``Element.clear()`` accepts a new keyword argument ``keep_tail=True`` to clear
+  everything but the tail text.  This is helpful in some document-style use cases
+  and for clearing the current element in ``iterparse()`` and pull parsing.
+
+* When creating attributes or namespaces from a dict in Python 3.6+, lxml now
+  preserves the original insertion order of that dict, instead of always sorting
+  the items by name.  A similar change was made for ElementTree in CPython 3.8.
+  See https://bugs.python.org/issue34160
+
+* Integer elements in ``lxml.objectify`` implement the ``__index__()`` special method.
+
+* GH#269: Read-only elements in XSLT were missing the ``nsmap`` property.
+  Original patch by Jan Pazdziora.
+
+* ElementInclude can now restrict the maximum inclusion depth via a ``max_depth``
+  argument to prevent content explosion.  It is limited to 6 by default.
+
+* The ``target`` object of the XMLParser can have ``start_ns()`` and ``end_ns()``
+  callback methods to listen to namespace declarations.
+
+* The ``TreeBuilder`` has new arguments ``comment_factory`` and ``pi_factory`` to
+  pass factories for creating comments and processing instructions, as well as
+  flag arguments ``insert_comments`` and ``insert_pis`` to discard them from the
+  tree when set to false.
+
+* A `C14N 2.0 <https://www.w3.org/TR/xml-c14n2/>`_ implementation was added as
+  ``etree.canonicalize()``, a corresponding ``C14NWriterTarget`` class, and
+  a ``c14n2`` serialisation method.
+
+Bugs fixed
+----------
+
+* When writing to file paths that contain the URL escape character '%', the file
+  path could wrongly be mangled by URL unescaping and thus write to a different
+  file or directory.  Code that writes to file paths that are provided by untrusted
+  sources, but that must work with previous versions of lxml, should best either
+  reject paths that contain '%' characters, or otherwise make sure that the path
+  does not contain maliciously injected '%XX' URL hex escapes for paths like '../'.
+
+* Assigning to Element child slices with negative step could insert the slice at
+  the wrong position, starting too far on the left.
+
+* Assigning to Element child slices with overly large step size could take very
+  long, regardless of the length of the actual slice.
+
+* Assigning to Element child slices of the wrong size could sometimes fail to
+  raise a ValueError (like a list assignment would) and instead assign outside
+  of the original slice bounds or leave parts of it unreplaced.
+
+* The ``comment`` and ``pi`` events in ``iterwalk()`` were never triggered, and
+  instead, comments and processing instructions in the tree were reported as
+  ``start`` elements.  Also, when walking an ElementTree (as opposed to its root
+  element), comments and PIs outside of the root element are now reported.
+
+* LP#1827833: The RelaxNG compact syntax support was broken with recent versions
+  of ``rnc2rng``.
+
+* LP#1758553: The HTML elements ``source`` and ``track`` were added to the list
+  of empty tags in ``lxml.html.defs``.
+
+* Registering a prefix other than "xml" for the XML namespace is now rejected.
+
+* Failing to write XSLT output to a file could raise a misleading exception.
+  It now raises ``IOError``.
+
+Other changes
+-------------
+
+* Support for Python 3.4 was removed.
+
+* When using ``Element.find*()`` with prefix-namespace mappings, the empty string
+  is now accepted to define a default namespace, in addition to the previously
+  supported ``None`` prefix.  Empty strings are more convenient since they keep
+  all prefix keys in a namespace dict strings, which simplifies sorting etc.
+
+* The ``ElementTree.write_c14n()`` method has been deprecated in favour of the
+  long preferred ``ElementTree.write(f, method="c14n")``.  It will be removed
+  in a future release.
+
+
+4.3.5 (2019-07-27)
+==================
+
+* Rebuilt with Cython 0.29.13 to support Python 3.8.
+
+
+4.3.4 (2019-06-10)
+==================
+
+* Rebuilt with Cython 0.29.10 to support Python 3.8.
+
+
+4.3.3 (2019-03-26)
+==================
+
+Bugs fixed
+----------
+
+* Fix leak of output buffer and unclosed files in ``_XSLTResultTree.write_output()``.
+
+
 4.3.2 (2019-02-29)
 ==================
 

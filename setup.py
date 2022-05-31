@@ -7,8 +7,8 @@ import os.path
 # for command line options and supported environment variables, please
 # see the end of 'setupinfo.py'
 
-if sys.version_info < (2, 7) or sys.version_info[:2] in [(3, 0), (3, 1), (3, 2), (3, 3)]:
-    print("This lxml version requires Python 2.7, 3.4 or later.")
+if (2, 7) != sys.version_info[:2] < (3, 5):
+    print("This lxml version requires Python 2.7, 3.5 or later.")
     sys.exit(1)
 
 try:
@@ -56,6 +56,9 @@ if versioninfo.is_pre_release():
 extra_options = {}
 if 'setuptools' in sys.modules:
     extra_options['zip_safe'] = False
+    extra_options['python_requires'] = (
+        # NOTE: keep in sync with Trove classifier list below.
+        '>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, != 3.4.*')
 
     try:
         import pkg_resources
@@ -185,14 +188,16 @@ setup(
     maintainer="lxml dev team",
     maintainer_email="lxml-dev@lxml.de",
     license="BSD",
-    url="http://lxml.de/",
+    url="https://lxml.de/",
     # Commented out because this causes distutils to emit warnings
     # `Unknown distribution option: 'bugtrack_url'`
     # which distract folks from real causes of problems when troubleshooting
     # bugtrack_url="https://bugs.launchpad.net/lxml",
 
-    description="Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API.",
-
+    description=(
+        "Powerful and Pythonic XML processing library"
+        " combining libxml2/libxslt with the ElementTree API."
+    ),
     long_description=((("""\
 lxml is a Pythonic, mature binding for the libxml2 and libxslt libraries.  It
 provides safe and convenient access to these libraries using the ElementTree
@@ -202,7 +207,7 @@ It extends the ElementTree API significantly to offer support for XPath,
 RelaxNG, XML Schema, XSLT, C14N and much more.
 
 To contact the project, go to the `project home page
-<http://lxml.de/>`_ or see our bug tracker at
+<https://lxml.de/>`_ or see our bug tracker at
 https://launchpad.net/lxml
 
 In case you want to use the current in-development version of lxml,
@@ -214,26 +219,28 @@ install lxml from
 https://github.com/lxml/lxml/tarball/master#egg=lxml-dev if you have
 an appropriate version of Cython installed.
 
-""" + branch_link) % { "branch_version" : versioninfo.branch_version() }) +
+""" + branch_link) % {"branch_version": versioninfo.branch_version()}) +
                       versioninfo.changes()),
-    classifiers = [
-    versioninfo.dev_status(),
-    'Intended Audience :: Developers',
-    'Intended Audience :: Information Technology',
-    'License :: OSI Approved :: BSD License',
-    'Programming Language :: Cython',
-    'Programming Language :: Python :: 2',
-    'Programming Language :: Python :: 2.7',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.4',
-    'Programming Language :: Python :: 3.5',
-    'Programming Language :: Python :: 3.6',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: C',
-    'Operating System :: OS Independent',
-    'Topic :: Text Processing :: Markup :: HTML',
-    'Topic :: Text Processing :: Markup :: XML',
-    'Topic :: Software Development :: Libraries :: Python Modules'
+    classifiers=[
+        versioninfo.dev_status(),
+        'Intended Audience :: Developers',
+        'Intended Audience :: Information Technology',
+        'License :: OSI Approved :: BSD License',
+        'Programming Language :: Cython',
+        # NOTE: keep in sync with 'python_requires' list above.
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: C',
+        'Operating System :: OS Independent',
+        'Topic :: Text Processing :: Markup :: HTML',
+        'Topic :: Text Processing :: Markup :: XML',
+        'Topic :: Software Development :: Libraries :: Python Modules'
     ],
 
     **setup_extra_options()

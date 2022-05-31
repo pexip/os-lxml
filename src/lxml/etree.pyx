@@ -11,7 +11,7 @@ from __future__ import absolute_import
 __docformat__ = u"restructuredtext en"
 
 __all__ = [
-    'AttributeBasedElementClassLookup', 'C14NError', 'CDATA',
+    'AttributeBasedElementClassLookup', 'C14NError', 'C14NWriterTarget', 'CDATA',
     'Comment', 'CommentBase', 'CustomElementClassLookup', 'DEBUG',
     'DTD', 'DTDError', 'DTDParseError', 'DTDValidateError',
     'DocumentInvalid', 'ETCompatXMLParser', 'ETXPath', 'Element',
@@ -35,7 +35,8 @@ __all__ = [
     'XPathEvalError', 'XPathEvaluator', 'XPathFunctionError', 'XPathResultError',
     'XPathSyntaxError', 'XSLT', 'XSLTAccessControl', 'XSLTApplyError',
     'XSLTError', 'XSLTExtension', 'XSLTExtensionError', 'XSLTParseError',
-    'XSLTSaveError', 'cleanup_namespaces', 'clear_error_log', 'dump',
+    'XSLTSaveError', 'canonicalize',
+    'cleanup_namespaces', 'clear_error_log', 'dump',
     'fromstring', 'fromstringlist', 'get_default_parser', 'iselement',
     'iterparse', 'iterwalk', 'parse', 'parseid', 'register_namespace',
     'set_default_parser', 'set_element_class_lookup', 'strip_attributes',
@@ -182,6 +183,9 @@ def register_namespace(prefix, uri):
         raise ValueError("Prefix format reserved for internal use")
     _tagValidOrRaise(prefix_utf)
     _uriValidOrRaise(uri_utf)
+    if (uri_utf == b"http://www.w3.org/XML/1998/namespace" and prefix_utf != b'xml'
+            or prefix_utf == b'xml' and uri_utf != b"http://www.w3.org/XML/1998/namespace"):
+        raise ValueError("Cannot change the 'xml' prefix of the XML namespace")
     for k, v in list(_DEFAULT_NAMESPACE_PREFIXES.items()):
         if k == uri_utf or v == prefix_utf:
             del _DEFAULT_NAMESPACE_PREFIXES[k]
@@ -699,6 +703,8 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
         this if they recursively call _init() in the superclasses.
         """
 
+    @cython.linetrace(False)
+    @cython.profile(False)
     def __dealloc__(self):
         #print "trying to free node:", <int>self._c_node
         #displayNode(self._c_node, 0)
@@ -776,7 +782,6 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
             c_node = _findChild(self._c_node, x)
             if c_node is NULL:
                 raise IndexError, f"index out of range: {x}"
-            _removeText(c_node.next)
             _removeNode(self._doc, c_node)
 
     def __deepcopy__(self, memo):
@@ -870,11 +875,13 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
             _assertValidNode(element)
             _appendChild(self, element)
 
-    def clear(self):
-        u"""clear(self)
+    def clear(self, bint keep_tail=False):
+        u"""clear(self, keep_tail=False)
 
         Resets an element.  This function removes all subelements, clears
         all attributes and sets the text and tail properties to None.
+
+        Pass ``keep_tail=True`` to leave the tail text untouched.
         """
         cdef xmlAttr* c_attr
         cdef xmlAttr* c_attr_next
@@ -884,24 +891,23 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
         c_node = self._c_node
         # remove self.text and self.tail
         _removeText(c_node.children)
-        _removeText(c_node.next)
+        if not keep_tail:
+            _removeText(c_node.next)
         # remove all attributes
         c_attr = c_node.properties
-        while c_attr is not NULL:
-            c_attr_next = c_attr.next
-            tree.xmlRemoveProp(c_attr)
-            c_attr = c_attr_next
+        if c_attr:
+            c_node.properties = NULL
+            tree.xmlFreePropList(c_attr)
         # remove all subelements
         c_node = c_node.children
-        if c_node is not NULL:
-            if not _isElement(c_node):
-                c_node = _nextElement(c_node)
-            while c_node is not NULL:
-                c_node_next = _nextElement(c_node)
-                _removeNode(self._doc, c_node)
-                c_node = c_node_next
+        if c_node and not _isElement(c_node):
+            c_node = _nextElement(c_node)
+        while c_node is not NULL:
+            c_node_next = _nextElement(c_node)
+            _removeNode(self._doc, c_node)
+            c_node = c_node_next
 
-    def insert(self, index, _Element element not None):
+    def insert(self, index: int, _Element element not None):
         u"""insert(self, index, element)
 
         Inserts a subelement at the given position in this element
@@ -1074,20 +1080,8 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
 
         Note that changing the returned dict has no effect on the Element.
         """
-        cdef xmlNode* c_node
-        cdef xmlNs* c_ns
         _assertValidNode(self)
-        nsmap = {}
-        c_node = self._c_node
-        while c_node is not NULL and c_node.type == tree.XML_ELEMENT_NODE:
-            c_ns = c_node.nsDef
-            while c_ns is not NULL:
-                prefix = funicodeOrNone(c_ns.prefix)
-                if prefix not in nsmap:
-                    nsmap[prefix] = funicodeOrNone(c_ns.href)
-                c_ns = c_ns.next
-            c_node = c_node.parent
-        return nsmap
+        return _build_nsmap(self._c_node)
 
     # not in ElementTree, read-only
     property base:
@@ -1157,6 +1151,8 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
                 c += 1
                 for i in range(step):
                     c_node = next_element(c_node)
+                    if c_node is NULL:
+                        break
             return result
         else:
             # indexing
@@ -1202,7 +1198,7 @@ cdef public class _Element [ type LxmlElementType, object LxmlElement ]:
         u"__reversed__(self)"
         return ElementChildIterator(self, reversed=True)
 
-    def index(self, _Element child not None, start=None, stop=None):
+    def index(self, _Element child not None, start: int = None, stop: int = None):
         u"""index(self, child, start=None, stop=None)
 
         Find the position of the child within the parent.
@@ -1878,17 +1874,17 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
     def parse(self, source, _BaseParser parser=None, *, base_url=None):
         u"""parse(self, source, parser=None, base_url=None)
 
-        Updates self with the content of source and returns its root
+        Updates self with the content of source and returns its root.
         """
         cdef _Document doc = None
         try:
             doc = _parseDocument(source, parser, base_url)
-            self._context_node = doc.getroot()
-            if self._context_node is None:
-                self._doc = doc
         except _TargetParserResult as result_container:
             # raises a TypeError if we don't get an _Element
             self._context_node = result_container.result
+        else:
+            self._context_node = doc.getroot()
+        self._doc = None if self._context_node is not None else doc
         return self._context_node
 
     def _setroot(self, _Element root not None):
@@ -1935,7 +1931,7 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
 
     # not in ElementTree
     @property
-    def docinfo(self):
+    def docinfo(self) -> DocInfo:
         """Information about the document provided by parser and DTD."""
         self._assertHasRoot()
         return DocInfo(self._context_node._doc)
@@ -1952,15 +1948,17 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
             return self._doc._parser
         return None
 
-    def write(self, file, *, encoding=None, method=u"xml",
-              pretty_print=False, xml_declaration=None, with_tail=True,
+    def write(self, file, *, encoding=None, method="xml",
+              bint pretty_print=False, xml_declaration=None, bint with_tail=True,
               standalone=None, doctype=None, compression=0,
-              exclusive=False, with_comments=True, inclusive_ns_prefixes=None,
+              bint exclusive=False, inclusive_ns_prefixes=None,
+              bint with_comments=True, bint strip_text=False,
               docstring=None):
         u"""write(self, file, encoding=None, method="xml",
                   pretty_print=False, xml_declaration=None, with_tail=True,
                   standalone=None, doctype=None, compression=0,
-                  exclusive=False, with_comments=True, inclusive_ns_prefixes=None)
+                  exclusive=False, inclusive_ns_prefixes=None,
+                  with_comments=True, strip_text=False)
 
         Write the tree to a filename, file or file-like object.
 
@@ -1969,9 +1967,13 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
         The keyword argument 'method' selects the output method:
         'xml', 'html', 'text' or 'c14n'.  Default is 'xml'.
 
-        The ``exclusive`` and ``with_comments`` arguments are only
-        used with C14N output, where they request exclusive and
-        uncommented C14N serialisation respectively.
+        With ``method="c14n"`` (C14N version 1), the options ``exclusive``,
+        ``with_comments`` and ``inclusive_ns_prefixes`` request exclusive
+        C14N, include comments, and list the inclusive prefixes respectively.
+
+        With ``method="c14n2"`` (C14N version 2), the ``with_comments`` and
+        ``strip_text`` options control the output of comments and text space
+        according to C14N 2.0.
 
         Passing a boolean value to the ``standalone`` option will
         output an XML declaration with the corresponding
@@ -2004,31 +2006,38 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
             compression = 0
 
         # C14N serialisation
-        if method == 'c14n':
+        if method in ('c14n', 'c14n2'):
             if encoding is not None:
                 raise ValueError("Cannot specify encoding with C14N")
             if xml_declaration:
                 raise ValueError("Cannot enable XML declaration in C14N")
 
-            _tofilelikeC14N(file, self._context_node, exclusive, with_comments,
-                            compression, inclusive_ns_prefixes)
+            if method == 'c14n':
+                _tofilelikeC14N(file, self._context_node, exclusive, with_comments,
+                                compression, inclusive_ns_prefixes)
+            else:  # c14n2
+                with _open_utf8_file(file, compression=compression) as f:
+                    target = C14NWriterTarget(
+                        f.write, with_comments=with_comments, strip_text=strip_text)
+                    _tree_to_target(self, target)
             return
+
         if not with_comments:
             raise ValueError("Can only discard comments in C14N serialisation")
         # suppress decl. in default case (purely for ElementTree compatibility)
         if xml_declaration is not None:
             write_declaration = xml_declaration
             if encoding is None:
-                encoding = u'ASCII'
+                encoding = 'ASCII'
             else:
                 encoding = encoding.upper()
         elif encoding is None:
-            encoding = u'ASCII'
+            encoding = 'ASCII'
             write_declaration = 0
         else:
             encoding = encoding.upper()
-            write_declaration = encoding not in \
-                                  (u'US-ASCII', u'ASCII', u'UTF8', u'UTF-8')
+            write_declaration = encoding not in (
+                'US-ASCII', 'ASCII', 'UTF8', 'UTF-8')
         if standalone is None:
             is_standalone = -1
         elif standalone:
@@ -2356,7 +2365,7 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
         self._assertHasRoot()
         XInclude()(self._context_node)
 
-    def write_c14n(self, file, *, exclusive=False, with_comments=True,
+    def write_c14n(self, file, *, bint exclusive=False, bint with_comments=True,
                    compression=0, inclusive_ns_prefixes=None):
         u"""write_c14n(self, file, exclusive=False, with_comments=True,
                        compression=0, inclusive_ns_prefixes=None)
@@ -2374,6 +2383,9 @@ cdef public class _ElementTree [ type LxmlElementTreeType,
         rendered if it is used by the immediate parent or one of its attributes
         and its prefix and values have not already been rendered by an ancestor
         of the namespace node's parent element.
+
+        NOTE: This method is deprecated as of lxml 4.4 and will be removed in a
+        future release.  Use ``.write(f, method="c14n")`` instead.
         """
         self._assertHasRoot()
         _assertValidNode(self._context_node)
@@ -2442,9 +2454,10 @@ cdef class _Attrib:
 
     def clear(self):
         _assertValidNode(self._element)
-        cdef xmlNode* c_node = self._element._c_node
-        while c_node.properties is not NULL:
-            tree.xmlRemoveProp(c_node.properties)
+        c_attrs = self._element._c_node.properties
+        if c_attrs:
+            self._element._c_node.properties = NULL
+            tree.xmlFreePropList(c_attrs)
 
     # ACCESSORS
     def __repr__(self):
@@ -2728,6 +2741,8 @@ cdef class _MultiTagMatcher:
                 elif href == b'*':
                     href = None  # wildcard: any namespace, including none
                 self._py_tags.append((href, name))
+        elif isinstance(tag, QName):
+            self._storeTags(tag.text, seen)
         else:
             # support a sequence of tags
             for item in tag:
@@ -2947,16 +2962,16 @@ cdef class ElementTextIterator:
     You can set the ``with_tail`` keyword argument to ``False`` to skip over
     tail text (e.g. if you know that it's only whitespace from pretty-printing).
     """
-    cdef object _nextEvent
+    cdef object _events
     cdef _Element _start_element
     def __cinit__(self, _Element element not None, tag=None, *, bint with_tail=True):
         _assertValidNode(element)
         if with_tail:
-            events = (u"start", u"end")
+            events = (u"start", u"comment", u"pi", u"end")
         else:
-            events = (u"start",)
+            events = (u"start", u"comment", u"pi")
         self._start_element = element
-        self._nextEvent = iterwalk(element, events=events, tag=tag).__next__
+        self._events = iterwalk(element, events=events, tag=tag)
 
     def __iter__(self):
         return self
@@ -2965,7 +2980,7 @@ cdef class ElementTextIterator:
         cdef _Element element
         result = None
         while result is None:
-            event, element = self._nextEvent() # raises StopIteration
+            event, element = next(self._events)  # raises StopIteration
             if event == u"start":
                 result = element.text
             elif element is not self._start_element:
@@ -3254,6 +3269,57 @@ def iselement(element):
     return isinstance(element, _Element) and (<_Element>element)._c_node is not NULL
 
 
+def indent(tree, space="  ", *, Py_ssize_t level=0):
+    """indent(tree, space="  ", level=0)
+
+    Indent an XML document by inserting newlines and indentation space
+    after elements.
+
+    *tree* is the ElementTree or Element to modify.  The (root) element
+    itself will not be changed, but the tail text of all elements in its
+    subtree will be adapted.
+
+    *space* is the whitespace to insert for each indentation level, two
+    space characters by default.
+
+    *level* is the initial indentation level. Setting this to a higher
+    value than 0 can be used for indenting subtrees that are more deeply
+    nested inside of a document.
+    """
+    root = _rootNodeOrRaise(tree)
+    if level < 0:
+        raise ValueError(f"Initial indentation level must be >= 0, got {level}")
+    if _hasChild(root._c_node):
+        space = _utf8(space)
+        indent = b"\n" + level * space
+        _indent_children(root._c_node, 1, space, [indent, indent + space])
+
+
+cdef int _indent_children(xmlNode* c_node, Py_ssize_t level, bytes one_space, list indentations) except -1:
+    # Reuse indentation strings for speed.
+    if len(indentations) <= level:
+        indentations.append(indentations[-1] + one_space)
+
+    # Start a new indentation level for the first child.
+    child_indentation = indentations[level]
+    if not _hasNonWhitespaceText(c_node):
+        _setNodeText(c_node, child_indentation)
+
+    # Recursively indent all children.
+    cdef xmlNode* c_child = _findChildForwards(c_node, 0)
+    while c_child is not NULL:
+        if _hasChild(c_child):
+            _indent_children(c_child, level+1, one_space, indentations)
+        c_next_child = _nextElement(c_child)
+        if not _hasNonWhitespaceTail(c_child):
+            if c_next_child is NULL:
+                # Dedent after the last child.
+                child_indentation = indentations[level-1]
+            _setTailText(c_child, child_indentation)
+        c_child = c_next_child
+    return 0
+
+
 def dump(_Element elem not None, *, bint pretty_print=True, with_tail=True):
     u"""dump(elem, pretty_print=True, with_tail=True)
 
@@ -3270,11 +3336,17 @@ def dump(_Element elem not None, *, bint pretty_print=True, with_tail=True):
 def tostring(element_or_tree, *, encoding=None, method="xml",
              xml_declaration=None, bint pretty_print=False, bint with_tail=True,
              standalone=None, doctype=None,
-             bint exclusive=False, bint with_comments=True, inclusive_ns_prefixes=None):
+             # method='c14n'
+             bint exclusive=False, inclusive_ns_prefixes=None,
+             # method='c14n2'
+             bint with_comments=True, bint strip_text=False,
+             ):
     u"""tostring(element_or_tree, encoding=None, method="xml",
                  xml_declaration=None, pretty_print=False, with_tail=True,
                  standalone=None, doctype=None,
-                 exclusive=False, with_comments=True, inclusive_ns_prefixes=None)
+                 exclusive=False, inclusive_ns_prefixes=None,
+                 with_comments=True, strip_text=False,
+                 )
 
     Serialize an element to an encoded string representation of its XML
     tree.
@@ -3293,12 +3365,16 @@ def tostring(element_or_tree, *, encoding=None, method="xml",
     The keyword argument 'pretty_print' (bool) enables formatted XML.
 
     The keyword argument 'method' selects the output method: 'xml',
-    'html', plain 'text' (text content without tags) or 'c14n'.
+    'html', plain 'text' (text content without tags), 'c14n' or 'c14n2'.
     Default is 'xml'.
 
-    The ``exclusive`` and ``with_comments`` arguments are only used
-    with C14N output, where they request exclusive and uncommented
-    C14N serialisation respectively.
+    With ``method="c14n"`` (C14N version 1), the options ``exclusive``,
+    ``with_comments`` and ``inclusive_ns_prefixes`` request exclusive
+    C14N, include comments, and list the inclusive prefixes respectively.
+
+    With ``method="c14n2"`` (C14N version 2), the ``with_comments`` and
+    ``strip_text`` options control the output of comments and text space
+    according to C14N 2.0.
 
     Passing a boolean value to the ``standalone`` option will output
     an XML declaration with the corresponding ``standalone`` flag.
@@ -3316,14 +3392,24 @@ def tostring(element_or_tree, *, encoding=None, method="xml",
     cdef bint write_declaration
     cdef int is_standalone
     # C14N serialisation
-    if method == 'c14n':
+    if method in ('c14n', 'c14n2'):
         if encoding is not None:
             raise ValueError("Cannot specify encoding with C14N")
         if xml_declaration:
             raise ValueError("Cannot enable XML declaration in C14N")
-        return _tostringC14N(element_or_tree, exclusive, with_comments, inclusive_ns_prefixes)
+        if method == 'c14n':
+            return _tostringC14N(element_or_tree, exclusive, with_comments, inclusive_ns_prefixes)
+        else:
+            out = BytesIO()
+            target = C14NWriterTarget(
+                utf8_writer(out).write,
+                with_comments=with_comments, strip_text=strip_text)
+            _tree_to_target(element_or_tree, target)
+            return out.getvalue()
     if not with_comments:
         raise ValueError("Can only discard comments in C14N serialisation")
+    if strip_text:
+        raise ValueError("Can only strip text in C14N 2.0 serialisation")
     if encoding is unicode or (encoding is not None and encoding.lower() == 'unicode'):
         if xml_declaration:
             raise ValueError, \
