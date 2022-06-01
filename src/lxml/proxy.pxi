@@ -5,6 +5,7 @@
 # the Python class.
 
 @cython.linetrace(False)
+@cython.profile(False)
 cdef inline _Element getProxy(xmlNode* c_node):
     u"""Get a proxy for a given node.
     """
@@ -16,6 +17,7 @@ cdef inline _Element getProxy(xmlNode* c_node):
 
 
 @cython.linetrace(False)
+@cython.profile(False)
 cdef inline bint hasProxy(xmlNode* c_node):
     if c_node._private is NULL:
         return False
@@ -23,6 +25,7 @@ cdef inline bint hasProxy(xmlNode* c_node):
 
 
 @cython.linetrace(False)
+@cython.profile(False)
 cdef inline int _registerProxy(_Element proxy, _Document doc,
                                xmlNode* c_node) except -1:
     u"""Register a proxy and type for the node it's proxying for.
@@ -36,6 +39,7 @@ cdef inline int _registerProxy(_Element proxy, _Document doc,
 
 
 @cython.linetrace(False)
+@cython.profile(False)
 cdef inline int _unregisterProxy(_Element proxy) except -1:
     u"""Unregister a proxy for the node it's proxying for.
     """
@@ -392,7 +396,7 @@ cdef int moveNodeToDocument(_Document doc, xmlDoc* c_source_doc,
 
 
 cdef void _setTreeDoc(xmlNode* c_node, xmlDoc* c_doc):
-    """Adaptation of 'xmlSetTreeDoc()' that deep-fix the document links iteratively.
+    """Adaptation of 'xmlSetTreeDoc()' that deep-fixes the document links iteratively.
     It avoids https://gitlab.gnome.org/GNOME/libxml2/issues/42
     """
     tree.BEGIN_FOR_EACH_FROM(c_node, c_node, 1)

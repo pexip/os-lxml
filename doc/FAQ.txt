@@ -57,15 +57,24 @@ ElementTree_.
      6.6  How do I output null characters in XML text?
      6.7  Is lxml vulnerable to XML bombs?
      6.8  How do I configure lxml safely as a web-service endpoint?
+     6.9  How can I sort the attributes?
    7  XPath and Document Traversal
      7.1  What are the ``findall()`` and ``xpath()`` methods on Element(Tree)?
      7.2  Why doesn't ``findall()`` support full XPath expressions?
      7.3  How can I find out which namespace prefixes are used in a document?
      7.4  How can I specify a default namespace for XPath expressions?
+     7.5  How can I modify the tree during iteration?
+
+
+The code examples below use the `'lxml.etree`` module:
+
+.. sourcecode:: pycon
+
+   >>> from lxml import etree
 
 ..
   >>> import sys
-  >>> from lxml import etree as _etree
+  >>> _etree = etree
   >>> if sys.version_info[0] >= 3:
   ...   class etree_mock(object):
   ...     def __getattr__(self, name): return getattr(_etree, name)
@@ -108,11 +117,11 @@ wrote a nice article about high-performance aspects when `parsing
 large files with lxml`_.
 
 .. _`lxml.etree Tutorial`:      tutorial.html
-.. _`tutorial for ElementTree`: http://effbot.org/zone/element.htm
+.. _`tutorial for ElementTree`: https://effbot.org/zone/element.htm
 .. _`extended etree API`:        api.html
 .. _`objectify documentation`:  objectify.html
 .. _`Python XML processing with lxml`: http://www.nmt.edu/tcc/help/pubs/pylxml/
-.. _`element library`:          http://effbot.org/zone/element-lib.htm
+.. _`element library`:          https://effbot.org/zone/element-lib.htm
 .. _`parsing large files with lxml`: http://www.ibm.com/developerworks/xml/library/x-hiperfparse/
 
 
@@ -134,8 +143,8 @@ web page`_.
 The `generated API documentation`_ is a comprehensive API reference
 for the lxml package.
 
-.. _`ElementTree API`: http://effbot.org/zone/element-index.htm
-.. _`the web page`:    http://lxml.de/#documentation
+.. _`ElementTree API`: https://effbot.org/zone/element-index.htm
+.. _`the web page`:    https://lxml.de/#documentation
 .. _`generated API documentation`: api/index.html
 
 
@@ -943,8 +952,8 @@ e.g. by setting all tail text to None:
        element.tail = None
 
 Fredrik Lundh also has a Python-level function for indenting XML by
-appending whitespace to tags.  It can be found on his `element
-library`_ recipe page.
+appending whitespace to tags.  It can be found on his `element library
+recipes page <http://effbot.org/zone/element-lib.htm#prettyprint>`_.
 
 
 Why can't lxml parse my XML from unicode strings?
@@ -1141,6 +1150,35 @@ API for lxml that applies certain counter measures internally.
 .. _defusedxml: https://bitbucket.org/tiran/defusedxml
 
 
+How can I sort the attributes?
+------------------------------
+
+lxml preserves the order in which attributes were originally created.
+There is one case in which this is difficult: when attributes are passed
+in a dict or as keyword arguments to the `Element()` factory.  Before Python
+3.6, dicts had no predictable order.
+Since Python 3.6, however, dicts also preserve the creation order of their keys,
+and lxml makes use of that since release 4.4.
+In earlier versions, lxml tries to assure at least reproducible output by
+sorting the attributes from the dict before creating them.  All sequential
+ways to set attributes keep their order and do not apply sorting.  Also,
+OrderedDict instances are recognised and not sorted.
+
+In cases where you cannot control the order in which attributes are created,
+you can still change it before serialisation.  To sort them by name, for example,
+you can apply the following function:
+
+.. sourcecode:: python
+
+    def sort_attributes(root):
+        for el in root.iter():
+            attrib = el.attrib
+            if len(attrib) > 1:
+                attributes = sorted(attrib.items())
+                attrib.clear()
+                attrib.update(attributes)
+
+
 XPath and Document Traversal
 ============================
 
@@ -1204,3 +1242,38 @@ How can I specify a default namespace for XPath expressions?
 You can't.  In XPath, there is no such thing as a default namespace.  Just use
 an arbitrary prefix and let the namespace dictionary of the XPath evaluators
 map it to your namespace.  See also the question above.
+
+
+How can I modify the tree during iteration?
+-------------------------------------------
+
+lxml's iterators need to hold on to an element in the tree in order to remember
+their current position.  Therefore, tree modifications between two calls into the
+iterator can lead to surprising results if such an element is deleted or moved
+around, for example.
+
+If your code risks modifying elements that the iterator might still need, and
+you know that the number of elements returned by the iterator is small, then just
+read them all into a list (or use ``.findall()``), and iterate over that list.
+
+If the number of elements can be larger and you really want to process the tree
+incrementally, you can often use a read-ahead generator to make the iterator
+advance beyond the critical point before touching the tree structure.
+
+For example:
+
+.. sourcecode:: python
+
+    from itertools import islice
+    from collections import deque
+
+    def readahead(iterator, count=1):
+        iterator = iter(iterator)  # allow iterables as well
+        elements = deque(islice(iterator, 0, count))
+        for element in iterator:
+            elements.append(element)
+            yield elements.popleft()
+        yield from elements
+
+    for element in readahead(root.iterfind("path/to/children")):
+        element.getparent().remove(element)

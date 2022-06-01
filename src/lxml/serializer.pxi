@@ -147,7 +147,7 @@ cdef _tostring(_Element element, encoding, doctype, method,
                 c_result_buffer))[:tree.xmlBufUse(c_result_buffer)]
     finally:
         error_result = tree.xmlOutputBufferClose(c_buffer)
-    if error_result < 0:
+    if error_result == -1:
         _raiseSerialisationError(error_result)
     return result
 
@@ -611,6 +611,38 @@ cdef _write_attr_string(tree.xmlOutputBuffer* buf, const char *string):
 ############################################################
 # output to file-like objects
 
+cdef object io_open
+from io import open
+
+cdef object gzip
+import gzip
+
+cdef object getwriter
+from codecs import getwriter
+cdef object utf8_writer = getwriter('utf8')
+
+cdef object contextmanager
+from contextlib import contextmanager
+
+cdef object _open_utf8_file
+
+@contextmanager
+def _open_utf8_file(file, compression=0):
+    if _isString(file):
+        if compression:
+            with gzip.GzipFile(file, mode='wb', compresslevel=compression) as zf:
+                yield utf8_writer(zf)
+        else:
+            with io_open(file, 'w', encoding='utf8') as f:
+                yield f
+    else:
+        if compression:
+            with gzip.GzipFile(fileobj=file, mode='wb', compresslevel=compression) as zf:
+                yield utf8_writer(zf)
+        else:
+            yield utf8_writer(file)
+
+
 @cython.final
 @cython.internal
 cdef class _FilelikeWriter:
@@ -689,20 +721,13 @@ cdef _tofilelike(f, _Element element, encoding, doctype, method,
         data = _textToString(element._c_node, encoding, with_tail)
         if compression:
             bytes_out = BytesIO()
-            gzip_file = GzipFile(
-                fileobj=bytes_out, mode='wb', compresslevel=compression)
-            try:
+            with GzipFile(fileobj=bytes_out, mode='wb', compresslevel=compression) as gzip_file:
                 gzip_file.write(data)
-            finally:
-                gzip_file.close()
             data = bytes_out.getvalue()
         if _isString(f):
             filename8 = _encodeFilename(f)
-            f = open(filename8, 'wb')
-            try:
+            with open(filename8, 'wb') as f:
                 f.write(data)
-            finally:
-                f.close()
         else:
             f.write(data)
         return
@@ -745,7 +770,7 @@ cdef int _serialise_node(tree.xmlOutputBuffer* c_buffer, const_xmlChar* c_doctyp
     error_result = c_buffer.error
     if error_result == xmlerror.XML_ERR_OK:
         error_result = tree.xmlOutputBufferClose(c_buffer)
-        if error_result > 0:
+        if error_result != -1:
             error_result = xmlerror.XML_ERR_OK
     else:
         tree.xmlOutputBufferClose(c_buffer)
@@ -757,6 +782,7 @@ cdef _FilelikeWriter _create_output_buffer(
         tree.xmlOutputBuffer** c_buffer_ret, bint close):
     cdef tree.xmlOutputBuffer* c_buffer
     cdef _FilelikeWriter writer
+    cdef bytes filename8
     enchandler = tree.xmlFindCharEncodingHandler(c_enc)
     if enchandler is NULL:
         raise LookupError(
@@ -764,10 +790,17 @@ cdef _FilelikeWriter _create_output_buffer(
     try:
         if _isString(f):
             filename8 = _encodeFilename(f)
+            if b'%' in filename8 and (
+                    # Exclude absolute Windows paths and file:// URLs.
+                    _isFilePath(<const xmlChar*>filename8) not in (NO_FILE_PATH, ABS_WIN_FILE_PATH)
+                    or filename8[:7].lower() == b'file://'):
+                # A file path (not a URL) containing the '%' URL escape character.
+                # libxml2 uses URL-unescaping on these, so escape the path before passing it in.
+                filename8 = filename8.replace(b'%', b'%25')
             c_buffer = tree.xmlOutputBufferCreateFilename(
                 _cstr(filename8), enchandler, c_compression)
             if c_buffer is NULL:
-                return python.PyErr_SetFromErrno(IOError) # raises IOError
+                python.PyErr_SetFromErrno(IOError)  # raises IOError
             writer = None
         elif hasattr(f, 'write'):
             writer = _FilelikeWriter(f, compression=c_compression, close=close)
@@ -837,6 +870,8 @@ cdef _tofilelikeC14N(f, _Element element, bint exclusive, bint with_comments,
                 error = tree.xmlOutputBufferClose(c_buffer)
                 if bytes_count < 0:
                     error = bytes_count
+                elif error != -1:
+                    error = xmlerror.XML_ERR_OK
         else:
             raise TypeError(f"File or filename expected, got '{python._fqtypename(f).decode('UTF-8')}'")
     finally:
@@ -854,6 +889,400 @@ cdef _tofilelikeC14N(f, _Element element, bint exclusive, bint with_comments,
             if len(errors):
                 message = errors[0].message
         raise C14NError(message)
+
+
+# C14N 2.0
+
+def canonicalize(xml_data=None, *, out=None, from_file=None, **options):
+    """Convert XML to its C14N 2.0 serialised form.
+
+    If *out* is provided, it must be a file or file-like object that receives
+    the serialised canonical XML output (text, not bytes) through its ``.write()``
+    method.  To write to a file, open it in text mode with encoding "utf-8".
+    If *out* is not provided, this function returns the output as text string.
+
+    Either *xml_data* (an XML string, tree or Element) or *file*
+    (a file path or file-like object) must be provided as input.
+
+    The configuration options are the same as for the ``C14NWriterTarget``.
+    """
+    if xml_data is None and from_file is None:
+        raise ValueError("Either 'xml_data' or 'from_file' must be provided as input")
+
+    sio = None
+    if out is None:
+        sio = out = StringIO()
+
+    target = C14NWriterTarget(out.write, **options)
+
+    if xml_data is not None and not isinstance(xml_data, basestring):
+        _tree_to_target(xml_data, target)
+        return sio.getvalue() if sio is not None else None
+
+    cdef _FeedParser parser = XMLParser(
+        target=target,
+        attribute_defaults=True,
+        collect_ids=False,
+    )
+
+    if xml_data is not None:
+        parser.feed(xml_data)
+        parser.close()
+    elif from_file is not None:
+        try:
+            _parseDocument(from_file, parser, base_url=None)
+        except _TargetParserResult:
+            pass
+
+    return sio.getvalue() if sio is not None else None
+
+
+cdef _tree_to_target(element, target):
+    for event, elem in iterwalk(element, events=('start', 'end', 'start-ns', 'comment', 'pi')):
+        text = None
+        if event == 'start':
+            target.start(elem.tag, elem.attrib)
+            text = elem.text
+        elif event == 'end':
+            target.end(elem.tag)
+            text = elem.tail
+        elif event == 'start-ns':
+            target.start_ns(*elem)
+            continue
+        elif event == 'comment':
+            target.comment(elem.text)
+            text = elem.tail
+        elif event == 'pi':
+            target.pi(elem.target, elem.text)
+            text = elem.tail
+        if text:
+            target.data(text)
+    return target.close()
+
+
+cdef object _looks_like_prefix_name = re.compile('^\w+:\w+$', re.UNICODE).match
+
+
+cdef class C14NWriterTarget:
+    """
+    Canonicalization writer target for the XMLParser.
+
+    Serialises parse events to XML C14N 2.0.
+
+    Configuration options:
+
+    - *with_comments*: set to true to include comments
+    - *strip_text*: set to true to strip whitespace before and after text content
+    - *rewrite_prefixes*: set to true to replace namespace prefixes by "n{number}"
+    - *qname_aware_tags*: a set of qname aware tag names in which prefixes
+                          should be replaced in text content
+    - *qname_aware_attrs*: a set of qname aware attribute names in which prefixes
+                           should be replaced in text content
+    - *exclude_attrs*: a set of attribute names that should not be serialised
+    - *exclude_tags*: a set of tag names that should not be serialised
+    """
+    cdef object _write
+    cdef list _data
+    cdef set _qname_aware_tags
+    cdef object _find_qname_aware_attrs
+    cdef list _declared_ns_stack
+    cdef list _ns_stack
+    cdef dict _prefix_map
+    cdef list _preserve_space
+    cdef tuple _pending_start
+    cdef set _exclude_tags
+    cdef set _exclude_attrs
+    cdef Py_ssize_t _ignored_depth
+    cdef bint _with_comments
+    cdef bint _strip_text
+    cdef bint _rewrite_prefixes
+    cdef bint _root_seen
+    cdef bint _root_done
+
+    def __init__(self, write, *,
+                 with_comments=False, strip_text=False, rewrite_prefixes=False,
+                 qname_aware_tags=None, qname_aware_attrs=None,
+                 exclude_attrs=None, exclude_tags=None):
+        self._write = write
+        self._data = []
+        self._with_comments = with_comments
+        self._strip_text = strip_text
+        self._exclude_attrs = set(exclude_attrs) if exclude_attrs else None
+        self._exclude_tags = set(exclude_tags) if exclude_tags else None
+
+        self._rewrite_prefixes = rewrite_prefixes
+        if qname_aware_tags:
+            self._qname_aware_tags = set(qname_aware_tags)
+        else:
+            self._qname_aware_tags = None
+        if qname_aware_attrs:
+            self._find_qname_aware_attrs = set(qname_aware_attrs).intersection
+        else:
+            self._find_qname_aware_attrs = None
+
+        # Stack with globally and newly declared namespaces as (uri, prefix) pairs.
+        self._declared_ns_stack = [[
+            ("http://www.w3.org/XML/1998/namespace", "xml"),
+        ]]
+        # Stack with user declared namespace prefixes as (uri, prefix) pairs.
+        self._ns_stack = []
+        if not rewrite_prefixes:
+            self._ns_stack.append(_DEFAULT_NAMESPACE_PREFIXES.items())
+        self._ns_stack.append([])
+        self._prefix_map = {}
+        self._preserve_space = [False]
+        self._pending_start = None
+        self._ignored_depth = 0
+        self._root_seen = False
+        self._root_done = False
+
+    def _iter_namespaces(self, ns_stack):
+        for namespaces in reversed(ns_stack):
+            if namespaces:  # almost no element declares new namespaces
+                yield from namespaces
+
+    cdef _resolve_prefix_name(self, prefixed_name):
+        prefix, name = prefixed_name.split(':', 1)
+        for uri, p in self._iter_namespaces(self._ns_stack):
+            if p == prefix:
+                return f'{{{uri}}}{name}'
+        raise ValueError(f'Prefix {prefix} of QName "{prefixed_name}" is not declared in scope')
+
+    cdef _qname(self, qname, uri=None):
+        if uri is None:
+            uri, tag = qname[1:].rsplit('}', 1) if qname[:1] == '{' else ('', qname)
+        else:
+            tag = qname
+
+        prefixes_seen = set()
+        for u, prefix in self._iter_namespaces(self._declared_ns_stack):
+            if u == uri and prefix not in prefixes_seen:
+                return f'{prefix}:{tag}' if prefix else tag, tag, uri
+            prefixes_seen.add(prefix)
+
+        # Not declared yet => add new declaration.
+        if self._rewrite_prefixes:
+            if uri in self._prefix_map:
+                prefix = self._prefix_map[uri]
+            else:
+                prefix = self._prefix_map[uri] = f'n{len(self._prefix_map)}'
+            self._declared_ns_stack[-1].append((uri, prefix))
+            return f'{prefix}:{tag}', tag, uri
+
+        if not uri and '' not in prefixes_seen:
+            # No default namespace declared => no prefix needed.
+            return tag, tag, uri
+
+        for u, prefix in self._iter_namespaces(self._ns_stack):
+            if u == uri:
+                self._declared_ns_stack[-1].append((uri, prefix))
+                return f'{prefix}:{tag}' if prefix else tag, tag, uri
+
+        if not uri:
+            # As soon as a default namespace is defined,
+            # anything that has no namespace (and thus, no prefix) goes there.
+            return tag, tag, uri
+
+        raise ValueError(f'Namespace "{uri}" of name "{tag}" is not declared in scope')
+
+    def data(self, data):
+        if not self._ignored_depth:
+            self._data.append(data)
+
+    cdef _flush(self):
+        data = u''.join(self._data)
+        del self._data[:]
+        if self._strip_text and not self._preserve_space[-1]:
+            data = data.strip()
+        if self._pending_start is not None:
+            (tag, attrs, new_namespaces), self._pending_start = self._pending_start, None
+            qname_text = data if u':' in data and _looks_like_prefix_name(data) else None
+            self._start(tag, attrs, new_namespaces, qname_text)
+            if qname_text is not None:
+                return
+        if data and self._root_seen:
+            self._write(_escape_cdata_c14n(data))
+
+    def start_ns(self, prefix, uri):
+        if self._ignored_depth:
+            return
+        # we may have to resolve qnames in text content
+        if self._data:
+            self._flush()
+        self._ns_stack[-1].append((uri, prefix))
+
+    def start(self, tag, attrs):
+        if self._exclude_tags is not None and (
+                self._ignored_depth or tag in self._exclude_tags):
+            self._ignored_depth += 1
+            return
+        if self._data:
+            self._flush()
+
+        new_namespaces = []
+        self._declared_ns_stack.append(new_namespaces)
+
+        if self._qname_aware_tags is not None and tag in self._qname_aware_tags:
+            # Need to parse text first to see if it requires a prefix declaration.
+            self._pending_start = (tag, attrs, new_namespaces)
+            return
+        self._start(tag, attrs, new_namespaces)
+
+    cdef _start(self, tag, attrs, new_namespaces, qname_text=None):
+        if self._exclude_attrs is not None and attrs:
+            attrs = {k: v for k, v in attrs.items() if k not in self._exclude_attrs}
+
+        qnames = {tag, *attrs}
+        resolved_names = {}
+
+        # Resolve prefixes in attribute and tag text.
+        if qname_text is not None:
+            qname = resolved_names[qname_text] = self._resolve_prefix_name(qname_text)
+            qnames.add(qname)
+        if self._find_qname_aware_attrs is not None and attrs:
+            qattrs = self._find_qname_aware_attrs(attrs)
+            if qattrs:
+                for attr_name in qattrs:
+                    value = attrs[attr_name]
+                    if _looks_like_prefix_name(value):
+                        qname = resolved_names[value] = self._resolve_prefix_name(value)
+                        qnames.add(qname)
+            else:
+                qattrs = None
+        else:
+            qattrs = None
+
+        # Assign prefixes in lexicographical order of used URIs.
+        parsed_qnames = {n: self._qname(n) for n in sorted(
+            qnames, key=lambda n: n.split('}', 1))}
+
+        # Write namespace declarations in prefix order ...
+        if new_namespaces:
+            attr_list = [
+                (u'xmlns:' + prefix if prefix else u'xmlns', uri)
+                for uri, prefix in new_namespaces
+            ]
+            attr_list.sort()
+        else:
+            # almost always empty
+            attr_list = []
+
+        # ... followed by attributes in URI+name order
+        if attrs:
+            for k, v in sorted(attrs.items()):
+                if qattrs is not None and k in qattrs and v in resolved_names:
+                    v = parsed_qnames[resolved_names[v]][0]
+                attr_qname, attr_name, uri = parsed_qnames[k]
+                # No prefix for attributes in default ('') namespace.
+                attr_list.append((attr_qname if uri else attr_name, v))
+
+        # Honour xml:space attributes.
+        space_behaviour = attrs.get('{http://www.w3.org/XML/1998/namespace}space')
+        self._preserve_space.append(
+            space_behaviour == 'preserve' if space_behaviour
+            else self._preserve_space[-1])
+
+        # Write the tag.
+        write = self._write
+        write(u'<' + parsed_qnames[tag][0])
+        if attr_list:
+            write(u''.join([f' {k}="{_escape_attrib_c14n(v)}"' for k, v in attr_list]))
+        write(u'>')
+
+        # Write the resolved qname text content.
+        if qname_text is not None:
+            write(_escape_cdata_c14n(parsed_qnames[resolved_names[qname_text]][0]))
+
+        self._root_seen = True
+        self._ns_stack.append([])
+
+    def end(self, tag):
+        if self._ignored_depth:
+            self._ignored_depth -= 1
+            return
+        if self._data:
+            self._flush()
+        self._write(f'</{self._qname(tag)[0]}>')
+        self._preserve_space.pop()
+        self._root_done = len(self._preserve_space) == 1
+        self._declared_ns_stack.pop()
+        self._ns_stack.pop()
+
+    def comment(self, text):
+        if not self._with_comments:
+            return
+        if self._ignored_depth:
+            return
+        if self._root_done:
+            self._write(u'\n')
+        elif self._root_seen and self._data:
+            self._flush()
+        self._write(f'<!--{_escape_cdata_c14n(text)}-->')
+        if not self._root_seen:
+            self._write(u'\n')
+
+    def pi(self, target, data):
+        if self._ignored_depth:
+            return
+        if self._root_done:
+            self._write(u'\n')
+        elif self._root_seen and self._data:
+            self._flush()
+        self._write(
+            f'<?{target} {_escape_cdata_c14n(data)}?>' if data else f'<?{target}?>')
+        if not self._root_seen:
+            self._write(u'\n')
+
+    def close(self):
+        return None
+
+
+cdef _raise_serialization_error(text):
+    raise TypeError("cannot serialize %r (type %s)" % (text, type(text).__name__))
+
+
+cdef unicode _escape_cdata_c14n(stext):
+    # escape character data
+    cdef unicode text
+    try:
+        # it's worth avoiding do-nothing calls for strings that are
+        # shorter than 500 character, or so.  assume that's, by far,
+        # the most common case in most applications.
+        text = unicode(stext)
+        if u'&' in text:
+            text = text.replace(u'&', u'&amp;')
+        if u'<' in text:
+            text = text.replace(u'<', u'&lt;')
+        if u'>' in text:
+            text = text.replace(u'>', u'&gt;')
+        if u'\r' in text:
+            text = text.replace(u'\r', u'&#xD;')
+        return text
+    except (TypeError, AttributeError):
+        _raise_serialization_error(stext)
+
+
+cdef unicode _escape_attrib_c14n(stext):
+    # escape attribute value
+    cdef unicode text
+    try:
+        text = unicode(stext)
+        if u'&' in text:
+            text = text.replace(u'&', u'&amp;')
+        if u'<' in text:
+            text = text.replace(u'<', u'&lt;')
+        if u'"' in text:
+            text = text.replace(u'"', u'&quot;')
+        if u'\t' in text:
+            text = text.replace(u'\t', u'&#x9;')
+        if u'\n' in text:
+            text = text.replace(u'\n', u'&#xA;')
+        if u'\r' in text:
+            text = text.replace(u'\r', u'&#xD;')
+        return text
+    except (TypeError, AttributeError):
+        _raise_serialization_error(stext)
+
 
 # incremental serialisation
 
@@ -1252,7 +1681,7 @@ cdef class _IncrementalFileWriter:
         error_result = self._c_out.error
         if error_result == xmlerror.XML_ERR_OK:
             error_result = tree.xmlOutputBufferClose(self._c_out)
-            if error_result > 0:
+            if error_result != -1:
                 error_result = xmlerror.XML_ERR_OK
         else:
             tree.xmlOutputBufferClose(self._c_out)

@@ -4,14 +4,11 @@
 Test cases related to XML Schema parsing and validation
 """
 
-import unittest, sys, os.path
+from __future__ import absolute_import
 
-this_dir = os.path.dirname(__file__)
-if this_dir not in sys.path:
-    sys.path.insert(0, this_dir) # needed for Py3
+import unittest
 
-from common_imports import etree, BytesIO, HelperTestCase, fileInTestDir
-from common_imports import doctest, make_doctest
+from .common_imports import etree, BytesIO, HelperTestCase, fileInTestDir, make_doctest
 
 
 class ETreeXMLSchemaTestCase(HelperTestCase):
@@ -66,11 +63,13 @@ class ETreeXMLSchemaTestCase(HelperTestCase):
 
     def test_xmlschema_error_log_path(self):
         """We don't have a guarantee that there will always be a path
-        for a _LogEntry object (or even a node for which to determina
+        for a _LogEntry object (or even a node for which to determine
         a path), but at least when this test was created schema validation
         errors always got a node and an XPath value. If that ever changes,
-        we can modify this test to something like:
+        we can modify this test to something like::
+
             self.assertTrue(error_path is None or tree_path == error_path)
+
         That way, we can at least verify that if we did get a path value
         it wasn't bogus.
         """
@@ -412,7 +411,7 @@ class ETreeXMLSchemaResolversTestCase(HelperTestCase):
     <xsd:complexType name="AType">
       <xsd:sequence><xsd:element name="b" type="xsd:string" minOccurs="0" maxOccurs="unbounded" /></xsd:sequence>
     </xsd:complexType>
-</xsd:schema>""" 
+</xsd:schema>"""
 
     class simple_resolver(etree.Resolver):
         def __init__(self, schema):

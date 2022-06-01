@@ -7,13 +7,13 @@ Bug-Debian: https://bugs.debian.org/1001885
 Bug-Debian-Security: https://security-tracker.debian.org/tracker/CVE-2021-43818
 
 Reported as GHSL-2021-1038
-[Salvatore Bonaccorso: Backport to 4.3.2: Use gzip.zlib.compress(svg) in test
-for test_svg_data_links instead of gzip.compress(svg)]
 ---
  src/lxml/html/clean.py            | 23 ++++++++++------
  src/lxml/html/tests/test_clean.py | 45 +++++++++++++++++++++++++++++++
  2 files changed, 60 insertions(+), 8 deletions(-)
 
+diff --git a/src/lxml/html/clean.py b/src/lxml/html/clean.py
+index 25844e873309..dd3a28ad1b53 100644
 --- a/src/lxml/html/clean.py
 +++ b/src/lxml/html/clean.py
 @@ -75,18 +75,25 @@ _looks_like_tag_content = re.compile(
@@ -50,6 +50,8 @@ for test_svg_data_links instead of gzip.compress(svg)]
  
  # FIXME: check against: http://msdn2.microsoft.com/en-us/library/ms537512.aspx
  _conditional_comment_re = re.compile(
+diff --git a/src/lxml/html/tests/test_clean.py b/src/lxml/html/tests/test_clean.py
+index d395d5141eb8..a05d9673dc53 100644
 --- a/src/lxml/html/tests/test_clean.py
 +++ b/src/lxml/html/tests/test_clean.py
 @@ -1,3 +1,5 @@
@@ -58,14 +60,14 @@ for test_svg_data_links instead of gzip.compress(svg)]
  import unittest
  from lxml.tests.common_imports import make_doctest
  
-@@ -108,6 +110,49 @@ class CleanerTest(unittest.TestCase):
+@@ -143,6 +145,49 @@ class CleanerTest(unittest.TestCase):
                  cleaned,
                  "%s  ->  %s" % (style_code, cleaned))
  
 +    def test_svg_data_links(self):
 +        # Remove SVG images with potentially insecure content.
 +        svg = b'<svg onload="alert(123)" />'
-+        svgz = gzip.zlib.compress(svg)
++        svgz = gzip.compress(svg)
 +        svg_b64 = base64.b64encode(svg).decode('ASCII')
 +        svgz_b64 = base64.b64encode(svgz).decode('ASCII')
 +        urls = [
@@ -108,3 +110,6 @@ for test_svg_data_links instead of gzip.compress(svg)]
      def test_formaction_attribute_in_button_input(self):
          # The formaction attribute overrides the form's action and should be
          # treated as a malicious link attribute
+-- 
+2.34.1
+

@@ -1,20 +1,31 @@
 # SAX-like interfaces
 
+class XMLSyntaxAssertionError(XMLSyntaxError, AssertionError):
+    """
+    An XMLSyntaxError that additionally inherits from AssertionError for
+    ElementTree / backwards compatibility reasons.
+
+    This class may get replaced by a plain XMLSyntaxError in a future version.
+    """
+
+
 ctypedef enum _SaxParserEvents:
-    SAX_EVENT_START   =  1
-    SAX_EVENT_END     =  2
-    SAX_EVENT_DATA    =  4
-    SAX_EVENT_DOCTYPE =  8
-    SAX_EVENT_PI      = 16
-    SAX_EVENT_COMMENT = 32
+    SAX_EVENT_START    = 1 << 0
+    SAX_EVENT_END      = 1 << 1
+    SAX_EVENT_DATA     = 1 << 2
+    SAX_EVENT_DOCTYPE  = 1 << 3
+    SAX_EVENT_PI       = 1 << 4
+    SAX_EVENT_COMMENT  = 1 << 5
+    SAX_EVENT_START_NS = 1 << 6
+    SAX_EVENT_END_NS   = 1 << 7
 
 ctypedef enum _ParseEventFilter:
-    PARSE_EVENT_FILTER_START     =  1
-    PARSE_EVENT_FILTER_END       =  2
-    PARSE_EVENT_FILTER_START_NS  =  4
-    PARSE_EVENT_FILTER_END_NS    =  8
-    PARSE_EVENT_FILTER_COMMENT   = 16
-    PARSE_EVENT_FILTER_PI        = 32
+    PARSE_EVENT_FILTER_START     = 1 << 0
+    PARSE_EVENT_FILTER_END       = 1 << 1
+    PARSE_EVENT_FILTER_START_NS  = 1 << 2
+    PARSE_EVENT_FILTER_END_NS    = 1 << 3
+    PARSE_EVENT_FILTER_COMMENT   = 1 << 4
+    PARSE_EVENT_FILTER_PI        = 1 << 5
 
 
 cdef int _buildParseEventFilter(events) except -1:
@@ -54,6 +65,10 @@ cdef class _SaxParserTarget:
     cdef _handleSaxPi(self, target, data):
         return None
     cdef _handleSaxComment(self, comment):
+        return None
+    cdef _handleSaxStartNs(self, prefix, uri):
+        return None
+    cdef _handleSaxEndNs(self, prefix):
         return None
 
 
@@ -103,23 +118,29 @@ cdef class _SaxParserContext(_ParserContext):
             self._connectEvents(c_ctxt)
 
     cdef void _connectTarget(self, xmlparser.xmlParserCtxt* c_ctxt):
-        """wrap original SAX2 callbacks to call into parser target"""
+        """Wrap original SAX2 callbacks to call into parser target.
+        """
         sax = c_ctxt.sax
         self._origSaxStart = sax.startElementNs = NULL
         self._origSaxStartNoNs = sax.startElement = NULL
-        if self._target._sax_event_filter & SAX_EVENT_START:
+        if self._target._sax_event_filter & (SAX_EVENT_START |
+                                             SAX_EVENT_START_NS |
+                                             SAX_EVENT_END_NS):
             # intercept => overwrite orig callback
             # FIXME: also intercept on when collecting END events
             if sax.initialized == xmlparser.XML_SAX2_MAGIC:
                 sax.startElementNs = _handleSaxTargetStart
-            sax.startElement = _handleSaxTargetStartNoNs
+            if self._target._sax_event_filter & SAX_EVENT_START:
+                sax.startElement = _handleSaxTargetStartNoNs
 
         self._origSaxEnd = sax.endElementNs = NULL
         self._origSaxEndNoNs = sax.endElement = NULL
-        if self._target._sax_event_filter & SAX_EVENT_END:
+        if self._target._sax_event_filter & (SAX_EVENT_END |
+                                             SAX_EVENT_END_NS):
             if sax.initialized == xmlparser.XML_SAX2_MAGIC:
                 sax.endElementNs = _handleSaxEnd
-            sax.endElement = _handleSaxEndNoNs
+            if self._target._sax_event_filter & SAX_EVENT_END:
+                sax.endElement = _handleSaxEndNoNs
 
         self._origSaxData = sax.characters = sax.cdataBlock = NULL
         if self._target._sax_event_filter & SAX_EVENT_DATA:
@@ -132,7 +153,7 @@ cdef class _SaxParserContext(_ParserContext):
 
         self._origSaxPI = sax.processingInstruction = NULL
         if self._target._sax_event_filter & SAX_EVENT_PI:
-            sax.processingInstruction = _handleSaxPI
+            sax.processingInstruction = _handleSaxTargetPI
 
         self._origSaxComment = sax.comment = NULL
         if self._target._sax_event_filter & SAX_EVENT_COMMENT:
@@ -143,28 +164,37 @@ cdef class _SaxParserContext(_ParserContext):
         c_ctxt.replaceEntities = 1
 
     cdef void _connectEvents(self, xmlparser.xmlParserCtxt* c_ctxt):
-        """wrap original SAX2 callbacks to collect parse events"""
+        """Wrap original SAX2 callbacks to collect parse events without parser target.
+        """
         sax = c_ctxt.sax
         self._origSaxStartDocument = sax.startDocument
         sax.startDocument = _handleSaxStartDocument
+
+        # only override "start" event handler if needed
         self._origSaxStart = sax.startElementNs
-        self._origSaxStartNoNs = sax.startElement
-        # only override start event handler if needed
-        if self._event_filter == 0 or \
+        if self._event_filter == 0 or c_ctxt.html or \
                self._event_filter & (PARSE_EVENT_FILTER_START |
                                      PARSE_EVENT_FILTER_END |
                                      PARSE_EVENT_FILTER_START_NS |
                                      PARSE_EVENT_FILTER_END_NS):
             sax.startElementNs = <xmlparser.startElementNsSAX2Func>_handleSaxStart
+
+        self._origSaxStartNoNs = sax.startElement
+        if self._event_filter == 0 or c_ctxt.html or \
+               self._event_filter & (PARSE_EVENT_FILTER_START |
+                                     PARSE_EVENT_FILTER_END):
             sax.startElement = <xmlparser.startElementSAXFunc>_handleSaxStartNoNs
 
+        # only override "end" event handler if needed
         self._origSaxEnd = sax.endElementNs
-        self._origSaxEndNoNs = sax.endElement
-        # only override end event handler if needed
         if self._event_filter == 0 or \
                self._event_filter & (PARSE_EVENT_FILTER_END |
                                      PARSE_EVENT_FILTER_END_NS):
             sax.endElementNs = <xmlparser.endElementNsSAX2Func>_handleSaxEnd
+
+        self._origSaxEndNoNs = sax.endElement
+        if self._event_filter == 0 or \
+               self._event_filter & PARSE_EVENT_FILTER_END:
             sax.endElement = <xmlparser.endElementSAXFunc>_handleSaxEndNoNs
 
         self._origSaxComment = sax.comment
@@ -248,15 +278,15 @@ cdef class _ParseEventsIterator:
         return item
 
 
-cdef int _appendNsEvents(_SaxParserContext context, int c_nb_namespaces,
-                         const_xmlChar** c_namespaces) except -1:
+cdef list _build_prefix_uri_list(_SaxParserContext context, int c_nb_namespaces,
+                                 const_xmlChar** c_namespaces):
+    "Build [(prefix, uri)] list of declared namespaces."
     cdef int i
+    namespaces = []
     for i in xrange(c_nb_namespaces):
-        ns_tuple = (funicodeOrEmpty(c_namespaces[0]),
-                    funicode(c_namespaces[1]))
-        context.events_iterator._events.append( ("start-ns", ns_tuple) )
+        namespaces.append((funicodeOrEmpty(c_namespaces[0]), funicode(c_namespaces[1])))
         c_namespaces += 2
-    return 0
+    return namespaces
 
 
 cdef void _handleSaxStart(
@@ -271,22 +301,30 @@ cdef void _handleSaxStart(
     if c_ctxt._private is NULL or c_ctxt.disableSAX:
         return
     context = <_SaxParserContext>c_ctxt._private
+    cdef int event_filter = context._event_filter
     try:
         if (c_nb_namespaces and
-                context._event_filter & PARSE_EVENT_FILTER_START_NS):
-            _appendNsEvents(context, c_nb_namespaces, c_namespaces)
+                event_filter & (PARSE_EVENT_FILTER_START_NS |
+                                PARSE_EVENT_FILTER_END_NS)):
+            declared_namespaces = _build_prefix_uri_list(
+                context, c_nb_namespaces, c_namespaces)
+            if event_filter & PARSE_EVENT_FILTER_START_NS:
+                for prefix_uri_tuple in declared_namespaces:
+                    context.events_iterator._events.append(("start-ns", prefix_uri_tuple))
+        else:
+            declared_namespaces = None
+
         context._origSaxStart(c_ctxt, c_localname, c_prefix, c_namespace,
                               c_nb_namespaces, c_namespaces, c_nb_attributes,
                               c_nb_defaulted, c_attributes)
         if c_ctxt.html:
             _fixHtmlDictNodeNames(c_ctxt.dict, c_ctxt.node)
 
-        if context._event_filter & PARSE_EVENT_FILTER_END_NS:
-            context._ns_stack.append(c_nb_namespaces)
-        if context._event_filter & (PARSE_EVENT_FILTER_END |
-                                    PARSE_EVENT_FILTER_START):
-            _pushSaxStartEvent(context, c_ctxt, c_namespace,
-                               c_localname, None)
+        if event_filter & PARSE_EVENT_FILTER_END_NS:
+            context._ns_stack.append(declared_namespaces)
+        if event_filter & (PARSE_EVENT_FILTER_END |
+                           PARSE_EVENT_FILTER_START):
+            _pushSaxStartEvent(context, c_ctxt, c_namespace, c_localname, None)
     except:
         context._handleSaxException(c_ctxt)
     finally:
@@ -305,45 +343,61 @@ cdef void _handleSaxTargetStart(
     if c_ctxt._private is NULL or c_ctxt.disableSAX:
         return
     context = <_SaxParserContext>c_ctxt._private
-    try:
-        if (c_nb_namespaces and
-                context._event_filter & PARSE_EVENT_FILTER_START_NS):
-            _appendNsEvents(context, c_nb_namespaces, c_namespaces)
-        if c_nb_defaulted > 0:
-            # only add default attributes if we asked for them
-            if c_ctxt.loadsubset & xmlparser.XML_COMPLETE_ATTRS == 0:
-                c_nb_attributes -= c_nb_defaulted
-        if c_nb_attributes == 0:
-            attrib = IMMUTABLE_EMPTY_MAPPING
-        else:
-            attrib = {}
-            for i in xrange(c_nb_attributes):
-                name = _namespacedNameFromNsName(
-                    c_attributes[2], c_attributes[0])
-                if c_attributes[3] is NULL:
-                    value = ''
-                else:
-                    c_len = c_attributes[4] - c_attributes[3]
-                    value = c_attributes[3][:c_len].decode('utf8')
-                attrib[name] = value
-                c_attributes += 5
-        if c_nb_namespaces == 0:
-            nsmap = IMMUTABLE_EMPTY_MAPPING
-        else:
-            nsmap = {}
-            for i in xrange(c_nb_namespaces):
-                prefix = funicodeOrNone(c_namespaces[0])
-                nsmap[prefix] = funicode(c_namespaces[1])
-                c_namespaces += 2
-        element = _callTargetSaxStart(
-            context, c_ctxt,
-            _namespacedNameFromNsName(c_namespace, c_localname),
-            attrib, nsmap)
 
-        if context._event_filter & PARSE_EVENT_FILTER_END_NS:
-            context._ns_stack.append(c_nb_namespaces)
-        if context._event_filter & (PARSE_EVENT_FILTER_END |
-                                    PARSE_EVENT_FILTER_START):
+    cdef int event_filter = context._event_filter
+    cdef int sax_event_filter = context._target._sax_event_filter
+    try:
+        if c_nb_namespaces:
+            declared_namespaces = _build_prefix_uri_list(
+                context, c_nb_namespaces, c_namespaces)
+
+            if event_filter & PARSE_EVENT_FILTER_START_NS:
+                for prefix_uri_tuple in declared_namespaces:
+                    context.events_iterator._events.append(("start-ns", prefix_uri_tuple))
+
+            if sax_event_filter & SAX_EVENT_START_NS:
+                for prefix, uri in declared_namespaces:
+                    context._target._handleSaxStartNs(prefix, uri)
+                #if not context._target._sax_event_filter & SAX_EVENT_START:
+                #    # *Only* collecting start-ns events.
+                #    return
+        else:
+            declared_namespaces = None
+
+        if sax_event_filter & SAX_EVENT_START:
+            if c_nb_defaulted > 0:
+                # only add default attributes if we asked for them
+                if c_ctxt.loadsubset & xmlparser.XML_COMPLETE_ATTRS == 0:
+                    c_nb_attributes -= c_nb_defaulted
+            if c_nb_attributes == 0:
+                attrib = IMMUTABLE_EMPTY_MAPPING
+            else:
+                attrib = {}
+                for i in xrange(c_nb_attributes):
+                    name = _namespacedNameFromNsName(
+                        c_attributes[2], c_attributes[0])
+                    if c_attributes[3] is NULL:
+                        value = ''
+                    else:
+                        c_len = c_attributes[4] - c_attributes[3]
+                        value = c_attributes[3][:c_len].decode('utf8')
+                    attrib[name] = value
+                    c_attributes += 5
+
+            nsmap = dict(declared_namespaces) if c_nb_namespaces else IMMUTABLE_EMPTY_MAPPING
+
+            element = _callTargetSaxStart(
+                context, c_ctxt,
+                _namespacedNameFromNsName(c_namespace, c_localname),
+                attrib, nsmap)
+        else:
+            element = None
+
+        if (event_filter & PARSE_EVENT_FILTER_END_NS or
+                sax_event_filter & SAX_EVENT_END_NS):
+            context._ns_stack.append(declared_namespaces)
+        if event_filter & (PARSE_EVENT_FILTER_END |
+                           PARSE_EVENT_FILTER_START):
             _pushSaxStartEvent(context, c_ctxt, c_namespace,
                                c_localname, element)
     except:
@@ -436,8 +490,11 @@ cdef void _handleSaxEnd(void* ctxt, const_xmlChar* c_localname,
     context = <_SaxParserContext>c_ctxt._private
     try:
         if context._target is not None:
-            node = context._target._handleSaxEnd(
-                _namespacedNameFromNsName(c_namespace, c_localname))
+            if context._target._sax_event_filter & SAX_EVENT_END:
+                node = context._target._handleSaxEnd(
+                    _namespacedNameFromNsName(c_namespace, c_localname))
+            else:
+                node = None
         else:
             context._origSaxEnd(c_ctxt, c_localname, c_prefix, c_namespace)
             node = None
@@ -467,14 +524,25 @@ cdef void _handleSaxEndNoNs(void* ctxt, const_xmlChar* c_name) with gil:
         return  # swallow any further exceptions
 
 
-cdef tuple NS_END_EVENT = ('end-ns', None)
-
-
 cdef int _pushSaxNsEndEvents(_SaxParserContext context) except -1:
-    cdef int i
-    if context._event_filter & PARSE_EVENT_FILTER_END_NS:
-        for i in range(context._ns_stack.pop()):
-            context.events_iterator._events.append(NS_END_EVENT)
+    cdef bint build_events = context._event_filter & PARSE_EVENT_FILTER_END_NS
+    cdef bint call_target = (
+        context._target is not None
+        and context._target._sax_event_filter & SAX_EVENT_END_NS)
+    if not build_events and not call_target:
+        return 0
+
+    cdef list declared_namespaces = context._ns_stack.pop()
+    if declared_namespaces is None:
+        return 0
+
+    cdef tuple prefix_uri
+    for prefix_uri in reversed(declared_namespaces):
+        if call_target:
+            context._target._handleSaxEndNs(prefix_uri[0])
+        if build_events:
+            context.events_iterator._events.append(('end-ns', None))
+
     return 0
 
 
@@ -539,8 +607,8 @@ cdef void _handleSaxStartDocument(void* ctxt) with gil:
         return  # swallow any further exceptions
 
 
-cdef void _handleSaxPI(void* ctxt, const_xmlChar* c_target,
-                       const_xmlChar* c_data) with gil:
+cdef void _handleSaxTargetPI(void* ctxt, const_xmlChar* c_target,
+                             const_xmlChar* c_data) with gil:
     # can only be called if parsing with a target
     c_ctxt = <xmlparser.xmlParserCtxt*>ctxt
     if c_ctxt._private is NULL or c_ctxt.disableSAX:
@@ -630,20 +698,35 @@ cdef inline xmlNode* _findLastEventNode(xmlparser.xmlParserCtxt* c_ctxt):
 ############################################################
 
 cdef class TreeBuilder(_SaxParserTarget):
-    u"""TreeBuilder(self, element_factory=None, parser=None)
-    Parser target that builds a tree.
+    u"""TreeBuilder(self, element_factory=None, parser=None,
+                    comment_factory=None, pi_factory=None,
+                    insert_comments=True, insert_pis=True)
+
+    Parser target that builds a tree from parse event callbacks.
+
+    The factory arguments can be used to influence the creation of
+    elements, comments and processing instructions.
+
+    By default, comments and processing instructions are inserted into
+    the tree, but they can be ignored by passing the respective flags.
 
     The final tree is returned by the ``close()`` method.
     """
     cdef _BaseParser _parser
     cdef object _factory
+    cdef object _comment_factory
+    cdef object _pi_factory
     cdef list _data
     cdef list _element_stack
     cdef object _element_stack_pop
     cdef _Element _last # may be None
     cdef bint _in_tail
+    cdef bint _insert_comments
+    cdef bint _insert_pis
 
-    def __init__(self, *, element_factory=None, parser=None):
+    def __init__(self, *, element_factory=None, parser=None,
+                 comment_factory=None, pi_factory=None,
+                 bint insert_comments=True, bint insert_pis=True):
         self._sax_event_filter = \
             SAX_EVENT_START | SAX_EVENT_END | SAX_EVENT_DATA | \
             SAX_EVENT_PI | SAX_EVENT_COMMENT
@@ -653,6 +736,10 @@ cdef class TreeBuilder(_SaxParserTarget):
         self._last = None # last element
         self._in_tail = 0 # true if we're after an end tag
         self._factory = element_factory
+        self._comment_factory = comment_factory if comment_factory is not None else Comment
+        self._pi_factory = pi_factory if pi_factory is not None else ProcessingInstruction
+        self._insert_comments = insert_comments
+        self._insert_pis = insert_pis
         self._parser = parser
 
     @cython.final
@@ -701,21 +788,25 @@ cdef class TreeBuilder(_SaxParserTarget):
 
     @cython.final
     cdef _handleSaxPi(self, target, data):
-        self._flush()
-        self._last = ProcessingInstruction(target, data)
-        if self._element_stack:
-            _appendChild(self._element_stack[-1], self._last)
-        self._in_tail = 1
+        elem = self._pi_factory(target, data)
+        if self._insert_pis:
+            self._flush()
+            self._last = elem
+            if self._element_stack:
+                _appendChild(self._element_stack[-1], self._last)
+            self._in_tail = 1
         return self._last
 
     @cython.final
     cdef _handleSaxComment(self, comment):
-        self._flush()
-        self._last = Comment(comment)
-        if self._element_stack:
-            _appendChild(self._element_stack[-1], self._last)
-        self._in_tail = 1
-        return self._last
+        elem = self._comment_factory(comment)
+        if self._insert_comments:
+            self._flush()
+            self._last = elem
+            if self._element_stack:
+                _appendChild(self._element_stack[-1], self._last)
+            self._in_tail = 1
+        return elem
 
     # Python level event handlers
 
@@ -723,10 +814,13 @@ cdef class TreeBuilder(_SaxParserTarget):
         u"""close(self)
 
         Flushes the builder buffers, and returns the toplevel document
-        element.
+        element.  Raises XMLSyntaxError on inconsistencies.
         """
-        assert not self._element_stack, u"missing end tags"
-        assert self._last is not None, u"missing toplevel element"
+        if self._element_stack:
+            raise XMLSyntaxAssertionError("missing end tags")
+        # TODO: this does not necessarily seem like an error case.  Why not just return None?
+        if self._last is None:
+            raise XMLSyntaxAssertionError("missing toplevel element")
         return self._last
 
     def data(self, data):
@@ -756,12 +850,18 @@ cdef class TreeBuilder(_SaxParserTarget):
             f"end tag mismatch (expected {self._last.tag}, got {tag})"
         return element
 
-    def pi(self, target, data):
-        u"""pi(self, target, data)
+    def pi(self, target, data=None):
+        u"""pi(self, target, data=None)
+
+        Creates a processing instruction using the factory, appends it
+        (unless disabled) and returns it.
         """
         return self._handleSaxPi(target, data)
 
     def comment(self, comment):
         u"""comment(self, comment)
+
+        Creates a comment using the factory, appends it (unless disabled)
+        and returns it.
         """
         return self._handleSaxComment(comment)

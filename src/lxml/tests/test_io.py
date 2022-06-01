@@ -4,16 +4,16 @@
 IO test cases that apply to both etree and ElementTree
 """
 
+from __future__ import absolute_import
+
 import unittest
-import tempfile, gzip, os, os.path, sys, gc, shutil
+import tempfile, gzip, os, os.path, gc, shutil
 
-this_dir = os.path.dirname(__file__)
-if this_dir not in sys.path:
-    sys.path.insert(0, this_dir)  # needed for Py3
-
-from common_imports import etree, ElementTree, _str, _bytes
-from common_imports import SillyFileLike, LargeFileLike, HelperTestCase
-from common_imports import read_file, write_to_file, BytesIO
+from .common_imports import (
+    etree, ElementTree, _str, _bytes,
+    SillyFileLike, LargeFileLike, HelperTestCase,
+    read_file, write_to_file, BytesIO, tmpfile
+)
 
 
 class _IOTestCaseBase(HelperTestCase):
@@ -28,7 +28,7 @@ class _IOTestCaseBase(HelperTestCase):
         self.root_str = self.etree.tostring(self.root)
         self.tree = self.etree.ElementTree(self.root)
         self._temp_dir = tempfile.mkdtemp()
-        
+
     def tearDown(self):
         gc.collect()
         shutil.rmtree(self._temp_dir)
@@ -38,7 +38,7 @@ class _IOTestCaseBase(HelperTestCase):
 
     def buildNodes(self, element, children, depth):
         Element = self.etree.Element
-        
+
         if depth == 0:
             return
         for i in range(children):
@@ -49,26 +49,21 @@ class _IOTestCaseBase(HelperTestCase):
     def test_tree_io(self):
         Element = self.etree.Element
         ElementTree = self.etree.ElementTree
-    
+
         element = Element('top')
         element.text = _str("qwrtioüöä\uAABB")
         tree = ElementTree(element)
         self.buildNodes(element, 10, 3)
-        f = open(self.getTestFilePath('testdump.xml'), 'wb')
-        tree.write(f, encoding='UTF-8')
-        f.close()
-        f = open(self.getTestFilePath('testdump.xml'), 'rb')
-        tree = ElementTree(file=f)
-        f.close()
-        f = open(self.getTestFilePath('testdump2.xml'), 'wb')
-        tree.write(f, encoding='UTF-8')
-        f.close()
-        f = open(self.getTestFilePath('testdump.xml'), 'rb')
-        data1 = f.read()
-        f.close()
-        f = open(self.getTestFilePath('testdump2.xml'), 'rb')
-        data2 = f.read()
-        f.close()
+        with open(self.getTestFilePath('testdump.xml'), 'wb') as f:
+            tree.write(f, encoding='UTF-8')
+        with open(self.getTestFilePath('testdump.xml'), 'rb') as f:
+            tree = ElementTree(file=f)
+        with open(self.getTestFilePath('testdump2.xml'), 'wb') as f:
+            tree.write(f, encoding='UTF-8')
+        with open(self.getTestFilePath('testdump.xml'), 'rb') as f:
+            data1 = f.read()
+        with open(self.getTestFilePath('testdump2.xml'), 'rb') as f:
+            data2 = f.read()
         self.assertEqual(data1, data2)
 
     def test_tree_io_latin1(self):
@@ -79,35 +74,55 @@ class _IOTestCaseBase(HelperTestCase):
         element.text = _str("qwrtioüöäßÃ¡")
         tree = ElementTree(element)
         self.buildNodes(element, 10, 3)
-        f = open(self.getTestFilePath('testdump.xml'), 'wb')
-        tree.write(f, encoding='iso-8859-1')
-        f.close()
-        f = open(self.getTestFilePath('testdump.xml'), 'rb')
-        tree = ElementTree(file=f)
-        f.close()
-        f = open(self.getTestFilePath('testdump2.xml'), 'wb')
-        tree.write(f, encoding='iso-8859-1')
-        f.close()
-        f = open(self.getTestFilePath('testdump.xml'), 'rb')
-        data1 = f.read()
-        f.close()
-        f = open(self.getTestFilePath('testdump2.xml'), 'rb')
-        data2 = f.read()
-        f.close()
+        with open(self.getTestFilePath('testdump.xml'), 'wb') as f:
+            tree.write(f, encoding='iso-8859-1')
+        with open(self.getTestFilePath('testdump.xml'), 'rb') as f:
+            tree = ElementTree(file=f)
+        with open(self.getTestFilePath('testdump2.xml'), 'wb') as f:
+            tree.write(f, encoding='iso-8859-1')
+        with open(self.getTestFilePath('testdump.xml'), 'rb') as f:
+            data1 = f.read()
+        with open(self.getTestFilePath('testdump2.xml'), 'rb') as f:
+            data2 = f.read()
         self.assertEqual(data1, data2)
-        
+
     def test_write_filename(self):
         # (c)ElementTree  supports filename strings as write argument
-        
-        handle, filename = tempfile.mkstemp(suffix=".xml")
-        self.tree.write(filename)
-        try:
-            self.assertEqual(read_file(filename, 'rb').replace(_bytes('\n'), _bytes('')),
+        with tmpfile(prefix="p", suffix=".xml") as filename:
+            self.tree.write(filename)
+            self.assertEqual(read_file(filename, 'rb').replace(b'\n', b''),
                              self.root_str)
-        finally:
-            os.close(handle)
-            os.remove(filename)
-        
+
+    def test_write_filename_special_percent(self):
+        # '%20' is a URL escaped space character.
+        before_test = os.listdir(tempfile.gettempdir())
+
+        def difference(filenames):
+            return sorted(
+                fn for fn in set(filenames).difference(before_test)
+                if fn.startswith('lxmltmp-')
+            )
+
+        with tmpfile(prefix="lxmltmp-p%20p", suffix=".xml") as filename:
+            try:
+                before_write = os.listdir(tempfile.gettempdir())
+                self.tree.write(filename)
+                after_write = os.listdir(tempfile.gettempdir())
+                self.assertEqual(read_file(filename, 'rb').replace(b'\n', b''),
+                                 self.root_str)
+            except (AssertionError, IOError, OSError):
+                print("Before write: %s, after write: %s" % (
+                    difference(before_write), difference(after_write))
+                )
+                raise
+
+    def test_write_filename_special_plus(self):
+        # '+' is used as an escaped space character in URLs.
+        with tmpfile(prefix="p+", suffix=".xml") as filename:
+            self.tree.write(filename)
+            self.assertEqual(read_file(filename, 'rb').replace(b'\n', b''),
+                             self.root_str)
+
     def test_write_invalid_filename(self):
         filename = os.path.join(
             os.path.join('hopefullynonexistingpathname'),
@@ -122,39 +137,27 @@ class _IOTestCaseBase(HelperTestCase):
 
     def test_module_parse_gzipobject(self):
         # (c)ElementTree supports gzip instance as parse argument
-        handle, filename = tempfile.mkstemp(suffix=".xml.gz")
-        f = gzip.open(filename, 'wb')
-        f.write(self.root_str)
-        f.close()
-        try:
-            f_gz = gzip.open(filename, 'rb')
-            tree = self.etree.parse(f_gz)
-            f_gz.close()
+        with tmpfile(suffix=".xml.gz") as filename:
+            with gzip.open(filename, 'wb') as f:
+                f.write(self.root_str)
+            with gzip.open(filename, 'rb') as f_gz:
+                tree = self.etree.parse(f_gz)
             self.assertEqual(self.etree.tostring(tree.getroot()), self.root_str)
-        finally:
-            os.close(handle)
-            os.remove(filename)
 
     def test_class_parse_filename(self):
         # (c)ElementTree class ElementTree has a 'parse' method that returns
         # the root of the tree
 
         # parse from filename
-        
-        handle, filename = tempfile.mkstemp(suffix=".xml")
-        write_to_file(filename, self.root_str, 'wb')
-        try:
+        with tmpfile(suffix=".xml") as filename:
+            write_to_file(filename, self.root_str, 'wb')
             tree = self.etree.ElementTree()
             root = tree.parse(filename)
             self.assertEqual(self.etree.tostring(root), self.root_str)
-        finally:
-            os.close(handle)
-            os.remove(filename)
 
     def test_class_parse_filename_remove_previous(self):
-        handle, filename = tempfile.mkstemp(suffix=".xml")
-        write_to_file(filename, self.root_str, 'wb')
-        try:
+        with tmpfile(suffix=".xml") as filename:
+            write_to_file(filename, self.root_str, 'wb')
             tree = self.etree.ElementTree()
             root = tree.parse(filename)
             # and now do it again; previous content should still be there
@@ -168,23 +171,18 @@ class _IOTestCaseBase(HelperTestCase):
             self.assertEqual('a', root3.tag)
             # root2's memory should've been freed here
             # XXX how to check?
-        finally:
-            os.close(handle)
-            os.remove(filename)
-        
+
     def test_class_parse_fileobject(self):
         # (c)ElementTree class ElementTree has a 'parse' method that returns
         # the root of the tree
 
         # parse from file object
-        
         handle, filename = tempfile.mkstemp(suffix=".xml")
         try:
             os.write(handle, self.root_str)
-            f = open(filename, 'rb')
-            tree = self.etree.ElementTree()
-            root = tree.parse(f)
-            f.close()
+            with open(filename, 'rb') as f:
+                tree = self.etree.ElementTree()
+                root = tree.parse(f)
             self.assertEqual(self.etree.tostring(root), self.root_str)
         finally:
             os.close(handle)
@@ -194,13 +192,13 @@ class _IOTestCaseBase(HelperTestCase):
         # (c)ElementTree class ElementTree has a 'parse' method that returns
         # the root of the tree
 
-        # parse from unamed file object    
+        # parse from unnamed file object
         f = SillyFileLike()
         root = self.etree.ElementTree().parse(f)
         self.assertTrue(root.tag.endswith('foo'))
 
     def test_module_parse_large_fileobject(self):
-        # parse from unamed file object
+        # parse from unnamed file object
         f = LargeFileLike()
         tree = self.etree.parse(f)
         root = tree.getroot()

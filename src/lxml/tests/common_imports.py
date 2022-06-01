@@ -1,9 +1,19 @@
+"""
+Common helpers and adaptations for Py2/3.
+To be used in tests.
+"""
+
+# Slows down test runs by factors. Enable to debug proxy handling issues.
+DEBUG_PROXY_ISSUES = False  # True
+
+import gc
 import os
 import os.path
 import re
-import gc
 import sys
+import tempfile
 import unittest
+from contextlib import contextmanager
 
 try:
     import urlparse
@@ -18,13 +28,10 @@ except:
 from lxml import etree, html
 
 def make_version_tuple(version_string):
-    l = []
-    for part in re.findall('([0-9]+|[^0-9.]+)', version_string):
-        try:
-            l.append(int(part))
-        except ValueError:
-            l.append(part)
-    return tuple(l)
+    return tuple(
+        int(part) if part.isdigit() else part
+        for part in re.findall('([0-9]+|[^0-9.]+)', version_string)
+    )
 
 IS_PYPY = (getattr(sys, 'implementation', None) == 'pypy' or
            getattr(sys, 'pypy_version_info', None) is not None)
@@ -39,12 +46,17 @@ if hasattr(ElementTree, 'VERSION'):
 else:
     ET_VERSION = (0,0,0)
 
-from xml.etree import cElementTree
+if IS_PYTHON2:
+    from xml.etree import cElementTree
 
-if hasattr(cElementTree, 'VERSION'):
-    CET_VERSION = make_version_tuple(cElementTree.VERSION)
+    if hasattr(cElementTree, 'VERSION'):
+        CET_VERSION = make_version_tuple(cElementTree.VERSION)
+    else:
+        CET_VERSION = (0,0,0)
 else:
-    CET_VERSION = (0,0,0)
+    CET_VERSION = (0, 0, 0)
+    cElementTree = None
+
 
 def filter_by_version(test_class, version_dict, current_version):
     """Remove test methods that do not work with the current lib version.
@@ -58,15 +70,6 @@ def filter_by_version(test_class, version_dict, current_version):
             setattr(test_class, name, dummy_test_method)
 
 import doctest
-
-try:
-    next
-except NameError:
-    def next(it):
-        return it.next()
-else:
-    locals()['next'] = next
-
 
 try:
     import pytest
@@ -157,7 +160,8 @@ except AttributeError:
 
 class HelperTestCase(unittest.TestCase):
     def tearDown(self):
-        gc.collect()
+        if DEBUG_PROXY_ISSUES:
+            gc.collect()
 
     def parse(self, text, parser=None):
         f = BytesIO(text) if isinstance(text, bytes) else StringIO(text)
@@ -252,19 +256,13 @@ def fileUrlInTestDir(name):
     return path2url(fileInTestDir(name))
 
 def read_file(name, mode='r'):
-    f = open(name, mode)
-    try:
+    with open(name, mode) as f:
         data = f.read()
-    finally:
-        f.close()
     return data
 
 def write_to_file(name, data, mode='w'):
-    f = open(name, mode)
-    try:
-        data = f.write(data)
-    finally:
-        f.close()
+    with open(name, mode) as f:
+        f.write(data)
 
 def readFileInTestDir(name, mode='r'):
     return read_file(fileInTestDir(name), mode)
@@ -275,7 +273,12 @@ def canonicalize(xml):
     tree.write_c14n(f)
     return f.getvalue()
 
-def unentitify(xml):
-    for entity_name, value in re.findall("(&#([0-9]+);)", xml):
-        xml = xml.replace(entity_name, unichr(int(value)))
-    return xml
+
+@contextmanager
+def tmpfile(**kwargs):
+    handle, filename = tempfile.mkstemp(**kwargs)
+    try:
+        yield filename
+    finally:
+        os.close(handle)
+        os.remove(filename)

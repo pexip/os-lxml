@@ -34,6 +34,21 @@ class CleanerTest(unittest.TestCase):
 
         self.assertEqual(12-5+1, len(list(result.iter())))
 
+    def test_allow_and_remove(self):
+        with self.assertRaises(ValueError):
+            Cleaner(allow_tags=['a'], remove_unknown_tags=True)
+
+    def test_remove_unknown_tags(self):
+        html = """<div><bun>lettuce, tomato, veggie patty</bun></div>"""
+        clean_html = """<div>lettuce, tomato, veggie patty</div>"""
+        cleaner = Cleaner(remove_unknown_tags=True)
+        result = cleaner.clean_html(html)
+        self.assertEqual(
+            result,
+            clean_html,
+            msg="Unknown tags not removed. Got: %s" % result,
+        )
+
     def test_safe_attrs_included(self):
         html = """<p><span style="color: #00ffff;">Cyan</span></p>"""
 
@@ -67,6 +82,61 @@ class CleanerTest(unittest.TestCase):
 
         s = lxml.html.fromstring('<invalid tag>child</another>')
         self.assertEqual('child', clean_html(s).text_content())
+
+    def test_clean_with_comments(self):
+        html = """<p><span style="color: #00ffff;">Cy<!-- xx -->an</span><!-- XXX --></p>"""
+        s = lxml.html.fragment_fromstring(html)
+
+        self.assertEqual(
+            b'<p><span>Cyan</span></p>',
+            lxml.html.tostring(clean_html(s)))
+        self.assertEqual(
+            '<p><span>Cyan</span></p>',
+            clean_html(html))
+
+        cleaner = Cleaner(comments=False)
+        result = cleaner.clean_html(s)
+        self.assertEqual(
+            b'<p><span>Cy<!-- xx -->an</span><!-- XXX --></p>',
+            lxml.html.tostring(result))
+        self.assertEqual(
+            '<p><span>Cy<!-- xx -->an</span><!-- XXX --></p>',
+            cleaner.clean_html(html))
+
+    def test_sneaky_noscript_in_style(self):
+        # This gets parsed as <noscript> -> <style>"...</noscript>..."</style>
+        # thus passing the </noscript> through into the output.
+        html = '<noscript><style><a title="</noscript><img src=x onerror=alert(1)>">'
+        s = lxml.html.fragment_fromstring(html)
+
+        self.assertEqual(
+            b'<noscript><style>/* deleted */</style></noscript>',
+            lxml.html.tostring(clean_html(s)))
+
+    def test_sneaky_js_in_math_style(self):
+        # This gets parsed as <math> -> <style>"..."</style>
+        # thus passing any tag/script/whatever content through into the output.
+        html = '<math><style><img src=x onerror=alert(1)></style></math>'
+        s = lxml.html.fragment_fromstring(html)
+
+        self.assertEqual(
+            b'<math><style>/* deleted */</style></math>',
+            lxml.html.tostring(clean_html(s)))
+
+    def test_formaction_attribute_in_button_input(self):
+        # The formaction attribute overrides the form's action and should be
+        # treated as a malicious link attribute
+        html = ('<form id="test"><input type="submit" formaction="javascript:alert(1)"></form>'
+        '<button form="test" formaction="javascript:alert(1)">X</button>')
+        expected = ('<div><form id="test"><input type="submit" formaction=""></form>'
+        '<button form="test" formaction="">X</button></div>')
+        cleaner = Cleaner(
+            forms=False,
+            safe_attrs_only=False,
+        )
+        self.assertEqual(
+            expected,
+            cleaner.clean_html(html))
 
 
 def test_suite():
