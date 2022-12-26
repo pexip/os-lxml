@@ -7,9 +7,13 @@
 PY3VERS	:= $(shell py3versions -vs)
 PY3VER	:= $(shell py3versions -vd)
 
-UPSTREAMVER := $(subst lxml-,,$(notdir $(CURDIR)))
+include /usr/share/dpkg/pkg-info.mk
 
 include /usr/share/python3/python.mk
+
+# Some locales trigger reproducibility issues in html documentation
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
 
 prebuild: prebuild-stamp
 prebuild-stamp: src/lxml/etree.pyx src/lxml/objectify.pyx
@@ -20,16 +24,15 @@ build-arch: build
 build-indep: build
 build: build3-stamp
 
-build3-stamp: $(PY3VERS:%=build3-python%) $(PY3VERS:%=dbg-build3-python%)
+build3-stamp: $(PY3VERS:%=build3-python%) doc-build3-python$(PY3VER)
 	touch $@
 build3-python%: prebuild
 	python$* setup.py build
-ifeq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
-	python$* doc/mkhtml.py doc/html . $(UPSTREAMVER)
-endif
 	touch $@
-dbg-build3-python%: prebuild
-	python$*-dbg setup.py build
+doc-build3-python$(PY3VER): build3-python$(PY3VER)
+ifeq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
+	PYTHONPATH=$(call py_builddir, $(PY3VER)) python$(PY3VER) doc/mkhtml.py doc/html . $(DEB_VERSION_UPSTREAM)
+endif
 	touch $@
 
 clean:
@@ -45,7 +48,7 @@ clean:
 	rm -f src/lxml/lxml-version.h
 	dh_clean 
 
-install: build install-prereq $(PY3VERS:%=install3-python%) $(PY3VERS:%=dbg-install3-python%)
+install: build install-prereq $(PY3VERS:%=install3-python%)
 	-find debian -name '*.py[co]' | xargs rm -f
 	-find debian -name __pycache__ | xargs rm -rf
 	rm -rf debian/python*-lxml/usr/lib/python
@@ -60,14 +63,6 @@ install3-python%:
 	mkdir -p debian/python3-lxml/$(call py_libdir, $*)
 	python$* setup.py install \
 		--root=$(CURDIR)/debian/python3-lxml --install-layout=deb
-
-dbg-install3-python%:
-	mkdir -p debian/python3-lxml/usr/bin
-	mkdir -p debian/python3-lxml-dbg/$(call py_libdir, $*)
-	python$*-dbg setup.py install \
-		--root=$(CURDIR)/debian/python3-lxml-dbg --install-layout=deb
-	find debian/python3-*-dbg ! -type d ! -name '*.so' | xargs rm -f
-	find debian/python3-*-dbg -depth -empty -exec rmdir {} \;
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -96,9 +91,7 @@ binary-arch: build install
 	dh_installdocs -a CREDITS.txt README.rst TODO.txt
 	dh_installexamples -a samples/*
 	dh_python3 -a
-	dh_strip -ppython3-lxml --dbg-package=python3-lxml-dbg
-	rm -rf debian/python3-lxml-dbg/usr/share/doc/python3-lxml-dbg
-	ln -s python3-lxml debian/python3-lxml-dbg/usr/share/doc/python3-lxml-dbg
+	dh_strip -ppython3-lxml
 	dh_compress -a -X.xml -X.py \
 	    -X.html -X.css -X.asc -X.png -Xapi-objects.txt
 	dh_fixperms -a
