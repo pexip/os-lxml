@@ -1,2 +1,1 @@
-Cleaner-Prevent-import-from-re-occurring-in-the-CSS-.patch
-Cleaner-Remove-SVG-image-data-URLs-since-they-can-em.patch
+do-not-embed-timestamps-in-html.diff
