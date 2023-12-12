@@ -1,3 +1,9 @@
+lxml (4.9.2-1+b1pexip1) pexip-bookworm; urgency=medium
+
+  * Bump version to supercede Debian point release binNMU.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Tue, 12 Dec 2023 12:44:27 +0000
+
 lxml (4.9.2-1pexip2) pexip-bookworm; urgency=medium
 
   * Bookworm build for product distribution
