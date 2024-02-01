@@ -1,3 +1,9 @@
+lxml (4.9.2-1+b1+pexip24u2) pexip-bookworm; urgency=medium
+
+  * New versioning scheme
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Thu, 01 Feb 2024 16:11:45 +0000
+
 lxml (4.9.2-1+b1pexip1) pexip-bookworm; urgency=medium
 
   * Bump version to supercede Debian point release binNMU.
