@@ -1,17 +1,14 @@
 import json
 import os, re, sys, subprocess, platform
 import tarfile
+import time
 from distutils import log
 from contextlib import closing, contextmanager
 from ftplib import FTP
 
-try:
-    from urllib.parse import urljoin, unquote, urlparse
-    from urllib.request import urlretrieve, urlopen, urlcleanup, Request
-except ImportError:  # Py2
-    from urlparse import urljoin, unquote, urlparse
-    from urllib import urlretrieve, urlcleanup
-    from urllib2 import urlopen, Request
+import urllib.error
+from urllib.parse import urljoin, unquote, urlparse
+from urllib.request import urlretrieve, urlopen, Request
 
 multi_make_options = []
 try:
@@ -32,8 +29,13 @@ sys_platform = sys.platform
 # use pre-built libraries on Windows
 
 def download_and_extract_windows_binaries(destdir):
-    url = "https://api.github.com/repos/lxml/libxml2-win-binaries/releases"
-    releases, _ = read_url(url, accept="application/vnd.github+json", as_json=True)
+    url = "https://api.github.com/repos/lxml/libxml2-win-binaries/releases?per_page=5"
+    releases, _ = read_url(
+        url,
+        accept="application/vnd.github+json",
+        as_json=True,
+        github_api_token=os.environ.get("GITHUB_API_TOKEN"),
+    )
 
     max_release = {'tag_name': ''}
     for release in releases:
@@ -55,6 +57,9 @@ def download_and_extract_windows_binaries(destdir):
     if sys.version_info < (3, 5):
         arch = 'vs2008.' + arch
 
+    arch_part = '.' + arch + '.'
+    filenames = [filename for filename in filenames if arch_part in filename]
+
     libs = {}
     for libname in ['libxml2', 'libxslt', 'zlib', 'iconv']:
         libs[libname] = "%s-%s.%s.zip" % (
@@ -73,7 +78,6 @@ def download_and_extract_windows_binaries(destdir):
             print('Using local copy of  "{}"'.format(srcfile))
         else:
             print('Retrieving "%s" to "%s"' % (srcfile, destfile))
-            urlcleanup()  # work around FTP bug 27973 in Py2.7.12+
             urlretrieve(srcfile, destfile)
         d = unpack_zipfile(destfile, destdir)
         libs[libname] = d
@@ -169,10 +173,12 @@ def _list_dir_ftplib(url):
     return parse_text_ftplist("\n".join(data))
 
 
-def read_url(url, decode=True, accept=None, as_json=False):
+def read_url(url, decode=True, accept=None, as_json=False, github_api_token=None):
     headers = {'User-Agent': 'https://github.com/lxml/lxml'}
     if accept:
         headers['Accept'] = accept
+    if github_api_token:
+        headers['authorization'] = "Bearer " + github_api_token
     request = Request(url, headers=headers)
 
     with closing(urlopen(request)) as res:
@@ -260,7 +266,7 @@ def py2_tarxz(filename):
 def download_libxml2(dest_dir, version=None):
     """Downloads libxml2, returning the filename where the library was downloaded"""
     #version_re = re.compile(r'LATEST_LIBXML2_IS_([0-9.]+[0-9](?:-[abrc0-9]+)?)')
-    version_re = re.compile(r'libxml2-([0-9.]+[0-9]).tar.xz')
+    version_re = re.compile(r'libxml2-([0-9.]+[0-9])[.]tar[.]xz')
     filename = 'libxml2-%s.tar.xz'
 
     if version == "2.9.12":
@@ -277,7 +283,7 @@ def download_libxml2(dest_dir, version=None):
 def download_libxslt(dest_dir, version=None):
     """Downloads libxslt, returning the filename where the library was downloaded"""
     #version_re = re.compile(r'LATEST_LIBXSLT_IS_([0-9.]+[0-9](?:-[abrc0-9]+)?)')
-    version_re = re.compile(r'libxslt-([0-9.]+[0-9]).tar.xz')
+    version_re = re.compile(r'libxslt-([0-9.]+[0-9])[.]tar[.]xz')
     filename = 'libxslt-%s.tar.xz'
     from_location = http_find_latest_version_directory(LIBXSLT_LOCATION, version=version)
     return download_library(dest_dir, from_location, 'libxslt',
@@ -286,7 +292,7 @@ def download_libxslt(dest_dir, version=None):
 
 def download_libiconv(dest_dir, version=None):
     """Downloads libiconv, returning the filename where the library was downloaded"""
-    version_re = re.compile(r'libiconv-([0-9.]+[0-9]).tar.gz')
+    version_re = re.compile(r'libiconv-([0-9.]+[0-9])[.]tar[.]gz')
     filename = 'libiconv-%s.tar.gz'
     return download_library(dest_dir, LIBICONV_LOCATION, 'libiconv',
                             version_re, filename, version=version)
@@ -294,7 +300,7 @@ def download_libiconv(dest_dir, version=None):
 
 def download_zlib(dest_dir, version):
     """Downloads zlib, returning the filename where the library was downloaded"""
-    version_re = re.compile(r'zlib-([0-9.]+[0-9]).tar.gz')
+    version_re = re.compile(r'zlib-([0-9.]+[0-9])[.]tar[.]gz')
     filename = 'zlib-%s.tar.gz'
     return download_library(dest_dir, ZLIB_LOCATION, 'zlib',
                             version_re, filename, version=version)
@@ -308,7 +314,7 @@ def find_max_version(libname, filenames, version_re=None):
         match = version_re.search(fn)
         if match:
             version_string = match.group(1)
-            versions.append((tuple(map(tryint, version_string.split('.'))),
+            versions.append((tuple(map(tryint, version_string.replace("-", ".-").split('.'))),
                              version_string))
     if not versions:
         raise Exception(
@@ -324,10 +330,10 @@ def download_library(dest_dir, location, name, version_re, filename, version=Non
     if version is None:
         try:
             if location.startswith('ftp://'):
-                fns = remote_listdir(location)
+                fns = list(remote_listdir(location))
             else:
-                print(location)
                 fns = http_listfiles(location, '(%s)' % filename.replace('%s', '(?:[0-9.]+[0-9])'))
+            print(f"Found {len(fns)} links at {location}")
             version = find_max_version(name, fns, version_re)
         except IOError:
             # network failure - maybe we have the files already?
@@ -346,16 +352,25 @@ def download_library(dest_dir, location, name, version_re, filename, version=Non
                 raise
     if version:
         filename = filename % version
+
     full_url = urljoin(location, filename)
     dest_filename = os.path.join(dest_dir, filename)
     if os.path.exists(dest_filename):
         print(('Using existing %s downloaded into %s '
                '(delete this file if you want to re-download the package)') % (
             name, dest_filename))
-    else:
-        print('Downloading %s into %s from %s' % (name, dest_filename, full_url))
-        urlcleanup()  # work around FTP bug 27973 in Py2.7.12
+        return dest_filename
+
+    print('Downloading %s into %s from %s' % (name, dest_filename, full_url))
+    try:
         urlretrieve(full_url, dest_filename)
+    except urllib.error.URLError as exc:
+        # retry once
+        retry_after_seconds = 2
+        print(f"Download failed: {exc}, retrying in {int(retry_after_seconds)} seconds…")
+        time.sleep(retry_after_seconds)
+        urlretrieve(full_url, dest_filename)
+
     return dest_filename
 
 
@@ -413,21 +428,14 @@ def cmmi(configure_cmd, build_dir, multicore=None, **call_setup):
 
 def configure_darwin_env(env_setup):
     import platform
-    # configure target architectures on MacOS-X (x86_64 only, by default)
+    # configure target architectures on MacOS-X (x86_64 + Arm64, by default)
     major_version, minor_version = tuple(map(int, platform.mac_ver()[0].split('.')[:2]))
-    if major_version > 7:
-        if platform.mac_ver()[2] == "arm64":
-            env_default = {
-                'CFLAGS': "-arch arm64 -O2",
-                'LDFLAGS': "-arch arm64",
-                'MACOSX_DEPLOYMENT_TARGET': "10.6"
-            }
-        else:
-            env_default = {
-                'CFLAGS': "-arch x86_64 -O2",
-                'LDFLAGS': "-arch x86_64",
-                'MACOSX_DEPLOYMENT_TARGET': "10.6"
-            }
+    if major_version >= 11:
+        env_default = {
+            'CFLAGS': "-arch x86_64 -arch arm64 -O3",
+            'LDFLAGS': "-arch x86_64 -arch arm64",
+            'MACOSX_DEPLOYMENT_TARGET': "11.0"
+        }
         env_default.update(os.environ)
         env_setup['env'] = env_default
 

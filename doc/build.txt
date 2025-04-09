@@ -47,8 +47,8 @@ working Cython installation.  You can use pip_ to install it::
 
 https://github.com/lxml/lxml/blob/master/requirements.txt
 
-lxml currently requires at least Cython 0.29.  Later release versions
-are generally preferred.
+lxml 5.x currently uses at least Cython 3.0.  Later release versions
+are generally preferred.  lxml 4.x used Cython 0.29.x instead.
 
 
 Github, git and hg
@@ -135,16 +135,28 @@ files to the include path like::
 
 where the file is in ``/usr/include/libxml2/libxml/xmlversion.h``
 
+For static builds, if you get an error saying "recompile with -fPIC",
+do so by adding it to your `CFLAGS` environment variable:
+``env CFLAGS="$CFLAGS -fPIC"``, such as::
+
+  env CFLAGS="$CFLAGS -fPIC" python3 setup.py build_ext -i --with-cython --static-deps
+
 To use lxml.etree in-place, you can place lxml's ``src`` directory
 on your Python module search path (PYTHONPATH) and then import
 ``lxml.etree`` to play with it::
 
   # cd lxml
-  # PYTHONPATH=src python
-  Python 2.7.2
+  # PYTHONPATH=src python3
+  Python 3.10.2
   Type "help", "copyright", "credits" or "license" for more information.
   >>> from lxml import etree
   >>>
+
+For non-static builds, you may have to set ``LD_LIBRARY_PATH`` to where the
+shared object files for libxml2 and libxslt are, such as ``/usr/local/lib``. For
+example::
+
+  PYTHONPATH=src LD_LIBRARY_PATH=/usr/local/lib python3
 
 To make sure everything gets recompiled cleanly after changes, you can
 run ``make clean`` or delete the file ``src/lxml/etree.c``.
