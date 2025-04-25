@@ -67,21 +67,29 @@ Crypto currencies do not fit into that ambition.
 support the lxml project with their build and CI servers.
 Jetbrains supports the lxml project by donating free licenses of their
 `PyCharm IDE <https://www.jetbrains.com/pycharm/>`_.
-Another supporter of the lxml project is
-`COLOGNE Webdesign <https://www.colognewebdesign.de/>`_.
 
 
 Project income report
 ---------------------
 
-lxml has `more than 50 million downloads <https://pypistats.org/packages/lxml>`_
+lxml has `about 80 million downloads <https://pypistats.org/packages/lxml>`_
 per month on PyPI.
 
-* Total project income in 2021: EUR 4890.37  (407.53 € / month)
+* Total project income in 2023: EUR 2776.56  (231.38 € / month, 2.89 € / 1,000,000 downloads)
+
+  - Tidelift: EUR 2738.46
+  - Paypal: EUR 38.10
+
+* Total project income in 2022: EUR 2566.38  (213.87 € / month, 3.56 € / 1,000,000 downloads)
+
+  - Tidelift: EUR 2539.38
+  - Paypal: EUR 24.32
+
+* Total project income in 2021: EUR 4640.37  (386.70 € / month)
 
   - Tidelift: EUR 4066.66
   - Paypal: EUR 223.71
-  - other: EUR 600.00
+  - other: EUR 350.00
 
 * Total project income in 2020: EUR 6065,86  (506.49 € / month)
 

@@ -8,6 +8,7 @@ Makefile
 README.rst
 TODO.txt
 buildlibxml.py
+pyproject.toml
 requirements.txt
 setup.py
 setupinfo.py
@@ -59,7 +60,7 @@ doc/html/FAQ.html
 doc/html/api.html
 doc/html/build.html
 doc/html/capi.html
-doc/html/changes-4.9.2.html
+doc/html/changes-5.3.2.html
 doc/html/compatibility.html
 doc/html/credits.html
 doc/html/cssselect.html
@@ -153,7 +154,6 @@ doc/html/apidoc/_static/basic.css
 doc/html/apidoc/_static/doctools.js
 doc/html/apidoc/_static/documentation_options.js
 doc/html/apidoc/_static/file.png
-doc/html/apidoc/_static/jquery-3.6.0.js
 doc/html/apidoc/_static/jquery.js
 doc/html/apidoc/_static/language_data.js
 doc/html/apidoc/_static/minus.png
@@ -162,14 +162,11 @@ doc/html/apidoc/_static/pygments.css
 doc/html/apidoc/_static/python-xml.png
 doc/html/apidoc/_static/searchtools.js
 doc/html/apidoc/_static/sphinx_highlight.js
-doc/html/apidoc/_static/underscore-1.13.1.js
-doc/html/apidoc/_static/underscore.js
 doc/html/apidoc/_static/css/badge_only.css
 doc/html/apidoc/_static/css/theme.css
 doc/html/apidoc/_static/js/badge_only.js
-doc/html/apidoc/_static/js/html5shiv-printshiv.min.js
-doc/html/apidoc/_static/js/html5shiv.min.js
 doc/html/apidoc/_static/js/theme.js
+doc/html/apidoc/_static/js/versions.js
 doc/licenses/BSD.txt
 doc/licenses/GPL.txt
 doc/licenses/elementtree.txt
@@ -261,7 +258,6 @@ src/lxml/html/_diffcommand.py
 src/lxml/html/_html5builder.py
 src/lxml/html/_setmixin.py
 src/lxml/html/builder.py
-src/lxml/html/clean.c
 src/lxml/html/clean.py
 src/lxml/html/defs.py
 src/lxml/html/diff.c
@@ -271,13 +267,8 @@ src/lxml/html/html5parser.py
 src/lxml/html/soupparser.py
 src/lxml/html/usedoctest.py
 src/lxml/html/tests/__init__.py
-src/lxml/html/tests/test_autolink.py
-src/lxml/html/tests/test_autolink.txt
 src/lxml/html/tests/test_basic.py
 src/lxml/html/tests/test_basic.txt
-src/lxml/html/tests/test_clean.py
-src/lxml/html/tests/test_clean.txt
-src/lxml/html/tests/test_clean_embed.txt
 src/lxml/html/tests/test_diff.py
 src/lxml/html/tests/test_diff.txt
 src/lxml/html/tests/test_elementsoup.py
@@ -326,7 +317,6 @@ src/lxml/html/tests/feedparser-data/entry_content_script.data
 src/lxml/html/tests/feedparser-data/entry_content_script_cdata.data
 src/lxml/html/tests/feedparser-data/entry_content_script_inline.data
 src/lxml/html/tests/feedparser-data/entry_content_style.data
-src/lxml/html/tests/hackers-org-data/background-image-plus.data
 src/lxml/html/tests/hackers-org-data/background-image-with-unicoded.data
 src/lxml/html/tests/hackers-org-data/downlevel-hidden.data
 src/lxml/html/tests/hackers-org-data/html-plus-time.data
