@@ -14,7 +14,7 @@ Build-Depends: debhelper (>= 10),
   cython3,
   python3-sphinx-autoapi,
 X-Python-Version: all
-Standards-Version: 4.7.0
+Standards-Version: 4.7.2
 Homepage: http://lxml.de/
 XS-Pexip-Upstream: http://deb.debian.org/debian/ trixie
 

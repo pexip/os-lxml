@@ -60,7 +60,7 @@ doc/html/FAQ.html
 doc/html/api.html
 doc/html/build.html
 doc/html/capi.html
-doc/html/changes-5.3.2.html
+doc/html/changes-5.4.0.html
 doc/html/compatibility.html
 doc/html/credits.html
 doc/html/cssselect.html
